@@ -1,4 +1,4 @@
-/* script.js - VERSÃO FINAL REPARADA (RESTAURAÇÃO CORRIGIDA) */
+/* script.js - VERSÃO FINAL REPARADA (CORREÇÃO DE MAPEAMENTO JSON->DB) */
 'use strict';
 
 // --- CONFIGURAÇÃO FIREBASE ---
@@ -184,7 +184,7 @@ function configurarEventListenersApp() {
     addSafe('btnRestaurar', 'click', () => {
         const fileInput = document.getElementById('restoreFile');
         if (fileInput) {
-            fileInput.value = ''; // Limpa para garantir o evento change
+            fileInput.value = ''; // Garante o evento change mesmo se for o mesmo arquivo
             fileInput.click();
         }
     });
@@ -358,35 +358,58 @@ function restaurarBackup(event) {
         try {
             const data = JSON.parse(e.target.result);
             
-            // VALIDAÇÃO RIGOROSA: O arquivo tem que ter dados
-            if (!data || (!data.agendamentos && !data.pacientesGlobais)) {
-                mostrarNotificacao('ERRO: O arquivo selecionado parece vazio ou inválido.', 'danger');
+            // Verifica se o arquivo tem algum dado útil antes de prosseguir
+            if (!data || (!data.agendamentos && !data.pacientesGlobais && !data.diasBloqueados)) {
+                mostrarNotificacao('ERRO CRÍTICO: O arquivo selecionado está vazio ou inválido.', 'danger');
                 return;
             }
 
-            // Mensagem corrigida: Substituir em vez de Apagar
             abrirModalConfirmacao(
                 'Confirmação: Isso SUBSTITUIRÁ os dados atuais pelos dados do arquivo de Backup. Deseja continuar?',
                 () => {
-                    // Prepara o objeto completo para SUBSTITUIÇÃO (SET)
-                    const novoEstadoDB = {
-                        agendamentos: data.agendamentos || {},
-                        pacientes_dados: data.pacientesGlobais || [],
-                        dias_bloqueados: data.diasBloqueados || {},
-                        feriados_desbloqueados: data.feriadosDesbloqueados || {}
-                    };
-
-                    mostrarNotificacao('Carregando dados do backup...', 'info');
+                    // --- CORREÇÃO CRÍTICA AQUI ---
+                    // Mapeia chaves do arquivo (camelCase) para chaves do Banco (snake_case)
+                    // Se o dado não existir no JSON, NÃO envia undefined (para não apagar)
                     
-                    // USANDO SET PARA GARANTIR QUE O BANCO FIQUE IGUAL AO ARQUIVO
-                    set(ref(db, '/'), novoEstadoDB)
+                    const updates = {};
+                    
+                    // 1. Agendamentos (Nome igual)
+                    if (data.agendamentos) {
+                        updates['/agendamentos'] = data.agendamentos;
+                    }
+                    
+                    // 2. Pacientes (JSON: pacientesGlobais -> DB: pacientes_dados)
+                    if (data.pacientesGlobais) {
+                        updates['/pacientes_dados'] = data.pacientesGlobais;
+                    }
+                    
+                    // 3. Bloqueios (JSON: diasBloqueados -> DB: dias_bloqueados)
+                    if (data.diasBloqueados) {
+                        updates['/dias_bloqueados'] = data.diasBloqueados;
+                    }
+
+                    // 4. Feriados (JSON: feriadosDesbloqueados -> DB: feriados_desbloqueados)
+                    if (data.feriadosDesbloqueados) {
+                        updates['/feriados_desbloqueados'] = data.feriadosDesbloqueados;
+                    }
+
+                    // Se não tiver nada para atualizar, aborta
+                    if (Object.keys(updates).length === 0) {
+                        mostrarNotificacao('O backup não contém dados compatíveis para restauração.', 'warning');
+                        return;
+                    }
+
+                    mostrarNotificacao('Restaurando... aguarde.', 'info');
+                    
+                    // Usa UPDATE na raiz para aplicar apenas as chaves que existem
+                    update(ref(db), updates)
                         .then(() => {
                             mostrarNotificacao('Dados restaurados com sucesso!', 'success');
                             setTimeout(() => location.reload(), 1500);
                         })
                         .catch((error) => {
                             console.error("Erro na restauração:", error);
-                            mostrarNotificacao('Erro ao gravar no banco. Tente novamente.', 'danger');
+                            mostrarNotificacao('Erro ao gravar no banco. Verifique conexão.', 'danger');
                         });
                 }
             );
