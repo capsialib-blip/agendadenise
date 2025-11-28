@@ -1,4 +1,4 @@
-/* script.js - VERSÃO FINAL REPARADA (LISTENERS SEGUROS) */
+/* script.js - VERSÃO FINAL REPARADA (RESTAURAÇÃO FUNCIONAL) */
 'use strict';
 
 // --- CONFIGURAÇÃO FIREBASE ---
@@ -99,8 +99,8 @@ function tentarLogin() {
     const errorMessage = document.getElementById('loginErrorMessage');
     if (usuarioInput.value === '0000' && senhaInput.value === '0000') {
         sessionStorage.setItem('usuarioLogado', 'true');
-        if (errorMessage) errorMessage.classList.add('hidden');
         document.body.classList.add('logged-in');
+        if (errorMessage) errorMessage.classList.add('hidden');
         inicializarApp();
     } else {
         if (errorMessage) { errorMessage.textContent = 'Senha incorreta.'; errorMessage.classList.remove('hidden'); }
@@ -179,7 +179,14 @@ function configurarEventListenersApp() {
     addSafe('htmlFile', 'change', handleHtmlFile);
     addSafe('btnLimparDados', 'click', abrirModalLimpeza);
     addSafe('btnBackup', 'click', fazerBackup); // AQUI ESTÁ O BACKUP
-    addSafe('btnRestaurar', 'click', () => document.getElementById('restoreFile').click());
+    addSafe('btnRestaurar', 'click', () => {
+        // Força limpeza antes de abrir para garantir o change
+        const fileInput = document.getElementById('restoreFile');
+        if (fileInput) {
+            fileInput.value = ''; 
+            fileInput.click();
+        }
+    });
     addSafe('restoreFile', 'change', restaurarBackup);
     
     // Modais
@@ -334,8 +341,8 @@ function handleHtmlFile(event) {
             pacientesGlobais = Array.from(mapaExistentes.values());
             salvarPacientesNoCloud();
             mostrarNotificacao('Pacientes importados com sucesso.', 'success');
-            event.target.value = '';
-        } catch (error) { mostrarNotificacao('Falha ao ler arquivo.', 'danger'); event.target.value = ''; }
+        } catch (error) { mostrarNotificacao('Falha ao ler arquivo.', 'danger'); } 
+        finally { if (event.target) event.target.value = ''; }
     };
     reader.readAsText(file, 'windows-1252');
 }
@@ -344,28 +351,49 @@ function handleHtmlFile(event) {
 function restaurarBackup(event) {
     const file = event.target.files[0];
     if (!file) return;
+    
     const reader = new FileReader();
     reader.onload = function(e) {
         try {
             const data = JSON.parse(e.target.result);
-            if (data && typeof data.agendamentos === 'object') {
-                 // AQUI CHAMA O MODAL QUE AGORA ESTÁ FUNCIONANDO
+            // Verifica se é um backup válido checando a existência de campos chaves
+            if (data && (typeof data.agendamentos === 'object' || Array.isArray(data.pacientesGlobais))) {
+                 
                  abrirModalConfirmacao(
-                    'Tem certeza que deseja restaurar? Isso apagará os dados atuais da nuvem.',
+                    'ATENÇÃO: Restaurar apagará todos os dados atuais da nuvem. Deseja continuar?',
                     () => {
-                        update(ref(db), {
+                        // Mapeia os dados do JSON (camelCase) para o DB (snake_case)
+                        // Garante que não envie undefined para o Firebase
+                        const updates = {
                             agendamentos: data.agendamentos || {},
                             pacientes_dados: data.pacientesGlobais || [],
                             dias_bloqueados: data.diasBloqueados || {},
                             feriados_desbloqueados: data.feriadosDesbloqueados || {}
-                        }).then(() => {
-                            mostrarNotificacao('Restauração concluída!', 'success');
-                            setTimeout(() => location.reload(), 1500);
-                        });
+                        };
+
+                        mostrarNotificacao('Restaurando... aguarde.', 'info');
+                        
+                        update(ref(db, '/'), updates)
+                            .then(() => {
+                                mostrarNotificacao('Restauração concluída!', 'success');
+                                setTimeout(() => location.reload(), 1500);
+                            })
+                            .catch((error) => {
+                                console.error("Erro na restauração:", error);
+                                mostrarNotificacao('Erro ao gravar no banco. Verifique permissões.', 'danger');
+                            });
                     }
                 );
-            } else { mostrarNotificacao('Arquivo inválido.', 'danger'); }
-        } catch (error) { mostrarNotificacao('Falha ao ler.', 'danger'); } finally { if(event.target) event.target.value = ''; }
+            } else { 
+                mostrarNotificacao('Arquivo inválido ou corrompido.', 'danger'); 
+            }
+        } catch (error) { 
+            console.error(error);
+            mostrarNotificacao('Falha ao processar arquivo.', 'danger'); 
+        } finally {
+            // Limpa o input para permitir selecionar o mesmo arquivo novamente se falhar
+            if(event.target) event.target.value = '';
+        }
     };
     reader.readAsText(file);
 }
