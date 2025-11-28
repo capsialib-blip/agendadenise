@@ -1,4 +1,4 @@
-/* script.js - VERSÃO FINAL REPARADA (RESTAURAÇÃO FUNCIONAL) */
+/* script.js - VERSÃO FINAL REPARADA (RESTAURAÇÃO CORRIGIDA) */
 'use strict';
 
 // --- CONFIGURAÇÃO FIREBASE ---
@@ -178,12 +178,13 @@ function configurarEventListenersApp() {
     addSafe('btnImportar', 'click', () => document.getElementById('htmlFile').click());
     addSafe('htmlFile', 'change', handleHtmlFile);
     addSafe('btnLimparDados', 'click', abrirModalLimpeza);
-    addSafe('btnBackup', 'click', fazerBackup); // AQUI ESTÁ O BACKUP
+    addSafe('btnBackup', 'click', fazerBackup);
+    
+    // RESTAURAR BACKUP
     addSafe('btnRestaurar', 'click', () => {
-        // Força limpeza antes de abrir para garantir o change
         const fileInput = document.getElementById('restoreFile');
         if (fileInput) {
-            fileInput.value = ''; 
+            fileInput.value = ''; // Limpa para garantir o evento change
             fileInput.click();
         }
     });
@@ -199,7 +200,7 @@ function configurarEventListenersApp() {
     addSafe('btnCancelarAcompanhante', 'click', fecharModalAcompanhante);
     addSafe('acompanhanteNomeInput', 'keyup', (e) => { if(e.key==='Enter') confirmarNomeAcompanhante(); });
 
-    // CONFIRMAÇÃO DO MODAL (SIM/NÃO) - Lógica Simplificada
+    // CONFIRMAÇÃO DO MODAL (SIM/NÃO)
     addSafe('btnCancelarModal', 'click', fecharModalConfirmacao);
     addSafe('confirmButton', 'click', executarAcaoConfirmada);
     
@@ -347,7 +348,7 @@ function handleHtmlFile(event) {
     reader.readAsText(file, 'windows-1252');
 }
 
-// 3. RESTAURAR BACKUP (JSON)
+// 3. RESTAURAR BACKUP (JSON) - CORRIGIDO
 function restaurarBackup(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -356,42 +357,43 @@ function restaurarBackup(event) {
     reader.onload = function(e) {
         try {
             const data = JSON.parse(e.target.result);
-            // Verifica se é um backup válido checando a existência de campos chaves
-            if (data && (typeof data.agendamentos === 'object' || Array.isArray(data.pacientesGlobais))) {
-                 
-                 abrirModalConfirmacao(
-                    'ATENÇÃO: Restaurar apagará todos os dados atuais da nuvem. Deseja continuar?',
-                    () => {
-                        // Mapeia os dados do JSON (camelCase) para o DB (snake_case)
-                        // Garante que não envie undefined para o Firebase
-                        const updates = {
-                            agendamentos: data.agendamentos || {},
-                            pacientes_dados: data.pacientesGlobais || [],
-                            dias_bloqueados: data.diasBloqueados || {},
-                            feriados_desbloqueados: data.feriadosDesbloqueados || {}
-                        };
-
-                        mostrarNotificacao('Restaurando... aguarde.', 'info');
-                        
-                        update(ref(db, '/'), updates)
-                            .then(() => {
-                                mostrarNotificacao('Restauração concluída!', 'success');
-                                setTimeout(() => location.reload(), 1500);
-                            })
-                            .catch((error) => {
-                                console.error("Erro na restauração:", error);
-                                mostrarNotificacao('Erro ao gravar no banco. Verifique permissões.', 'danger');
-                            });
-                    }
-                );
-            } else { 
-                mostrarNotificacao('Arquivo inválido ou corrompido.', 'danger'); 
+            
+            // VALIDAÇÃO RIGOROSA: O arquivo tem que ter dados
+            if (!data || (!data.agendamentos && !data.pacientesGlobais)) {
+                mostrarNotificacao('ERRO: O arquivo selecionado parece vazio ou inválido.', 'danger');
+                return;
             }
+
+            // Mensagem corrigida: Substituir em vez de Apagar
+            abrirModalConfirmacao(
+                'Confirmação: Isso SUBSTITUIRÁ os dados atuais pelos dados do arquivo de Backup. Deseja continuar?',
+                () => {
+                    // Prepara o objeto completo para SUBSTITUIÇÃO (SET)
+                    const novoEstadoDB = {
+                        agendamentos: data.agendamentos || {},
+                        pacientes_dados: data.pacientesGlobais || [],
+                        dias_bloqueados: data.diasBloqueados || {},
+                        feriados_desbloqueados: data.feriadosDesbloqueados || {}
+                    };
+
+                    mostrarNotificacao('Carregando dados do backup...', 'info');
+                    
+                    // USANDO SET PARA GARANTIR QUE O BANCO FIQUE IGUAL AO ARQUIVO
+                    set(ref(db, '/'), novoEstadoDB)
+                        .then(() => {
+                            mostrarNotificacao('Dados restaurados com sucesso!', 'success');
+                            setTimeout(() => location.reload(), 1500);
+                        })
+                        .catch((error) => {
+                            console.error("Erro na restauração:", error);
+                            mostrarNotificacao('Erro ao gravar no banco. Tente novamente.', 'danger');
+                        });
+                }
+            );
         } catch (error) { 
             console.error(error);
-            mostrarNotificacao('Falha ao processar arquivo.', 'danger'); 
+            mostrarNotificacao('Falha ao processar arquivo JSON.', 'danger'); 
         } finally {
-            // Limpa o input para permitir selecionar o mesmo arquivo novamente se falhar
             if(event.target) event.target.value = '';
         }
     };
