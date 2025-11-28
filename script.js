@@ -1,4 +1,4 @@
-/* script.js - VERSÃO FINAL REPARADA (CORREÇÃO DE SALVAMENTO E UI) */
+/* script.js - VERSÃO FINAL REPARADA (UI BOTÃO + FIX IMPRESSÃO) */
 'use strict';
 
 // --- CONFIGURAÇÃO FIREBASE ---
@@ -487,6 +487,7 @@ function gerarVagasTurno(agendamentosTurno, turno, data) {
 
         if (agendamento && !estaEditando) {
              const justHTML = (agendamento.status === 'Justificou' && agendamento.justificativa) ? `<div class="justificativa-display"><p><strong>Justif.:</strong> ${agendamento.justificativa.tipo}</p></div>` : '';
+             // --- CORREÇÃO DO BOTÃO ABAIXO (MIMETIZANDO 'btn-edit') ---
              html += `<div class="agendamento-info"><h4>${agendamento.nome}</h4><p>Nº ${agendamento.numero}</p><p>CNS: ${agendamento.cns}</p>${justHTML}
                 <div class="status-buttons-container">
                     <button class="btn btn-sm btn-status ${status==='Compareceu'?'active':''}" onclick="window.marcarStatus('${data}','${turno}',${i},'Compareceu')">Compareceu</button>
@@ -495,7 +496,7 @@ function gerarVagasTurno(agendamentosTurno, turno, data) {
                 </div>
                 <div class="agendamento-acoes">
                     <button class="btn btn-edit" onclick="iniciarEdicao('${data}', '${turno}', ${i})">Editar</button>
-                    <button class="btn btn-secondary btn-sm" onclick="iniciarProcessoDeclaracao('${data}', '${turno}', ${i})">Declar.</button>
+                    <button class="btn btn-edit" onclick="iniciarProcessoDeclaracao('${data}', '${turno}', ${i})">Declaração</button>
                     <button class="btn btn-danger" onclick="window.abrirModalConfirmacao('Cancelar?', () => executarCancelamento('${data}', '${turno}', ${i}))">X</button>
                 </div></div>`;
         } else {
@@ -567,7 +568,6 @@ function criarBlockedState(fmt, motivo) { return `<div class="appointment-header
 function criarBlockedTurnoState(turno, motivo) { return `<div class="blocked-state turno"><h4>${turno} Bloqueado</h4><p>${motivo}</p></div>`; }
 function criarEmptyState() { return `<div class="glass-card empty-state-card"><div class="empty-state"><h3>Selecione uma Data</h3></div></div>`; }
 
-// --- CORREÇÃO APLICADA NESTA FUNÇÃO: REDESENHO DA TELA ---
 function agendarPaciente(event, data, turno, vaga) {
     event.preventDefault(); const form = event.target;
     const novoAgendamento = {
@@ -601,7 +601,6 @@ function agendarPaciente(event, data, turno, vaga) {
 
 function iniciarEdicao(data, turno, vaga) { slotEmEdicao = { data, turno, vaga }; exibirAgendamentos(data); }
 
-// --- CORREÇÃO APLICADA NESTA FUNÇÃO: REDESENHO DA TELA ---
 function executarCancelamento(data, turno, vaga) {
     if(!agendamentos[data] || !agendamentos[data][turno]) { fecharModalConfirmacao(); return; }
     
@@ -620,7 +619,6 @@ function executarCancelamento(data, turno, vaga) {
     fecharModalConfirmacao();
 }
 
-// --- CORREÇÃO APLICADA NESTA FUNÇÃO: REDESENHO DA TELA ---
 function marcarStatus(data, turno, vaga, st) {
     if(!agendamentos[data] || !agendamentos[data][turno]) return;
     
@@ -798,7 +796,38 @@ function gerarDeclaracaoAcompanhante() { document.getElementById('acompanhanteMo
 function fecharModalAcompanhante() { document.getElementById('acompanhanteModal').style.display='none'; }
 function confirmarNomeAcompanhante() { fecharModalAcompanhante(); fecharModalEscolha(); document.getElementById('declaracaoModal').style.display='flex'; }
 function fecharModalAtestado() { document.getElementById('declaracaoModal').style.display='none'; }
-function imprimirDeclaracao() { window.print(); }
+
+// --- CORREÇÃO DA IMPRESSÃO ---
+function imprimirDeclaracao() {
+    // 1. Captura o conteúdo do modal
+    const conteudo = document.getElementById('declaracao-content-wrapper').innerHTML;
+    const nomeAss = document.getElementById('assinaturaNomePrint').textContent;
+    const funcAss = document.getElementById('assinaturaFuncaoPrint').textContent;
+    // Captura o cabeçalho oculto que está no modal
+    const headerEl = document.querySelector('.print-only-header');
+    const header = headerEl ? headerEl.innerHTML : '';
+
+    // 2. Joga tudo no container de impressão (que aparece na folha e some na tela)
+    const printContainer = document.getElementById('print-container');
+    printContainer.innerHTML = `
+        <div class="declaracao-print-layout" style="padding: 2rem;">
+            <div class="header-print" style="text-align:center; margin-bottom: 2rem;">${header}</div>
+            <div class="declaracao-corpo" style="margin-bottom: 4rem; font-size: 1.2rem; line-height: 1.6;">${conteudo}</div>
+            <div class="assinatura-block-print" style="margin-top: 50px; text-align: center;">
+                <div style="border-top: 1px solid #000; width: 300px; margin: 0 auto; padding-top: 5px;"></div>
+                <p style="margin: 5px 0 0;">${nomeAss}</p>
+                <p style="margin: 0; font-size: 0.9em; color: #555;">${funcAss}</p>
+            </div>
+        </div>
+    `;
+
+    // 3. Chama o print do navegador
+    window.print();
+
+    // 4. Limpa o container para não atrapalhar depois
+    setTimeout(() => { printContainer.innerHTML = ''; }, 1000);
+}
+
 function imprimirAgendaDiaria(d) { window.print(); }
 function imprimirVagas() { window.print(); }
 function fecharModalRelatorio() { document.getElementById('reportModal').style.display='none'; }
