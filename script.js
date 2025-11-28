@@ -1,4 +1,4 @@
-/* script.js - VERSÃO FINAL REPARADA (CORREÇÃO DE MAPEAMENTO JSON->DB) */
+/* script.js - VERSÃO FINAL REPARADA (CORREÇÃO DE SALVAMENTO E UI) */
 'use strict';
 
 // --- CONFIGURAÇÃO FIREBASE ---
@@ -65,7 +65,7 @@ let modalBackupAberto = false;
 let reportCurrentStatus = null; 
 let reportUnfilteredResults = []; 
 let atestadoEmGeracao = null;
-let confirmAction = null; // Variável que guarda a ação do botão "Sim"
+let confirmAction = null; 
 let tentativaSenha = 1;
 let vagasResultadosAtuais = []; 
 
@@ -83,7 +83,6 @@ function configurarEventListenersLogin() {
     const loginButton = document.getElementById('loginButton');
     const loginSenhaInput = document.getElementById('loginSenha');
     if (loginButton) {
-        // Limpa listeners antigos clonando o botão
         const novoLoginButton = loginButton.cloneNode(true);
         loginButton.parentNode.replaceChild(novoLoginButton, loginButton);
         novoLoginButton.addEventListener('click', tentarLogin);
@@ -110,20 +109,16 @@ function tentarLogin() {
 function inicializarApp() {
     console.log('App Iniciado...');
     
-    // 1. PRIMEIRO: Configura os botões (Backup, Importar, Confirmar)
-    // Isso garante que funcionem mesmo se o Firebase demorar
     configurarEventListenersApp();
     configurarHorarioBackup();
     configurarBuscaGlobalAutocomplete();
     configurarVagasEventListeners();
     configurarAutocompleteAssinatura();
     
-    // 2. SEGUNDO: Renderiza calendário vazio para não ficar tela branca
     atualizarCalendario();
     atualizarResumoMensal();
     atualizarResumoSemanal(new Date());
     
-    // 3. TERCEIRO: Conecta no Firebase
     const dbRef = ref(db);
     onValue(dbRef, (snapshot) => {
         const data = snapshot.val() || {};
@@ -138,13 +133,13 @@ function inicializarApp() {
              salvarPacientesNoCloud();
         }
 
-        // Re-renderiza com dados reais
         atualizarCalendario();
         atualizarResumoMensal();
         atualizarResumoSemanal(new Date());
         verificarDadosCarregados();
         
-        if (dataSelecionada) {
+        // Se estiver editando, NÃO redesenha para não fechar o teclado/form
+        if (dataSelecionada && !slotEmEdicao) {
             exibirAgendamentos(dataSelecionada);
             atualizarBolinhasDisponibilidade(dataSelecionada);
         }
@@ -161,10 +156,9 @@ function salvarPacientesNoCloud() { set(ref(db, 'pacientes_dados'), pacientesGlo
 function salvarPacientesNoLocalStorage() { salvarPacientesNoCloud(); return true; }
 
 // ============================================
-// CONFIGURAÇÃO DOS BOTÕES (SAFE MODE)
+// CONFIGURAÇÃO DOS BOTÕES
 // ============================================
 function configurarEventListenersApp() {
-    // Helper para adicionar listener com segurança (evita erros se ID não existir)
     const addSafe = (id, event, fn) => {
         const el = document.getElementById(id);
         if(el) el.addEventListener(event, fn);
@@ -174,23 +168,17 @@ function configurarEventListenersApp() {
     addSafe('btnMesAnterior', 'click', voltarMes);
     addSafe('btnProximoMes', 'click', avancarMes);
     
-    // Botões de Gerenciamento (Backup, Importar, Limpar)
     addSafe('btnImportar', 'click', () => document.getElementById('htmlFile').click());
     addSafe('htmlFile', 'change', handleHtmlFile);
     addSafe('btnLimparDados', 'click', abrirModalLimpeza);
     addSafe('btnBackup', 'click', fazerBackup);
     
-    // RESTAURAR BACKUP
     addSafe('btnRestaurar', 'click', () => {
         const fileInput = document.getElementById('restoreFile');
-        if (fileInput) {
-            fileInput.value = ''; // Garante o evento change mesmo se for o mesmo arquivo
-            fileInput.click();
-        }
+        if (fileInput) { fileInput.value = ''; fileInput.click(); }
     });
     addSafe('restoreFile', 'change', restaurarBackup);
     
-    // Modais
     addSafe('btnDeclaracaoPaciente', 'click', gerarDeclaracaoPaciente);
     addSafe('btnDeclaracaoAcompanhante', 'click', gerarDeclaracaoAcompanhante);
     addSafe('btnCancelarChoice', 'click', fecharModalEscolha);
@@ -200,7 +188,6 @@ function configurarEventListenersApp() {
     addSafe('btnCancelarAcompanhante', 'click', fecharModalAcompanhante);
     addSafe('acompanhanteNomeInput', 'keyup', (e) => { if(e.key==='Enter') confirmarNomeAcompanhante(); });
 
-    // CONFIRMAÇÃO DO MODAL (SIM/NÃO)
     addSafe('btnCancelarModal', 'click', fecharModalConfirmacao);
     addSafe('confirmButton', 'click', executarAcaoConfirmada);
     
@@ -248,16 +235,14 @@ function configurarVagasEventListeners() {
 }
 
 // ============================================
-// LÓGICA DO MODAL DE CONFIRMAÇÃO (SIM/NÃO)
+// MODAL
 // ============================================
 function abrirModalConfirmacao(msg, acao) { 
     const modal = document.getElementById('confirmModal');
     const msgEl = document.getElementById('confirmMessage');
-    
     if(!modal || !msgEl) return;
-    
     msgEl.textContent = msg;
-    confirmAction = acao; // Guarda a função para ser executada depois
+    confirmAction = acao; 
     modal.style.display = 'flex';
 }
 
@@ -267,26 +252,16 @@ function fecharModalConfirmacao() {
 }
 
 function executarAcaoConfirmada() {
-    // Quando clica em SIM, executa a função guardada
-    if (typeof confirmAction === 'function') {
-        confirmAction(); 
-    }
+    if (typeof confirmAction === 'function') { confirmAction(); }
     fecharModalConfirmacao();
 }
 
 // ============================================
-// LÓGICA DE BACKUP / IMPORTAÇÃO / RESTAURAÇÃO
+// BACKUP / RESTORE
 // ============================================
-
-// 1. FAZER BACKUP
 function fazerBackup() {
     try {
-        const data = {
-            agendamentos,
-            pacientesGlobais,
-            diasBloqueados,
-            feriadosDesbloqueados
-        };
+        const data = { agendamentos, pacientesGlobais, diasBloqueados, feriadosDesbloqueados };
         const dataString = JSON.stringify(data, null, 2);
         const blob = new Blob([dataString], {type: 'application/json'});
         const url = URL.createObjectURL(blob);
@@ -298,16 +273,11 @@ function fazerBackup() {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        
         localStorage.setItem('ultimoBackupRealizado', new Date().toLocaleDateString('pt-BR'));
         mostrarNotificacao('Backup realizado com sucesso!', 'success');
-    } catch (e) {
-        console.error(e);
-        mostrarNotificacao('Erro ao criar backup.', 'danger');
-    }
+    } catch (e) { console.error(e); mostrarNotificacao('Erro ao criar backup.', 'danger'); }
 }
 
-// 2. IMPORTAR HTML (PACIENTES)
 function handleHtmlFile(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -348,7 +318,6 @@ function handleHtmlFile(event) {
     reader.readAsText(file, 'windows-1252');
 }
 
-// 3. RESTAURAR BACKUP (JSON) - CORRIGIDO
 function restaurarBackup(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -357,74 +326,43 @@ function restaurarBackup(event) {
     reader.onload = function(e) {
         try {
             const data = JSON.parse(e.target.result);
-            
-            // Verifica se o arquivo tem algum dado útil antes de prosseguir
             if (!data || (!data.agendamentos && !data.pacientesGlobais && !data.diasBloqueados)) {
-                mostrarNotificacao('ERRO CRÍTICO: O arquivo selecionado está vazio ou inválido.', 'danger');
-                return;
+                mostrarNotificacao('ERRO CRÍTICO: Arquivo vazio ou inválido.', 'danger'); return;
             }
 
             abrirModalConfirmacao(
-                'Confirmação: Isso SUBSTITUIRÁ os dados atuais pelos dados do arquivo de Backup. Deseja continuar?',
+                'Confirmação: Isso SUBSTITUIRÁ os dados atuais pelos dados do arquivo. Deseja continuar?',
                 () => {
-                    // --- CORREÇÃO CRÍTICA AQUI ---
-                    // Mapeia chaves do arquivo (camelCase) para chaves do Banco (snake_case)
-                    // Se o dado não existir no JSON, NÃO envia undefined (para não apagar)
-                    
                     const updates = {};
-                    
-                    // 1. Agendamentos (Nome igual)
-                    if (data.agendamentos) {
-                        updates['/agendamentos'] = data.agendamentos;
-                    }
-                    
-                    // 2. Pacientes (JSON: pacientesGlobais -> DB: pacientes_dados)
-                    if (data.pacientesGlobais) {
-                        updates['/pacientes_dados'] = data.pacientesGlobais;
-                    }
-                    
-                    // 3. Bloqueios (JSON: diasBloqueados -> DB: dias_bloqueados)
-                    if (data.diasBloqueados) {
-                        updates['/dias_bloqueados'] = data.diasBloqueados;
-                    }
+                    if (data.agendamentos) updates['/agendamentos'] = data.agendamentos;
+                    if (data.pacientesGlobais) updates['/pacientes_dados'] = data.pacientesGlobais;
+                    if (data.diasBloqueados) updates['/dias_bloqueados'] = data.diasBloqueados;
+                    if (data.feriadosDesbloqueados) updates['/feriados_desbloqueados'] = data.feriadosDesbloqueados;
 
-                    // 4. Feriados (JSON: feriadosDesbloqueados -> DB: feriados_desbloqueados)
-                    if (data.feriadosDesbloqueados) {
-                        updates['/feriados_desbloqueados'] = data.feriadosDesbloqueados;
-                    }
-
-                    // Se não tiver nada para atualizar, aborta
                     if (Object.keys(updates).length === 0) {
-                        mostrarNotificacao('O backup não contém dados compatíveis para restauração.', 'warning');
-                        return;
+                        mostrarNotificacao('Backup sem dados compatíveis.', 'warning'); return;
                     }
-
-                    mostrarNotificacao('Restaurando... aguarde.', 'info');
                     
-                    // Usa UPDATE na raiz para aplicar apenas as chaves que existem
+                    mostrarNotificacao('Restaurando...', 'info');
                     update(ref(db), updates)
                         .then(() => {
-                            mostrarNotificacao('Dados restaurados com sucesso!', 'success');
+                            mostrarNotificacao('Restaurado com sucesso!', 'success');
                             setTimeout(() => location.reload(), 1500);
                         })
                         .catch((error) => {
-                            console.error("Erro na restauração:", error);
-                            mostrarNotificacao('Erro ao gravar no banco. Verifique conexão.', 'danger');
+                            console.error("Erro restore:", error);
+                            mostrarNotificacao('Erro ao gravar no banco.', 'danger');
                         });
                 }
             );
-        } catch (error) { 
-            console.error(error);
-            mostrarNotificacao('Falha ao processar arquivo JSON.', 'danger'); 
-        } finally {
-            if(event.target) event.target.value = '';
-        }
+        } catch (error) { console.error(error); mostrarNotificacao('Falha JSON.', 'danger'); } 
+        finally { if(event.target) event.target.value = ''; }
     };
     reader.readAsText(file);
 }
 
 // ============================================
-// OUTRAS FUNÇÕES DE SUPORTE
+// EXIBIÇÃO / RENDERIZAÇÃO
 // ============================================
 function verificarDadosCarregados() {
     const indicator = document.getElementById('dataLoadedIndicator');
@@ -513,7 +451,6 @@ function exibirAgendamentos(data) {
     setTimeout(() => { document.querySelectorAll('.vaga-form').forEach(configurarAutopreenchimento); document.querySelectorAll('input[name="agendadoPor"]').forEach(input => { input.addEventListener('blur', (event) => { const codeMap = { '01': 'Alessandra', '02': 'Nicole' }; if (codeMap[event.target.value.trim()]) event.target.value = codeMap[event.target.value.trim()]; }); }); }, 0);
 }
 
-// Helpers exportados para Window
 window.mostrarTurno = function(turno) { turnoAtivo = turno; document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active')); document.querySelector(`.tab-btn.${turno}`)?.classList.add('active'); document.querySelectorAll('.turno-content').forEach(c => c.classList.remove('active')); document.getElementById(`turno-${turno}`)?.classList.add('active'); };
 window.cancelarEdicao = function() { slotEmEdicao = null; exibirAgendamentos(dataSelecionada); };
 window.limparFormulario = function(btn) { const form = btn.closest('form'); if(form) { form.reset(); form.querySelector('[name="numero"]')?.focus(); } };
@@ -522,7 +459,7 @@ window.pularParaCard = pularParaCard;
 window.pularParaVagaLivre = pularParaVagaLivre;
 window.iniciarEdicao = iniciarEdicao;
 window.iniciarProcessoDeclaracao = iniciarProcessoDeclaracao;
-window.abrirModalConfirmacao = abrirModalConfirmacao; // Exportado
+window.abrirModalConfirmacao = abrirModalConfirmacao; 
 window.executarCancelamento = executarCancelamento;
 window.marcarStatus = marcarStatus;
 window.agendarPaciente = agendarPaciente;
@@ -531,6 +468,12 @@ window.verificarDuplicidadeAoDigitar = verificarDuplicidadeAoDigitar;
 function gerarVagasTurno(agendamentosTurno, turno, data) {
     let html = '<div class="vagas-grid">';
     agendamentosTurno = agendamentosTurno || [];
+    
+    // BLINDAGEM CONTRA ARRAY ESTRAGADO
+    if (!Array.isArray(agendamentosTurno) && typeof agendamentosTurno === 'object') {
+        agendamentosTurno = Object.values(agendamentosTurno);
+    }
+    
     for (let i = 1; i <= VAGAS_POR_TURNO; i++) {
         const agendamento = agendamentosTurno.find(a => a.vaga === i);
         const estaEditando = slotEmEdicao && slotEmEdicao.data === data && slotEmEdicao.turno === turno && slotEmEdicao.vaga === i;
@@ -624,6 +567,7 @@ function criarBlockedState(fmt, motivo) { return `<div class="appointment-header
 function criarBlockedTurnoState(turno, motivo) { return `<div class="blocked-state turno"><h4>${turno} Bloqueado</h4><p>${motivo}</p></div>`; }
 function criarEmptyState() { return `<div class="glass-card empty-state-card"><div class="empty-state"><h3>Selecione uma Data</h3></div></div>`; }
 
+// --- CORREÇÃO APLICADA NESTA FUNÇÃO: REDESENHO DA TELA ---
 function agendarPaciente(event, data, turno, vaga) {
     event.preventDefault(); const form = event.target;
     const novoAgendamento = {
@@ -633,31 +577,64 @@ function agendarPaciente(event, data, turno, vaga) {
         agendadoPor: form.querySelector('[name="agendadoPor"]').value.trim(), observacao: form.querySelector('[name="observacao"]').value.trim(),
         primeiraConsulta: form.querySelector('[name="primeiraConsulta"]').checked, solicitacoes: [], status: 'Aguardando'
     };
+    
+    // Inicialização segura
     if (!agendamentos[data]) agendamentos[data] = {};
     if (!agendamentos[data][turno]) agendamentos[data][turno] = [];
+    
+    // BLINDAGEM: Se virou objeto, volta para array
+    if (!Array.isArray(agendamentos[data][turno])) {
+        agendamentos[data][turno] = Object.values(agendamentos[data][turno]);
+    }
+
     const idx = agendamentos[data][turno].findIndex(a => a.vaga === vaga);
     if (idx !== -1) agendamentos[data][turno][idx] = {...agendamentos[data][turno][idx], ...novoAgendamento};
     else agendamentos[data][turno].push(novoAgendamento);
-    salvarAgendamentos(); slotEmEdicao = null; mostrarNotificacao('Salvo!', 'success');
+    
+    salvarAgendamentos(); 
+    slotEmEdicao = null; 
+    mostrarNotificacao('Salvo!', 'success');
+    
+    // --- REDESENHA A TELA IMEDIATAMENTE (CORREÇÃO) ---
+    exibirAgendamentos(data); 
 }
 
 function iniciarEdicao(data, turno, vaga) { slotEmEdicao = { data, turno, vaga }; exibirAgendamentos(data); }
+
+// --- CORREÇÃO APLICADA NESTA FUNÇÃO: REDESENHO DA TELA ---
 function executarCancelamento(data, turno, vaga) {
+    if(!agendamentos[data] || !agendamentos[data][turno]) { fecharModalConfirmacao(); return; }
+    
+    if (!Array.isArray(agendamentos[data][turno])) agendamentos[data][turno] = Object.values(agendamentos[data][turno]);
+
     const idx = agendamentos[data][turno].findIndex(a => a.vaga === vaga);
     if (idx !== -1) {
         agendamentos[data][turno].splice(idx, 1);
         if (agendamentos[data][turno].length === 0) delete agendamentos[data][turno];
-        salvarAgendamentos(); mostrarNotificacao('Cancelado!', 'info');
+        salvarAgendamentos(); 
+        mostrarNotificacao('Cancelado!', 'info');
+        
+        // --- REDESENHA A TELA IMEDIATAMENTE ---
+        exibirAgendamentos(data);
     }
     fecharModalConfirmacao();
 }
+
+// --- CORREÇÃO APLICADA NESTA FUNÇÃO: REDESENHO DA TELA ---
 function marcarStatus(data, turno, vaga, st) {
-    const ag = agendamentos[data]?.[turno]?.find(a => a.vaga === vaga);
+    if(!agendamentos[data] || !agendamentos[data][turno]) return;
+    
+    if (!Array.isArray(agendamentos[data][turno])) agendamentos[data][turno] = Object.values(agendamentos[data][turno]);
+
+    const ag = agendamentos[data][turno].find(a => a.vaga === vaga);
     if (!ag) return;
     if (st === 'Justificou') { abrirModalJustificativa(data, turno, vaga); return; }
     ag.status = (ag.status === st) ? 'Aguardando' : st;
     if (ag.status !== 'Justificou') delete ag.justificativa;
+    
     salvarAgendamentos();
+    // --- REDESENHA A TELA IMEDIATAMENTE ---
+    exibirAgendamentos(data);
 }
 
 function executarLimpezaTotal() {
@@ -674,7 +651,8 @@ function verificarDuplicidadeAoDigitar(inputElement, data, turno, vaga) {
     if (valorInput === '') return;
     const campo = inputElement.name; const val = valorInput.toLowerCase();
     if (agendamentos[data]) {
-        const dup = [...(agendamentos[data].manha||[]), ...(agendamentos[data].tarde||[])].find(ag => {
+        const ags = Array.isArray(agendamentos[data][turno]) ? agendamentos[data][turno] : Object.values(agendamentos[data][turno]||{});
+        const dup = ags.find(ag => {
             let vAg = ''; if(campo==='numero')vAg=ag.numero; else if(campo==='nome')vAg=ag.nome.toLowerCase(); else if(campo==='cns')vAg=ag.cns;
             const mesmoSlot = slotEmEdicao && slotEmEdicao.data===data && slotEmEdicao.turno===turno && slotEmEdicao.vaga===vaga;
             return vAg===val && !mesmoSlot;
@@ -752,7 +730,20 @@ function abrirModalBackup() { document.getElementById('backupModal').style.displ
 function fecharModalBackup() { document.getElementById('backupModal').style.display='none'; modalBackupAberto=false; }
 function abrirModalJustificativa(d,t,v) { justificativaEmEdicao={d,t,v}; document.getElementById('justificationModal').style.display='flex'; }
 function fecharModalJustificativa() { document.getElementById('justificationModal').style.display='none'; }
-function salvarJustificativa() { if(justificativaEmEdicao) { const {d,t,v}=justificativaEmEdicao; const ag=agendamentos[d][t].find(a=>a.vaga===v); if(ag){ag.status='Justificou';ag.justificativa={tipo:document.querySelector('input[name="justificativaTipo"]:checked').value};salvarAgendamentos();} fecharModalJustificativa(); } }
+function salvarJustificativa() { 
+    if(justificativaEmEdicao) { 
+        const {d,t,v}=justificativaEmEdicao; 
+        if(!Array.isArray(agendamentos[d][t])) agendamentos[d][t] = Object.values(agendamentos[d][t]);
+        const ag=agendamentos[d][t].find(a=>a.vaga===v); 
+        if(ag){
+            ag.status='Justificou';
+            ag.justificativa={tipo:document.querySelector('input[name="justificativaTipo"]:checked').value};
+            salvarAgendamentos();
+            exibirAgendamentos(d); // UI refresh
+        } 
+        fecharModalJustificativa(); 
+    } 
+}
 function abrirModalLimpeza() { document.getElementById('clearDataModal').style.display='flex'; }
 function fecharModalLimpeza() { document.getElementById('clearDataModal').style.display='none'; }
 function abrirModalBloqueio() { document.getElementById('blockDayModal').style.display='flex'; }
@@ -765,7 +756,8 @@ function buscarAgendamentosGlobais() {
     let results = [];
     Object.keys(agendamentos).forEach(d => {
         ['manha','tarde'].forEach(t => {
-            (agendamentos[d][t]||[]).forEach(ag => {
+            const ags = Array.isArray(agendamentos[d][t]) ? agendamentos[d][t] : Object.values(agendamentos[d][t]||{});
+            ags.forEach(ag => {
                 if(ag.nome.toLowerCase().includes(val) || ag.numero.includes(val)) results.push({...ag, data:d, turno:t});
             });
         });
