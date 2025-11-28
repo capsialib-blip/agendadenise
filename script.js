@@ -1,4 +1,4 @@
-/* script.js - VERSÃO BLINDADA (MODAL REPARADO) */
+/* script.js - VERSÃO FINAL (CONFIRMAÇÃO FUNCIONAL) */
 'use strict';
 
 // --- CONFIGURAÇÃO FIREBASE ---
@@ -24,7 +24,6 @@ const MAX_DAYS_SEARCH = 10;
 const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho','Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
 
-// Lista de profissionais
 const PROFISSIONAIS_LISTA = [
     { nome: "ALESSANDRA OLIVEIRA MONTALVAO DA CRUZ", funcao: "ASSISTENTE ADMINISTRATIVO" },
     { nome: "ANDRESSA RIBEIRO LEAL", funcao: "ENFERMEIRO" },
@@ -66,6 +65,7 @@ let modalBackupAberto = false;
 let reportCurrentStatus = null; 
 let reportUnfilteredResults = []; 
 let atestadoEmGeracao = null;
+let confirmAction = null; // AQUI ESTÁ O SEGREDO: Variável Global de Ação
 let tentativaSenha = 1;
 let vagasResultadosAtuais = []; 
 
@@ -118,7 +118,6 @@ function inicializarApp() {
     configurarVagasEventListeners();
     configurarAutocompleteAssinatura();
     
-    // --- SINCRONIZAÇÃO EM TEMPO REAL ---
     const dbRef = ref(db);
     onValue(dbRef, (snapshot) => {
         const data = snapshot.val() || {};
@@ -143,32 +142,28 @@ function salvarPacientesNoCloud() { set(ref(db, 'pacientes_dados'), pacientesGlo
 function salvarPacientesNoLocalStorage() { salvarPacientesNoCloud(); return true; }
 
 // ============================================
-// MODAL DE CONFIRMAÇÃO BLINDADO
+// MODAL DE CONFIRMAÇÃO (CORRIGIDO)
 // ============================================
 function abrirModalConfirmacao(msg, acao) { 
     const modal = document.getElementById('confirmModal');
     const msgEl = document.getElementById('confirmMessage');
-    const btnSim = document.getElementById('confirmButton');
+    if(!modal || !msgEl) return;
     
-    if(!modal || !msgEl || !btnSim) return;
-
     msgEl.textContent = msg;
+    confirmAction = acao; // Armazena a ação na variável global
     modal.style.display = 'flex';
-    
-    // Força o clique a funcionar diretamente
-    btnSim.onclick = function() {
-        if (typeof acao === 'function') {
-            acao(); // Executa a restauração/exclusão
-        }
-        fecharModalConfirmacao();
-    };
 }
 
 function fecharModalConfirmacao() { 
-    const modal = document.getElementById('confirmModal');
-    if(modal) modal.style.display = 'none';
-    const btnSim = document.getElementById('confirmButton');
-    if(btnSim) btnSim.onclick = null; // Limpa para evitar erros futuros
+    document.getElementById('confirmModal').style.display = 'none';
+    confirmAction = null; // Limpa a ação
+}
+
+function executarAcaoConfirmada() {
+    if (typeof confirmAction === 'function') {
+        confirmAction(); // Executa o que foi guardado
+    }
+    fecharModalConfirmacao();
 }
 
 // ============================================
@@ -196,8 +191,13 @@ function configurarEventListenersApp() {
     document.getElementById('btnCancelarAcompanhante')?.addEventListener('click', fecharModalAcompanhante);
     document.getElementById('acompanhanteNomeInput')?.addEventListener('keyup', (e) => { if(e.key==='Enter') confirmarNomeAcompanhante(); });
 
-    // O btnConfirmarModal é tratado direto na função abrirModalConfirmacao agora
+    // CONFIRMAÇÃO: Listener fixo que chama a função que executa a variável global
     document.getElementById('btnCancelarModal')?.addEventListener('click', fecharModalConfirmacao);
+    const btnConfirm = document.getElementById('confirmButton');
+    // Remove listeners antigos para evitar duplicação e adiciona o novo
+    const newBtnConfirm = btnConfirm.cloneNode(true);
+    btnConfirm.parentNode.replaceChild(newBtnConfirm, btnConfirm);
+    newBtnConfirm.addEventListener('click', executarAcaoConfirmada);
     
     document.getElementById('btnCancelClearData')?.addEventListener('click', fecharModalLimpeza);
     document.getElementById('btnConfirmClearData')?.addEventListener('click', executarLimpezaTotal);
@@ -242,7 +242,7 @@ function configurarVagasEventListeners() {
 }
 
 // ============================================
-// FUNÇÕES DE SUPORTE E LÓGICA
+// FUNÇÕES DE SUPORTE
 // ============================================
 function verificarDadosCarregados() {
     const indicator = document.getElementById('dataLoadedIndicator');
@@ -331,7 +331,7 @@ function exibirAgendamentos(data) {
     setTimeout(() => { document.querySelectorAll('.vaga-form').forEach(configurarAutopreenchimento); document.querySelectorAll('input[name="agendadoPor"]').forEach(input => { input.addEventListener('blur', (event) => { const codeMap = { '01': 'Alessandra', '02': 'Nicole' }; if (codeMap[event.target.value.trim()]) event.target.value = codeMap[event.target.value.trim()]; }); }); }, 0);
 }
 
-// Helpers exportados para Window
+// Helpers exportados
 window.mostrarTurno = function(turno) { turnoAtivo = turno; document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active')); document.querySelector(`.tab-btn.${turno}`)?.classList.add('active'); document.querySelectorAll('.turno-content').forEach(c => c.classList.remove('active')); document.getElementById(`turno-${turno}`)?.classList.add('active'); };
 window.cancelarEdicao = function() { slotEmEdicao = null; exibirAgendamentos(dataSelecionada); };
 window.limparFormulario = function(btn) { const form = btn.closest('form'); if(form) { form.reset(); form.querySelector('[name="numero"]')?.focus(); } };
@@ -376,28 +376,60 @@ function gerarVagasTurno(agendamentosTurno, turno, data) {
         } else {
             html += `<form class="vaga-form" onsubmit="window.agendarPaciente(event, '${data}', '${turno}', ${i})">
                 <div class="form-content-wrapper">
-                    <div class="form-group-checkbox-single"><input type="checkbox" name="primeiraConsulta" ${dados.primeiraConsulta?'checked':''}> <label>1ª Consulta</label></div>
+                    <div class="form-group-checkbox-single">
+                        <input type="checkbox" name="primeiraConsulta" ${dados.primeiraConsulta?'checked':''}> <label>1ª Consulta</label>
+                    </div>
                     <div class="form-row">
                         <div class="form-group numero autocomplete-container">
-                            <label>Nº</label><input type="text" name="numero" required class="form-input" value="${dados.numero||''}" onblur="window.verificarDuplicidadeAoDigitar(this,'${data}','${turno}',${i})"><div class="sugestoes-lista"></div>
+                            <label>Nº</label>
+                            <input type="text" name="numero" required class="form-input" value="${dados.numero||''}" onblur="window.verificarDuplicidadeAoDigitar(this,'${data}','${turno}',${i})">
+                            <div class="sugestoes-lista"></div>
                         </div>
                         <div class="form-group nome autocomplete-container">
-                            <label>Nome</label><input type="text" name="nome" required class="form-input" value="${dados.nome||''}"><div class="sugestoes-lista"></div>
+                            <label>Nome</label>
+                            <input type="text" name="nome" required class="form-input" value="${dados.nome||''}">
+                            <div class="sugestoes-lista"></div>
                         </div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group autocomplete-container"><label>CNS</label><input type="text" name="cns" required class="form-input" value="${dados.cns||''}"><div class="sugestoes-lista"></div></div>
-                        <div class="form-group"><label>Distrito</label><input type="text" name="distrito" class="form-input" value="${dados.distrito||''}"></div>
+                        <div class="form-group autocomplete-container">
+                            <label>CNS</label>
+                            <input type="text" name="cns" required class="form-input" value="${dados.cns||''}">
+                            <div class="sugestoes-lista"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Distrito</label>
+                            <input type="text" name="distrito" class="form-input" value="${dados.distrito||''}">
+                        </div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group autocomplete-container"><label>Téc. Ref.</label><input type="text" name="tecRef" class="form-input" value="${dados.tecRef||''}"><div class="sugestoes-lista"></div></div>
-                        <div class="form-group"><label>CID</label><input type="text" name="cid" class="form-input" value="${dados.cid||''}"></div>
+                        <div class="form-group autocomplete-container">
+                            <label>Téc. Ref.</label>
+                            <input type="text" name="tecRef" class="form-input" value="${dados.tecRef||''}">
+                            <div class="sugestoes-lista"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>CID</label>
+                            <input type="text" name="cid" class="form-input" value="${dados.cid||''}">
+                        </div>
                     </div>
-                    <div class="form-group full-width"><label>Obs</label><textarea name="observacao" class="form-input" rows="2">${dados.observacao||''}</textarea></div>
+                    <div class="form-group full-width">
+                        <label>Obs</label>
+                        <textarea name="observacao" class="form-input" rows="2">${dados.observacao||''}</textarea>
+                    </div>
                 </div>
                 <div class="form-actions-wrapper">
-                    <div class="form-group agendado-por"><label>Por:</label><input type="text" name="agendadoPor" class="form-input" value="${dados.agendadoPor||''}"></div>
-                    <div class="form-buttons"><button type="submit" class="btn btn-success">Salvar</button>${!estaEditando?`<button type="button" class="btn btn-secondary" onclick="window.limparFormulario(this)">Limpar</button>`:`<button type="button" class="btn btn-secondary" onclick="window.cancelarEdicao()">Cancelar</button>`}</div>
+                    <div class="form-group agendado-por">
+                        <label>Por:</label>
+                        <input type="text" name="agendadoPor" class="form-input" value="${dados.agendadoPor||''}">
+                    </div>
+                    <div class="form-buttons">
+                        <button type="submit" class="btn btn-success">Salvar</button>
+                        ${!estaEditando ? 
+                            `<button type="button" class="btn btn-secondary" onclick="window.limparFormulario(this)">Limpar</button>` : 
+                            `<button type="button" class="btn btn-secondary" onclick="window.cancelarEdicao()">Cancelar</button>`
+                        }
+                    </div>
                 </div>
             </form>`;
         }
@@ -573,9 +605,10 @@ function configurarAutopreenchimento(form) {
 function configurarAutocompleteAssinatura() {
     const input = document.getElementById('assinaturaInput'); const list = document.getElementById('assinaturaSugestoes');
     if (!input || !list) return;
+    const container = input.closest('.autocomplete-container');
     input.addEventListener('input', () => {
-        const val = input.value.toLowerCase();
-        if(val.length<2) { list.style.display='none'; return; }
+        const val = input.value.trim().toLowerCase();
+        if (val.length < 2) { list.style.display='none'; return; }
         const matches = PROFISSIONAIS_LISTA.filter(p => p.nome.toLowerCase().includes(val));
         list.innerHTML = matches.map(p => `<div class="sugestao-item" data-nome="${p.nome}"><strong>${p.nome}</strong><br><small>${p.funcao}</small></div>`).join('');
         list.style.display = matches.length?'block':'none';
@@ -586,7 +619,7 @@ function configurarAutocompleteAssinatura() {
             if(p) { document.getElementById('assinaturaNomePrint').textContent=p.nome; document.getElementById('assinaturaFuncaoPrint').textContent=p.funcao; input.value=''; list.style.display='none'; }
         }
     });
-    document.addEventListener('click', e => { if(!input.contains(e.target)) list.style.display='none'; });
+    document.addEventListener('click', e => { if (container && !container.contains(e.target)) list.style.display='none'; });
 }
 
 function configurarHorarioBackup() {
@@ -672,12 +705,96 @@ function imprimirDeclaracao() { window.print(); }
 function imprimirAgendaDiaria(d) { window.print(); }
 function imprimirVagas() { window.print(); }
 function fecharModalRelatorio() { document.getElementById('reportModal').style.display='none'; }
-function aplicarFiltroRelatorio() {} // Mantido simples
-function limparFiltroRelatorio() {} 
-function atualizarValoresFiltro() {}
-function abrirModalRelatorio(status, periodo) { document.getElementById('reportModal').style.display='flex'; } // Mantido simples
-function procurarVagas() { /* Lógica mantida */ }
-function limparBuscaVagas() { document.getElementById('vagasResultadosContainer').classList.add('hidden'); }
+function aplicarFiltroRelatorio() {
+    const tipo = document.getElementById('reportFilterType').value;
+    const valor = document.getElementById('reportFilterValue').value;
+    let dados = reportUnfilteredResults;
+    if (reportCurrentStatus) dados = dados.filter(ag => ag.status === reportCurrentStatus);
+    if (tipo && valor) dados = dados.filter(ag => ag[tipo] === valor);
+    renderizarTabelaRelatorio(dados);
+}
+function limparFiltroRelatorio() { document.getElementById('reportFilterType').value=''; document.getElementById('reportFilterValue').innerHTML='<option value="">Selecione o valor</option>'; document.getElementById('reportFilterValue').disabled=true; let dados = reportUnfilteredResults; if(reportCurrentStatus) dados = dados.filter(ag => ag.status===reportCurrentStatus); renderizarTabelaRelatorio(dados); }
+function atualizarValoresFiltro() {
+    const tipo = document.getElementById('reportFilterType').value;
+    const sel = document.getElementById('reportFilterValue');
+    let vals = [];
+    if(tipo==='tecRef') vals = JSON.parse(sel.dataset.tecRefs||'[]');
+    else if(tipo==='distrito') vals = JSON.parse(sel.dataset.distritos||'[]');
+    sel.innerHTML = '<option value="">Selecione o valor</option>' + vals.map(v => `<option value="${v}">${v}</option>`).join('');
+    sel.disabled = (tipo==='');
+}
+function abrirModalRelatorio(status, periodo) {
+    const modal = document.getElementById('reportModal');
+    reportCurrentStatus = status;
+    let dados = [];
+    if (periodo === 'current_month') {
+        let prefix = `${anoAtual}-${String(mesAtual + 1).padStart(2, '0')}-`;
+        Object.keys(agendamentos).forEach(d => { if(d.startsWith(prefix)) ['manha','tarde'].forEach(t => (agendamentos[d][t]||[]).forEach(ag => dados.push({...ag, data:d, turno:t}))); });
+        document.getElementById('reportModalTitle').textContent = `Relatório ${status||'Geral'} - ${meses[mesAtual]}`;
+        document.getElementById('btnVerRelatorioAnual').classList.remove('hidden');
+    } else {
+        let prefix = `${anoAtual}-`;
+        Object.keys(agendamentos).forEach(d => { if(d.startsWith(prefix)) ['manha','tarde'].forEach(t => (agendamentos[d][t]||[]).forEach(ag => dados.push({...ag, data:d, turno:t}))); });
+        document.getElementById('reportModalTitle').textContent = `Relatório Anual ${anoAtual}`;
+        document.getElementById('btnVerRelatorioAnual').classList.add('hidden');
+    }
+    dados.sort((a,b)=>new Date(a.data)-new Date(b.data));
+    reportUnfilteredResults = dados;
+    const tecRefs=new Set(), distritos=new Set(); dados.forEach(ag=>{if(ag.tecRef)tecRefs.add(ag.tecRef);if(ag.distrito)distritos.add(ag.distrito);});
+    const sel=document.getElementById('reportFilterValue'); sel.dataset.tecRefs=JSON.stringify([...tecRefs].sort()); sel.dataset.distritos=JSON.stringify([...distritos].sort());
+    if(status) dados = dados.filter(ag => ag.status === status);
+    renderizarTabelaRelatorio(dados);
+    limparFiltroRelatorio(false);
+    modal.style.display='flex';
+}
+function renderizarTabelaRelatorio(dados) {
+    const c = document.getElementById('reportTableContainer');
+    document.getElementById('reportTotalCount').textContent = `Total: ${dados.length}`;
+    if(dados.length===0) { c.innerHTML='<p style="text-align:center;padding:1rem">Nenhum registro.</p>'; return; }
+    c.innerHTML = `<table class="report-table"><thead><tr><th>Data</th><th>Paciente</th><th>Nº</th><th>Téc. Ref.</th><th>Status</th></tr></thead><tbody>${dados.map(ag=>`<tr><td>${new Date(ag.data+'T12:00:00').toLocaleDateString('pt-BR')}</td><td>${ag.nome}</td><td>${ag.numero}</td><td>${ag.tecRef||''}</td><td>${ag.status}</td></tr>`).join('')}</tbody></table>`;
+}
+function isWeekend(d) { const day = new Date(d+'T00:00:00').getDay(); return day===0 || day===6; }
+function procurarVagas() {
+    const start=document.getElementById('vagasStartDate').value; const end=document.getElementById('vagasEndDate').value;
+    const resC=document.getElementById('vagasResultadosContainer'); const printBtn=document.getElementById('btnPrintVagas');
+    if(!start||!end){alert('Preencha as datas');return;}
+    const d1=new Date(start+'T00:00:00'), d2=new Date(end+'T00:00:00');
+    if((d2-d1)/(1000*60*60*24) >= MAX_DAYS_SEARCH) {alert('Máximo 10 dias');return;}
+    let total=0, dias=[], curr=new Date(d1);
+    while(curr<=d2) {
+        const dStr=curr.toISOString().split('T')[0], wd=diasSemana[curr.getDay()];
+        const bl=diasBloqueados[dStr], ag=agendamentos[dStr];
+        if(isWeekend(dStr)) dias.push({date:dStr, weekday:wd, type:'Fim de Semana'});
+        else {
+            let lm=8, lt=8, om=[], ot=[];
+            if(bl){if(bl.diaInteiro){lm=0;lt=0;}else{if(bl.manha)lm=0;if(bl.tarde)lt=0;}}
+            if(ag){if(lm>0&&ag.manha){om=ag.manha.map(x=>({...x,turno:'manha'}));lm=Math.max(0,lm-om.length);} if(lt>0&&ag.tarde){ot=ag.tarde.map(x=>({...x,turno:'tarde'}));lt=Math.max(0,lt-ot.length);}}
+            total+=lm+lt;
+            dias.push({date:dStr, weekday:wd, type:bl?.motivo?'Bloqueio':(lm+lt>0?'Disponível':'Cheio'), manha:{livres:lm,ocupados:om}, tarde:{livres:lt,ocupados:ot}, motivo:bl?.motivo});
+        }
+        curr.setDate(curr.getDate()+1);
+    }
+    vagasResultadosAtuais=dias;
+    renderizarResultadosVagas(d1,d2,total,dias);
+    resC.classList.remove('hidden'); printBtn.classList.remove('hidden');
+}
+function renderizarResultadosVagas(d1,d2,total,dias) {
+    document.getElementById('vagasPeriodoTitulo').textContent=`Vagas: ${d1.toLocaleDateString('pt-BR')} a ${d2.toLocaleDateString('pt-BR')}`;
+    document.getElementById('vagasSumario').innerHTML = total===0 ? '<p style="color:var(--color-danger)">Nenhuma vaga.</p>' : '';
+    let html='<div id="vagas-resultado-grid">';
+    dias.forEach(d => {
+        const dFmt=new Date(d.date+'T00:00:00').toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit'});
+        if(d.type==='Fim de Semana') html+=`<div class="vaga-dia-card fim-de-semana"><div class="vaga-dia-header">${d.weekday}, ${dFmt}</div><p class="aviso-bloqueio">Fim de Semana</p></div>`;
+        else if(d.type==='Bloqueio' && d.manha.livres===0 && d.tarde.livres===0) html+=`<div class="vaga-dia-card bloqueado"><div class="vaga-dia-header">${d.weekday}, ${dFmt}</div><p class="aviso-bloqueio">Bloqueado: ${d.motivo}</p></div>`;
+        else {
+            html+=`<div class="vaga-dia-card"><div class="vaga-dia-header">${d.weekday}, ${dFmt} <button class="btn-icon btn-jump-day" onclick="pularParaAgendamento('${d.date}')"><i class="bi bi-arrow-right-circle"></i></button></div>`;
+            html+=`<div class="turno-detalhe"><h3 class="turno-titulo manha">Manhã (${d.manha.livres} Livres)</h3><ul class="vaga-lista">${d.manha.ocupados.map(o=>`<li class="vaga-lista-item ocupada"><span>Nº ${o.numero}</span> - ${o.nome}</li>`).join('')}${Array(d.manha.livres).fill(`<li class="vaga-lista-item livre" onclick="pularParaVagaLivre('${d.date}','manha')">Vaga Livre</li>`).join('')}</ul></div>`;
+            html+=`<div class="turno-detalhe"><h3 class="turno-titulo tarde">Tarde (${d.tarde.livres} Livres)</h3><ul class="vaga-lista">${d.tarde.ocupados.map(o=>`<li class="vaga-lista-item ocupada"><span>Nº ${o.numero}</span> - ${o.nome}</li>`).join('')}${Array(d.tarde.livres).fill(`<li class="vaga-lista-item livre" onclick="pularParaVagaLivre('${d.date}','tarde')">Vaga Livre</li>`).join('')}</ul></div></div>`;
+        }
+    });
+    document.getElementById('vagasBloqueiosDetalhes').innerHTML = html + '</div>';
+}
+function limparBuscaVagas() { document.getElementById('vagasStartDate').value=''; document.getElementById('vagasEndDate').value=''; document.getElementById('vagasResultadosContainer').classList.add('hidden'); document.getElementById('btnPrintVagas').classList.add('hidden'); }
 function togglePasswordVisibility() { const i=document.getElementById('clearDataPassword'); i.type = i.type==='password'?'text':'password'; }
 function handlePrint() { window.print(); }
 
