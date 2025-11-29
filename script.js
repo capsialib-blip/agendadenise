@@ -1,4 +1,4 @@
-/* script.js - VERSÃO FINAL REPARADA (RESTORE LAYOUT DECLARAÇÃO + DATA) */
+/* script.js - VERSÃO FINAL (FIX DATA + ASSINATURA OBRIGATÓRIA) */
 'use strict';
 
 // --- CONFIGURAÇÃO FIREBASE ---
@@ -765,19 +765,20 @@ function configurarBuscaGlobalAutocomplete() {
 function iniciarProcessoDeclaracao(d,t,v) { atestadoEmGeracao = agendamentos[d][t].find(a=>a.vaga===v); document.getElementById('choiceModal').style.display='flex'; }
 function fecharModalEscolha() { document.getElementById('choiceModal').style.display='none'; }
 
-// --- CORREÇÃO: RECONSTRUÇÃO DO HTML RICO DA DECLARAÇÃO E DATA ---
+// --- CORREÇÃO: DATA CORRETA ---
 function gerarDeclaracaoPaciente() { 
     if (!atestadoEmGeracao) return;
     const { nome, cns, data, turno } = atestadoEmGeracao;
     
-    // Fix Invalid Date: Força a string 'YYYY-MM-DD' a ser interpretada corretamente
-    // Adiciona T12:00:00 para evitar problemas de timezone
-    const dataObj = new Date(data + 'T12:00:00');
+    // Fix Invalid Date: Cria data manualmente para evitar erro de timezone do browser
+    // Formato esperado de 'data': YYYY-MM-DD
+    const partesData = data.split('-');
+    // Note: Mês em Date() começa em 0 (Janeiro)
+    const dataObj = new Date(partesData[0], partesData[1] - 1, partesData[2]);
     
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     const dataExtenso = dataObj.toLocaleDateString('pt-BR', options);
 
-    // HTML Rico restaurado conforme imagem (Logo, Cabeçalho, Texto Justificado)
     const conteudoAtestado = `
       <div style="text-align: center; margin-bottom: 2rem;">
          <img src="logocaps.png" alt="Logo CAPS ia Liberdade" style="width: 150px; margin-bottom: 10px;">
@@ -808,15 +809,24 @@ function fecharModalAcompanhante() { document.getElementById('acompanhanteModal'
 function confirmarNomeAcompanhante() { fecharModalAcompanhante(); fecharModalEscolha(); document.getElementById('declaracaoModal').style.display='flex'; }
 function fecharModalAtestado() { document.getElementById('declaracaoModal').style.display='none'; }
 
+// --- CORREÇÃO: VALIDAÇÃO DE ASSINATURA ---
 function imprimirDeclaracao() {
-    // 1. Captura o HTML rico gerado
+    const nomeAss = document.getElementById('assinaturaNomePrint').textContent.trim();
+    
+    // TRAVA DE SEGURANÇA: Se não tiver nome, bloqueia.
+    if (!nomeAss || nomeAss.length < 3) {
+        alert("ERRO: É obrigatório selecionar o profissional que assina a declaração antes de imprimir.");
+        // Tenta focar no input para ajudar o usuário
+        const input = document.getElementById('assinaturaInput');
+        if (input) input.focus();
+        return; // PARE TUDO
+    }
+
     const conteudo = document.getElementById('declaracao-content-wrapper').innerHTML;
-    const nomeAss = document.getElementById('assinaturaNomePrint').textContent;
     const funcAss = document.getElementById('assinaturaFuncaoPrint').textContent;
 
     const printContainer = document.getElementById('print-container');
     
-    // 2. Injeta no container de impressão mantendo o estilo inline
     printContainer.innerHTML = `
         <div class="declaracao-print-layout" style="padding: 3rem; max-width: 800px; margin: 0 auto;">
             ${conteudo}
