@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Painel</title>
+    <script>
+        // SEGURANÇA: Se tentar entrar aqui direto sem logar, joga de volta pro login (index.html)
+        var logado = localStorage.getItem("logado");
+        if (logado !== "sim") {
+            window.location.href = "index.html";
+        }
+    </script>
+</head>
+<body>
+    <h1>Bem-vindo ao Sistema</h1>
+    <p>Login realizado com sucesso.</p>
+    
+    <button id="btn-sair">Sair</button>
+
+    <script>
+        document.getElementById('btn-sair').addEventListener('click', function() {
+            // Limpa o login e volta para o inicio
+            localStorage.removeItem("logado");
+            window.location.href = "index.html";
+        });
+    </script>
+</body>
+</html>
