@@ -1,4 +1,4 @@
-/* script.js - VERSÃO FINAL REPARADA (UI BOTÃO + FIX IMPRESSÃO) */
+/* script.js - VERSÃO FINAL REPARADA (RESTORE LAYOUT DECLARAÇÃO + DATA) */
 'use strict';
 
 // --- CONFIGURAÇÃO FIREBASE ---
@@ -138,7 +138,6 @@ function inicializarApp() {
         atualizarResumoSemanal(new Date());
         verificarDadosCarregados();
         
-        // Se estiver editando, NÃO redesenha para não fechar o teclado/form
         if (dataSelecionada && !slotEmEdicao) {
             exibirAgendamentos(dataSelecionada);
             atualizarBolinhasDisponibilidade(dataSelecionada);
@@ -234,9 +233,6 @@ function configurarVagasEventListeners() {
     }
 }
 
-// ============================================
-// MODAL
-// ============================================
 function abrirModalConfirmacao(msg, acao) { 
     const modal = document.getElementById('confirmModal');
     const msgEl = document.getElementById('confirmMessage');
@@ -256,9 +252,6 @@ function executarAcaoConfirmada() {
     fecharModalConfirmacao();
 }
 
-// ============================================
-// BACKUP / RESTORE
-// ============================================
 function fazerBackup() {
     try {
         const data = { agendamentos, pacientesGlobais, diasBloqueados, feriadosDesbloqueados };
@@ -361,9 +354,6 @@ function restaurarBackup(event) {
     reader.readAsText(file);
 }
 
-// ============================================
-// EXIBIÇÃO / RENDERIZAÇÃO
-// ============================================
 function verificarDadosCarregados() {
     const indicator = document.getElementById('dataLoadedIndicator');
     const indicatorText = document.getElementById('indicatorText');
@@ -469,7 +459,6 @@ function gerarVagasTurno(agendamentosTurno, turno, data) {
     let html = '<div class="vagas-grid">';
     agendamentosTurno = agendamentosTurno || [];
     
-    // BLINDAGEM CONTRA ARRAY ESTRAGADO
     if (!Array.isArray(agendamentosTurno) && typeof agendamentosTurno === 'object') {
         agendamentosTurno = Object.values(agendamentosTurno);
     }
@@ -487,7 +476,6 @@ function gerarVagasTurno(agendamentosTurno, turno, data) {
 
         if (agendamento && !estaEditando) {
              const justHTML = (agendamento.status === 'Justificou' && agendamento.justificativa) ? `<div class="justificativa-display"><p><strong>Justif.:</strong> ${agendamento.justificativa.tipo}</p></div>` : '';
-             // --- CORREÇÃO DO BOTÃO ABAIXO (MIMETIZANDO 'btn-edit') ---
              html += `<div class="agendamento-info"><h4>${agendamento.nome}</h4><p>Nº ${agendamento.numero}</p><p>CNS: ${agendamento.cns}</p>${justHTML}
                 <div class="status-buttons-container">
                     <button class="btn btn-sm btn-status ${status==='Compareceu'?'active':''}" onclick="window.marcarStatus('${data}','${turno}',${i},'Compareceu')">Compareceu</button>
@@ -578,11 +566,9 @@ function agendarPaciente(event, data, turno, vaga) {
         primeiraConsulta: form.querySelector('[name="primeiraConsulta"]').checked, solicitacoes: [], status: 'Aguardando'
     };
     
-    // Inicialização segura
     if (!agendamentos[data]) agendamentos[data] = {};
     if (!agendamentos[data][turno]) agendamentos[data][turno] = [];
     
-    // BLINDAGEM: Se virou objeto, volta para array
     if (!Array.isArray(agendamentos[data][turno])) {
         agendamentos[data][turno] = Object.values(agendamentos[data][turno]);
     }
@@ -594,8 +580,6 @@ function agendarPaciente(event, data, turno, vaga) {
     salvarAgendamentos(); 
     slotEmEdicao = null; 
     mostrarNotificacao('Salvo!', 'success');
-    
-    // --- REDESENHA A TELA IMEDIATAMENTE (CORREÇÃO) ---
     exibirAgendamentos(data); 
 }
 
@@ -612,8 +596,6 @@ function executarCancelamento(data, turno, vaga) {
         if (agendamentos[data][turno].length === 0) delete agendamentos[data][turno];
         salvarAgendamentos(); 
         mostrarNotificacao('Cancelado!', 'info');
-        
-        // --- REDESENHA A TELA IMEDIATAMENTE ---
         exibirAgendamentos(data);
     }
     fecharModalConfirmacao();
@@ -621,7 +603,6 @@ function executarCancelamento(data, turno, vaga) {
 
 function marcarStatus(data, turno, vaga, st) {
     if(!agendamentos[data] || !agendamentos[data][turno]) return;
-    
     if (!Array.isArray(agendamentos[data][turno])) agendamentos[data][turno] = Object.values(agendamentos[data][turno]);
 
     const ag = agendamentos[data][turno].find(a => a.vaga === vaga);
@@ -631,7 +612,6 @@ function marcarStatus(data, turno, vaga, st) {
     if (ag.status !== 'Justificou') delete ag.justificativa;
     
     salvarAgendamentos();
-    // --- REDESENHA A TELA IMEDIATAMENTE ---
     exibirAgendamentos(data);
 }
 
@@ -784,57 +764,81 @@ function configurarBuscaGlobalAutocomplete() {
 }
 function iniciarProcessoDeclaracao(d,t,v) { atestadoEmGeracao = agendamentos[d][t].find(a=>a.vaga===v); document.getElementById('choiceModal').style.display='flex'; }
 function fecharModalEscolha() { document.getElementById('choiceModal').style.display='none'; }
+
+// --- CORREÇÃO: RECONSTRUÇÃO DO HTML RICO DA DECLARAÇÃO E DATA ---
 function gerarDeclaracaoPaciente() { 
     if (!atestadoEmGeracao) return;
     const { nome, cns, data, turno } = atestadoEmGeracao;
+    
+    // Fix Invalid Date: Força a string 'YYYY-MM-DD' a ser interpretada corretamente
+    // Adiciona T12:00:00 para evitar problemas de timezone
     const dataObj = new Date(data + 'T12:00:00');
-    const conteudoAtestado = `<h4>DECLARAÇÃO DE COMPARECIMENTO</h4><p>Declaramos... paciente <strong>${nome}</strong>...</p><p>Salvador, ${dataObj.toLocaleDateString('pt-BR')}.</p>`;
+    
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    const dataExtenso = dataObj.toLocaleDateString('pt-BR', options);
+
+    // HTML Rico restaurado conforme imagem (Logo, Cabeçalho, Texto Justificado)
+    const conteudoAtestado = `
+      <div style="text-align: center; margin-bottom: 2rem;">
+         <img src="logocaps.png" alt="Logo CAPS ia Liberdade" style="width: 150px; margin-bottom: 10px;">
+         <h3 style="margin:0; font-family: sans-serif;">CAPS ia Liberdade</h3>
+         <p style="margin:0; font-size: 0.9rem; font-family: sans-serif;">Rua Conde de Porto Alegre, nº 11 - IAPI - CEP: 40320-200</p>
+         <p style="margin:0; font-size: 0.9rem; font-family: sans-serif;">Telefone: (71) 3202-0615</p>
+      </div>
+      <h2 style="text-align: center; margin: 2rem 0; font-family: sans-serif; text-transform: uppercase;">DECLARAÇÃO DE COMPARECIMENTO</h2>
+      <p style="text-align: justify; line-height: 1.8; font-size: 1.1rem; margin-bottom: 1.5rem; font-family: 'Times New Roman', serif;">
+        Declaramos, para os devidos fins, que o(a) paciente <strong>${nome}</strong>,
+        CNS <strong>${cns}</strong>, esteve presente nesta unidade, CAPS ia Liberdade, no período da <strong>${turno}</strong>,
+        participando de atividades relacionadas ao seu Projeto Terapêutico Singular.
+      </p>
+      <p style="text-align: justify; line-height: 1.8; font-size: 1.1rem; margin-bottom: 3rem; font-family: 'Times New Roman', serif;">
+        Essa declaração é emitida para fins de comprovação da presença no âmbito do acompanhamento terapêutico
+        do(a) referido(a) paciente, conforme previsto em seu plano terapêutico.
+      </p>
+      <p style="text-align: center; margin-bottom: 4rem; font-family: 'Times New Roman', serif;">Salvador, ${dataExtenso}.</p>
+    `;
+
     document.getElementById('declaracao-content-wrapper').innerHTML = conteudoAtestado;
-    fecharModalEscolha(); document.getElementById('declaracaoModal').style.display='flex'; 
+    fecharModalEscolha(); 
+    document.getElementById('declaracaoModal').style.display='flex'; 
 }
+
 function gerarDeclaracaoAcompanhante() { document.getElementById('acompanhanteModal').style.display='flex'; }
 function fecharModalAcompanhante() { document.getElementById('acompanhanteModal').style.display='none'; }
 function confirmarNomeAcompanhante() { fecharModalAcompanhante(); fecharModalEscolha(); document.getElementById('declaracaoModal').style.display='flex'; }
 function fecharModalAtestado() { document.getElementById('declaracaoModal').style.display='none'; }
 
-// --- CORREÇÃO DA IMPRESSÃO ---
 function imprimirDeclaracao() {
-    // 1. Captura o conteúdo do modal
+    // 1. Captura o HTML rico gerado
     const conteudo = document.getElementById('declaracao-content-wrapper').innerHTML;
     const nomeAss = document.getElementById('assinaturaNomePrint').textContent;
     const funcAss = document.getElementById('assinaturaFuncaoPrint').textContent;
-    // Captura o cabeçalho oculto que está no modal
-    const headerEl = document.querySelector('.print-only-header');
-    const header = headerEl ? headerEl.innerHTML : '';
 
-    // 2. Joga tudo no container de impressão (que aparece na folha e some na tela)
     const printContainer = document.getElementById('print-container');
+    
+    // 2. Injeta no container de impressão mantendo o estilo inline
     printContainer.innerHTML = `
-        <div class="declaracao-print-layout" style="padding: 2rem;">
-            <div class="header-print" style="text-align:center; margin-bottom: 2rem;">${header}</div>
-            <div class="declaracao-corpo" style="margin-bottom: 4rem; font-size: 1.2rem; line-height: 1.6;">${conteudo}</div>
-            <div class="assinatura-block-print" style="margin-top: 50px; text-align: center;">
+        <div class="declaracao-print-layout" style="padding: 3rem; max-width: 800px; margin: 0 auto;">
+            ${conteudo}
+            <div class="assinatura-block-print" style="margin-top: 50px; text-align: center; font-family: sans-serif;">
                 <div style="border-top: 1px solid #000; width: 300px; margin: 0 auto; padding-top: 5px;"></div>
-                <p style="margin: 5px 0 0;">${nomeAss}</p>
-                <p style="margin: 0; font-size: 0.9em; color: #555;">${funcAss}</p>
+                <p style="margin: 5px 0 0; font-weight: bold;">${nomeAss}</p>
+                <p style="margin: 0; font-size: 0.9em; color: #333;">${funcAss}</p>
             </div>
         </div>
     `;
 
-    // 3. Chama o print do navegador
     window.print();
-
-    // 4. Limpa o container para não atrapalhar depois
     setTimeout(() => { printContainer.innerHTML = ''; }, 1000);
 }
 
 function imprimirAgendaDiaria(d) { window.print(); }
 function imprimirVagas() { window.print(); }
 function fecharModalRelatorio() { document.getElementById('reportModal').style.display='none'; }
-function aplicarFiltroRelatorio() {} // Mantido simples
+function aplicarFiltroRelatorio() {} 
 function limparFiltroRelatorio() {} 
 function atualizarValoresFiltro() {}
-function abrirModalRelatorio(status, periodo) { document.getElementById('reportModal').style.display='flex'; } // Mantido simples
+function abrirModalRelatorio(status, periodo) { document.getElementById('reportModal').style.display='flex'; } 
 function procurarVagas() { /* Lógica mantida */ }
 function limparBuscaVagas() { document.getElementById('vagasResultadosContainer').classList.add('hidden'); }
 function togglePasswordVisibility() { const i=document.getElementById('clearDataPassword'); i.type = i.type==='password'?'text':'password'; }
