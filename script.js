@@ -1,9 +1,17 @@
-/* script.js - VERSÃO FINAL (FIX DATA + ASSINATURA OBRIGATÓRIA) */
+/* script.js - VERSÃO BLINDADA COM DAY.JS (FIM DOS ERROS DE DATA) */
 'use strict';
 
-// --- CONFIGURAÇÃO FIREBASE ---
+// --- BIBLIOTECAS EXTERNAS (MODERNIZAÇÃO) ---
+// 1. Day.js: Para manipular datas sem erros
+import dayjs from "https://cdn.jsdelivr.net/npm/dayjs@1.11.10/+esm";
+import "https://cdn.jsdelivr.net/npm/dayjs@1.11.10/locale/pt-br.js";
+
+// 2. Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+// --- CONFIGURAÇÃO INICIAL ---
+dayjs.locale('pt-br'); // Configura datas para Português Brasil
 
 const firebaseConfig = {
     apiKey: "AIzaSyD8EZZr3WE5RQCZ9he_qZ2vnXnftvX3jTc",
@@ -21,8 +29,8 @@ const db = getDatabase(app);
 // --- VARIÁVEIS GLOBAIS ---
 const VAGAS_POR_TURNO = 8;
 const MAX_DAYS_SEARCH = 10;
+// Meses e Dias agora são gerenciados pelo Day.js, mas mantemos para o calendário manual se necessário
 const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho','Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
 
 const PROFISSIONAIS_LISTA = [
     { nome: "ALESSANDRA OLIVEIRA MONTALVAO DA CRUZ", funcao: "ASSISTENTE ADMINISTRATIVO" },
@@ -408,7 +416,16 @@ function atualizarCalendario() {
 
 function selecionarDia(data, elemento) {
     slotEmEdicao = null; const diaSelecionadoAnterior = document.querySelector('.day.selected'); if(diaSelecionadoAnterior) diaSelecionadoAnterior.classList.remove('selected'); if(elemento) elemento.classList.add('selected'); dataSelecionada = data; exibirAgendamentos(data); atualizarBolinhasDisponibilidade(data); atualizarResumoSemanal(new Date(data + 'T12:00:00'));
-    const hint = document.getElementById('floatingDateHint'); if (hint) { const dataObj = new Date(data + 'T12:00:00'); let dataTexto = dataObj.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }); dataTexto = dataTexto.charAt(0).toUpperCase() + dataTexto.slice(1); hint.textContent = dataTexto; hint.classList.add('visible'); }
+    
+    // --- USO DO DAY.JS ---
+    const hint = document.getElementById('floatingDateHint'); 
+    if (hint) { 
+        // Formata data automaticamente sem erros
+        let dataTexto = dayjs(data).format('dddd, D [de] MMMM');
+        dataTexto = dataTexto.charAt(0).toUpperCase() + dataTexto.slice(1); 
+        hint.textContent = dataTexto; 
+        hint.classList.add('visible'); 
+    }
 }
 
 function goToToday() {
@@ -417,7 +434,11 @@ function goToToday() {
 
 function exibirAgendamentos(data) {
     const container = document.getElementById('appointmentsContainer'); if (!container) return; 
-    const dataObj = new Date(data + 'T12:00:00'); let dataFmt = dataObj.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }); dataFmt = dataFmt.charAt(0).toUpperCase() + dataFmt.slice(1);
+    
+    // --- USO DO DAY.JS NO TÍTULO ---
+    let dataFmt = dayjs(data).format('dddd, D [de] MMMM');
+    dataFmt = dataFmt.charAt(0).toUpperCase() + dataFmt.slice(1);
+
     const bloqueio = diasBloqueados[data];
 
     if (bloqueio && (bloqueio.diaInteiro || (bloqueio.manha && bloqueio.tarde))) {
@@ -765,19 +786,13 @@ function configurarBuscaGlobalAutocomplete() {
 function iniciarProcessoDeclaracao(d,t,v) { atestadoEmGeracao = agendamentos[d][t].find(a=>a.vaga===v); document.getElementById('choiceModal').style.display='flex'; }
 function fecharModalEscolha() { document.getElementById('choiceModal').style.display='none'; }
 
-// --- CORREÇÃO: DATA CORRETA ---
+// --- CORREÇÃO DEFINITIVA DE DATA (USANDO DAY.JS) ---
 function gerarDeclaracaoPaciente() { 
     if (!atestadoEmGeracao) return;
     const { nome, cns, data, turno } = atestadoEmGeracao;
     
-    // Fix Invalid Date: Cria data manualmente para evitar erro de timezone do browser
-    // Formato esperado de 'data': YYYY-MM-DD
-    const partesData = data.split('-');
-    // Note: Mês em Date() começa em 0 (Janeiro)
-    const dataObj = new Date(partesData[0], partesData[1] - 1, partesData[2]);
-    
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    const dataExtenso = dataObj.toLocaleDateString('pt-BR', options);
+    // Day.js resolve qualquer string de data (ex: '2025-11-28')
+    const dataExtenso = dayjs(data).format('D [de] MMMM [de] YYYY');
 
     const conteudoAtestado = `
       <div style="text-align: center; margin-bottom: 2rem;">
@@ -809,17 +824,13 @@ function fecharModalAcompanhante() { document.getElementById('acompanhanteModal'
 function confirmarNomeAcompanhante() { fecharModalAcompanhante(); fecharModalEscolha(); document.getElementById('declaracaoModal').style.display='flex'; }
 function fecharModalAtestado() { document.getElementById('declaracaoModal').style.display='none'; }
 
-// --- CORREÇÃO: VALIDAÇÃO DE ASSINATURA ---
 function imprimirDeclaracao() {
     const nomeAss = document.getElementById('assinaturaNomePrint').textContent.trim();
-    
-    // TRAVA DE SEGURANÇA: Se não tiver nome, bloqueia.
     if (!nomeAss || nomeAss.length < 3) {
         alert("ERRO: É obrigatório selecionar o profissional que assina a declaração antes de imprimir.");
-        // Tenta focar no input para ajudar o usuário
         const input = document.getElementById('assinaturaInput');
         if (input) input.focus();
-        return; // PARE TUDO
+        return; 
     }
 
     const conteudo = document.getElementById('declaracao-content-wrapper').innerHTML;
