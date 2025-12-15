@@ -21,6 +21,15 @@ try {
     console.error("Erro ao inicializar Firebase. Verifique se os scripts do SDK foram adicionados ao HTML.", e);
 }
 
+// [ARCOSAFE-FIX] LISTA DE USUÁRIOS E SENHAS
+// Edite aqui para mudar os acessos
+const CREDENCIAIS = {
+    'admin': 'mastercaps',      // Acesso mestre
+    'recepcao': 'agenda2025',   // Acesso padrão
+    'coordenacao': 'gestao',    // Acesso gestão
+    'medico': 'caps'            // Acesso simples
+};
+
 // ============================================
 // 1. VARIÁVEIS GLOBAIS E CONSTANTES
 // ============================================
@@ -119,11 +128,15 @@ function tentarLogin() {
     const senhaInput = document.getElementById('loginSenha');
     const errorMessage = document.getElementById('loginErrorMessage');
 
-    const usuario = usuarioInput ? usuarioInput.value : '';
-    const senha = senhaInput ? senhaInput.value : '';
+    const usuario = usuarioInput ? usuarioInput.value.trim().toLowerCase() : '';
+    const senha = senhaInput ? senhaInput.value.trim() : '';
 
-    if (usuario === '0000' && senha === '0000') {
+    // [ARCOSAFE-FIX] Validação contra a lista de credenciais
+    if (CREDENCIAIS[usuario] && CREDENCIAIS[usuario] === senha) {
         sessionStorage.setItem('usuarioLogado', 'true');
+        // Opcional: Salvar qual usuário logou para auditoria futura
+        sessionStorage.setItem('nomeUsuario', usuario);
+        
         if (errorMessage) errorMessage.classList.add('hidden');
         document.body.classList.add('logged-in');
         inicializarApp();
@@ -131,6 +144,13 @@ function tentarLogin() {
         if (errorMessage) {
             errorMessage.textContent = 'Usuário ou senha incorretos.';
             errorMessage.classList.remove('hidden');
+            
+            // Efeito visual de erro (shake)
+            const loginBox = document.querySelector('.login-box');
+            if(loginBox) {
+                loginBox.style.animation = 'none';
+                setTimeout(() => loginBox.style.animation = 'shake 0.5s', 10);
+            }
         }
     }
 }
@@ -153,9 +173,7 @@ function inicializarApp() {
             pacientesGlobais = [...pacientes];
         } catch (error) { pacientes = []; pacientesGlobais = []; }
     } else {
-        // [ARCOSAFE-FIX] Inicialização vazia: ignora pacientesDefault e inicia lista vazia
         pacientesGlobais = []; 
-        // [ARCOSAFE-FIX] Aguarda importação manual, não salva nada automaticamente
     }
     if (bloqueiosSalvos) {
         try { diasBloqueados = JSON.parse(bloqueiosSalvos); } catch (error) { diasBloqueados = {}; }
