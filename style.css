@@ -533,15 +533,23 @@ main { max-width: 1600px; margin: 0 auto; padding: 1.5rem; }
 
 /* --- CARD DE VAGA --- */
 .vaga-card {
-    background-color: white;
-    border: 1px solid #80868b; /* Borda escurecida */
+    background-color: white; /* Padrão (Livre) = Branco */
+    border: 1px solid #80868b;
     border-radius: var(--radius-md);
     transition: var(--transition);
     display: flex;
     flex-direction: column;
     box-shadow: 0 1px 3px rgba(0,0,0,0.12);
-    overflow: hidden; /* Correção de cantos */
+    overflow: hidden;
 }
+/* [ARCOSAFE-FIX] Cores de Fundo para Cards Ocupados (Por Turno) */
+#turno-manha .vaga-card.ocupada {
+    background-color: #f4f8ff; /* Manhã Ocupada: Azul Bem Clarinho */
+}
+#turno-tarde .vaga-card.ocupada {
+    background-color: #f1f8f5; /* Tarde Ocupada: Verde Bem Clarinho */
+}
+
 .vaga-card:hover { box-shadow: 0 3px 6px rgba(0,0,0,0.15); }
 .vaga-card.editing {
     border-color: var(--color-primary);
@@ -561,29 +569,12 @@ main { max-width: 1600px; margin: 0 auto; padding: 1.5rem; }
 }
 .vaga-header > div { display: flex; align-items: center; gap: 0.5rem; }
 
-/* [ARCOSAFE-FIX] CORES DEFINITIVAS DE ESTADO */
+/* Cores de Cabeçalho (Padrão e Ocupado) */
+.vaga-header.manha { background-color: var(--color-primary-light); color: var(--color-primary); }
+.vaga-card.ocupada .vaga-header.manha { background-color: #cfe2ff; color: #084298; }
 
-/* 1. Manhã - Disponível */
-.vaga-header.manha { 
-    background-color: var(--color-primary-light); /* Azul Claro (#e8f0fe) */
-    color: var(--color-primary); 
-}
-/* 2. Manhã - Ocupada */
-.vaga-card.ocupada .vaga-header.manha { 
-    background-color: #cfe2ff; /* Azul Médio - Diferente do disponível */
-    color: #084298; /* Azul Escuro para texto */
-}
-
-/* 3. Tarde - Disponível */
-.vaga-header.tarde { 
-    background-color: var(--color-success-light); /* Verde Claro (#e6f4ea) */
-    color: var(--color-success); 
-}
-/* 4. Tarde - Ocupada */
-.vaga-card.ocupada .vaga-header.tarde { 
-    background-color: #a8d5ba; /* Verde Médio/Menta - Diferente do disponível */
-    color: #0f5132; /* Verde Escuro para texto */
-}
+.vaga-header.tarde { background-color: var(--color-success-light); color: var(--color-success); }
+.vaga-card.ocupada .vaga-header.tarde { background-color: #a8d5ba; color: #0f5132; }
 
 .vaga-card.ocupada.editing .vaga-header { background-color: var(--color-warning); color: var(--text-primary); }
 
