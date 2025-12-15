@@ -534,21 +534,24 @@ main { max-width: 1600px; margin: 0 auto; padding: 1.5rem; }
 /* --- CARD DE VAGA --- */
 .vaga-card {
     background-color: white;
-    border: 1px solid #80868b; /* [ARCOSAFE] Borda escurecida para contraste */
+    border: 1px solid #80868b; /* [ARCOSAFE] Borda escurecida */
     border-radius: var(--radius-md);
     transition: var(--transition);
     display: flex;
     flex-direction: column;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.12); /* Sombra um pouco mais forte */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    overflow: hidden; /* [ARCOSAFE-FIX] CORREÇÃO DE CANTO VAZADO */
 }
 .vaga-card:hover { box-shadow: 0 3px 6px rgba(0,0,0,0.15); }
 .vaga-card.editing {
     border-color: var(--color-primary);
     box-shadow: 0 0 0 2px var(--color-primary-light);
 }
-.vaga-card.status-compareceu { border-left: 4px solid var(--color-success); margin-left: -1px; }
-.vaga-card.status-faltou { border-left: 4px solid var(--color-danger); margin-left: -1px; }
-.vaga-card.status-justificou { border-left: 4px solid #d68400; margin-left: -1px; }
+
+/* [ARCOSAFE-FIX] REMOVIDO MARGIN-LEFT NEGATIVO QUE CAUSAVA SOBREPOSIÇÃO/GAPS */
+.vaga-card.status-compareceu { border-left: 4px solid var(--color-success); }
+.vaga-card.status-faltou { border-left: 4px solid var(--color-danger); }
+.vaga-card.status-justificou { border-left: 4px solid #d68400; }
 .vaga-card.primeira-consulta { border-top: 4px solid var(--color-success); }
 
 /* Cabeçalho do Card */
@@ -1084,7 +1087,7 @@ p.search-feedback { padding: 1rem; text-align: center; color: var(--text-seconda
 /* TURNO MANHÃ - AZUL SÓLIDO */
 #turno-manha {
     background-color: #f0f7ff;
-    border: 2px solid #1565C0; /* Borda Azul Forte */
+    border: 2px solid #1565C0; /* [FIX] Borda Azul Forte */
 }
 #turno-manha::before {
     content: "MANHÃ"; position: absolute; top: 50%; left: 50%;
@@ -1093,7 +1096,7 @@ p.search-feedback { padding: 1rem; text-align: center; color: var(--text-seconda
     pointer-events: none; white-space: nowrap; z-index: 0;
 }
 
-/* TURNO TARDE - VERDE SÓLIDO (CORRIGIDO) */
+/* TURNO TARDE - VERDE SÓLIDO */
 #turno-tarde {
     background-color: #e6f4ea;
     border: 2px solid var(--color-success); /* Borda Verde Sólida */
