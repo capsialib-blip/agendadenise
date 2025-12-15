@@ -25,9 +25,9 @@
     --text-secondary: #5f6368;
     --text-on-primary: #ffffff;
 
-    /* Cores de Turno [ARCOSAFE: TARDE AGORA É VERDE] */
+    /* Cores de Turno [ARCOSAFE: DEFINIÇÃO DE PALETA] */
     --color-morning: #1a73e8;
-    --color-afternoon: #1e8e3e; /* Mudado de Red para Green */
+    --color-afternoon: #1e8e3e; /* VERDE para Tarde */
 
     /* Layout e Sombras */
     --radius-sm: 4px;
@@ -431,7 +431,7 @@ main { max-width: 1600px; margin: 0 auto; padding: 1.5rem; }
     display: flex; align-items: center; gap: 0.5rem;
 }
 .turno-label.manha { color: var(--color-morning); }
-.turno-label.tarde { color: var(--color-afternoon); } /* [ARCOSAFE: VERDE] */
+.turno-label.tarde { color: var(--color-success); } /* [ARCOSAFE: VERDE] */
 
 .vagas-bolinhas { display: grid; grid-template-columns: repeat(auto-fill, minmax(18px, 1fr)); gap: 6px; padding-left: 2px; }
 .vaga-bolinha {
@@ -440,7 +440,7 @@ main { max-width: 1600px; margin: 0 auto; padding: 1.5rem; }
     transition: var(--transition); cursor: help;
 }
 .vaga-bolinha.ocupada.manha { background-color: var(--color-morning); border-color: var(--color-morning); }
-.vaga-bolinha.ocupada.tarde { background-color: var(--color-afternoon); border-color: var(--color-afternoon); } /* [ARCOSAFE: VERDE] */
+.vaga-bolinha.ocupada.tarde { background-color: var(--color-success); border-color: var(--color-success); } /* [ARCOSAFE: VERDE] */
 
 /* --- SEÇÃO DE AGENDAMENTOS (DIREITA) --- */
 .empty-state { text-align: center; padding: 4rem 2rem; opacity: 0.7; }
@@ -505,9 +505,10 @@ main { max-width: 1600px; margin: 0 auto; padding: 1.5rem; }
     border-bottom-color: var(--color-primary);
     font-weight: bold;
 }
+/* [ARCOSAFE: VERDE] */
 .tab-btn.active.tarde {
-    color: var(--color-afternoon); /* [ARCOSAFE: VERDE] */
-    border-bottom-color: var(--color-afternoon); /* [ARCOSAFE: VERDE] */
+    color: var(--color-success); 
+    border-bottom-color: var(--color-success);
     font-weight: bold;
 }
 .turno-content { display: none; }
@@ -556,7 +557,8 @@ main { max-width: 1600px; margin: 0 auto; padding: 1.5rem; }
 }
 .vaga-header > div { display: flex; align-items: center; gap: 0.5rem; }
 .vaga-header.manha { background-color: var(--color-primary-light); color: var(--color-primary); }
-.vaga-header.tarde { background-color: var(--color-success-light); color: var(--color-success); } /* [ARCOSAFE: VERDE] */
+/* [ARCOSAFE: VERDE] Cabeçalho da Tarde agora é Verde */
+.vaga-header.tarde { background-color: var(--color-success-light); color: var(--color-success); }
 
 .vaga-card.ocupada .vaga-header { background-color: var(--color-bg-neutral); color: var(--text-secondary); }
 .vaga-card.ocupada.editing .vaga-header { background-color: var(--color-warning); color: var(--text-primary); }
@@ -698,15 +700,17 @@ textarea.form-input { resize: vertical; min-height: 60px; line-height: 1.4; }
 .form-buttons { display: flex; justify-content: flex-end; gap: 0.75rem; }
 .form-buttons .btn { border-radius: var(--radius-md); padding: 0.5rem 1rem; }
 .form-buttons .btn-success.manha { background-color: var(--color-primary); border-color: var(--color-primary); color: white; }
-.form-buttons .btn-success.tarde { background-color: var(--color-success); border-color: var(--color-success); color: white; } /* [ARCOSAFE: VERDE] */
+/* [ARCOSAFE: VERDE] Botão salvar agora é Verde */
+.form-buttons .btn-success.tarde { background-color: var(--color-success); border-color: var(--color-success); color: white; } 
 .form-buttons .btn-success.manha:hover { background-color: #1b66c9; }
-.form-buttons .btn-success.tarde:hover { background-color: #166e30; } /* [ARCOSAFE: VERDE HOVER] */
+.form-buttons .btn-success.tarde:hover { background-color: #166e30; }
 
 .form-buttons .btn-secondary { background-color: transparent; }
 .form-buttons .btn-secondary.manha { color: var(--color-primary); border: 1px solid var(--color-primary); }
 .form-buttons .btn-secondary.manha:hover { background-color: var(--color-primary-light); }
-.form-buttons .btn-secondary.tarde { color: var(--color-success); border: 1px solid var(--color-success); } /* [ARCOSAFE: VERDE] */
-.form-buttons .btn-secondary.tarde:hover { background-color: var(--color-success-light); } /* [ARCOSAFE: VERDE] */
+/* [ARCOSAFE: VERDE] Botão limpar agora é Verde */
+.form-buttons .btn-secondary.tarde { color: var(--color-success); border: 1px solid var(--color-success); } 
+.form-buttons .btn-secondary.tarde:hover { background-color: var(--color-success-light); } 
 
 .form-error-message {
     background-color: var(--color-danger-light); color: var(--color-danger);
@@ -1089,7 +1093,7 @@ p.search-feedback { padding: 1rem; text-align: center; color: var(--text-seconda
     pointer-events: none; white-space: nowrap; z-index: 0;
 }
 
-/* TURNO TARDE - VERDE SÓLIDO */
+/* TURNO TARDE - VERDE SÓLIDO (CORRIGIDO) */
 #turno-tarde {
     background-color: #e6f4ea;
     border: 2px solid var(--color-success); /* Borda Verde Sólida */
