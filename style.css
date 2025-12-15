@@ -1078,7 +1078,7 @@ p.search-feedback { padding: 1rem; text-align: center; color: var(--text-seconda
 /* TURNO MANHÃ - AZUL SÓLIDO (CORRIGIDO) */
 #turno-manha {
     background-color: #f0f7ff;
-    border-color: var(--color-primary); /* [FIX] Borda Azul Sólida */
+    border: 2px solid var(--color-primary); /* [FIX] Borda Azul Sólida */
 }
 #turno-manha::before {
     content: "MANHÃ"; position: absolute; top: 50%; left: 50%;
@@ -1090,7 +1090,7 @@ p.search-feedback { padding: 1rem; text-align: center; color: var(--text-seconda
 /* TURNO TARDE - VERDE SÓLIDO */
 #turno-tarde {
     background-color: #e6f4ea;
-    border-color: var(--color-success); /* Borda Verde Sólida */
+    border: 2px solid var(--color-success); /* Borda Verde Sólida */
 }
 #turno-tarde::before {
     content: "TARDE"; position: absolute; top: 50%; left: 50%;
