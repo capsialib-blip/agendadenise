@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agenda Eletrônica</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+
+    <div id="loginScreen" class="login-container">
+      <div class="login-box">
+        <img src="logocaps.png" alt="Logo CAPS ia Liberdade" class="login-logo">
+        <h2 class="login-title">Agenda Eletrônica</h2>
+        <p class="login-subtitle">Por favor, faça o login para continuar.</p>
+        
+        <div class="form-group">
+          <label for="loginUsuario">Usuário:</label>
+          <input type="text" id="loginUsuario" class="form-input" value="0000">
+        </div>
+        <div class="form-group">
+          <label for="loginSenha">Senha:</label>
+          <input type="password" id="loginSenha" class="form-input" value="0000">
+        </div>
+        
+        <p id="loginErrorMessage" class="login-error hidden"></p>
+        
+        <button class="btn btn-primary" id="loginButton">Entrar</button>
+      </div>
+    </div>
+
+    <header>
+      <div class="header-container">
+        <div class="header-left">
+          <div class="logo">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-calendar3" viewBox="0 0 16 16">
+              <path d="M14 0H2a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2M1 3.857C1 3.384 1.448 3 2 3h12c.552 0 1 .384 1 .857v10.286c0 .473-.448.857-1 .857H2c-.552 0-1-.384-1-.857z"/>
+              <path d="M6.5 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2m3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2m-9 3a1 1 0 1 0 0-2 1 1 0 0 0 0 2m3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2m3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2m-9 3a1 1 0 1 0 0-2 1 1 0 0 0 0 2m3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/>
+            </svg>
+          </div>
+          <div class="header-text">
+            <h1>Agenda Eletrônica</h1>
+          </div>
+          <button class="btn btn-today" id="btnHoje">Hoje</button>
+        </div>
+        <div class="data-loaded-indicator" id="dataLoadedIndicator">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-check icon-loaded" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M10.354 6.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7 8.793l2.646-2.647a.5.5 0 0 1 .708 0"/>
+            <path d="M4.406 3.342A5.53 5.53 0 0 1 8 2c2.69 0 4.923 2 5.166 4.579C14.758 6.804 16 8.137 16 9.773 16 11.569 14.502 13 12.687 13H3.75a3.5 3.5 0 0 1-2.993-5.36c.219-.71.623-1.34 1.154-1.841a5.53 5.53 0 0 1 2.488-1.222zm6.352-1.575a6.53 6.53 0 0 0-11.517 3.55a4.5 4.5 0 0 0 .142 8.924H12.69a4.5 4.5 0 0 0 2.808-8.216A6.53 6.53 0 0 0 10.758 1.767z"/>
+          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-slash icon-not-loaded" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L1.707 11.707a.5.5 0 0 1-.708-.708L10.646 1.646a.5.5 0 0 1 .708 0z"/>
+            <path d="M4.406 3.342A5.53 5.53 0 0 1 8 2c2.69 0 4.923 2 5.166 4.579C14.758 6.804 16 8.137 16 9.773 16 11.569 14.502 13 12.687 13H3.75a3.5 3.5 0 0 1-2.993-5.36c.219-.71.623-1.34 1.154-1.841a5.53 5.53 0 0 1 2.488-1.222zM4.75 12a2.5 2.5 0 0 0 0-5 .028.028 0 0 1 .028-.028A2.5 2.5 0 0 0 9.72 4.5a.028.028 0 0 1 .028.028 3.5 3.5 0 0 1 3.22 5.245 4.5 4.5 0 0 1-8.25-1.025.028.028 0 0 1-.028-.028A2.5 2.5 0 0 0 4.75 12z"/>
+          </svg>
+          <span id="indicatorText"></span>
+        </div>
+      </div>
+    </header>
+
+    <main>
+        <section class="management-section">
+            <div class="glass-card">
+                <div class="card-header">
+                    <div class="header-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-gear" viewBox="0 0 16 16">
+                            <path d="M11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0M8 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m.256 7a4.5 4.5 0 0 1-.229-1.004H3c.001-.246.154-.986.832-1.664C4.484 10.68 5.711 10 8 10q.39 0 .74.025c.226-.341.496-.65.804-.918Q8.844 9.002 8 9c-5 0-6 3-6 4s1 1 1 1zm3.63-4.54c.18-.613 1.048-.613 1.229 0l.043.148a.64.64 0 0 0 .921.382l.136-.074c.561-.306 1.175.308.87.869l-.075.136a.64.64 0 0 0 .382.92l.149.045c.612.18.612 1.048 0 1.229l-.15.043a.64.64 0 0 0-.38.921l.074.136c.305.561-.309 1.175-.87.87l-.136.075a.64.64 0 0 0-.92.382l-.045.149c-.18.612-1.048.612-1.229 0l-.043-.15a.64.64 0 0 0-.921-.38l-.136.074c-.561.305-1.175-.309-.87-.87l.075-.136a.64.64 0 0 0-.382-.92l-.148-.045c-.613-.18-.613-1.048 0-1.229l.148-.043a.64.64 0 0 0 .382-.921l-.074-.136c-.306-.561.308-1.175.869-.87l.136.075a.64.64 0 0 0 .92-.382zM14 12.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0"/>
+                        </svg>
+                    </div>
+                    <h2 class="card-title">Gerenciamento de Dados</h2>
+                </div>
+                <div class="card-content">
+                    <div class="action-grid">
+                        <button class="btn btn-import" id="btnImportar" data-tooltip="Carregar Planilha (.html)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-upload" viewBox="0 0 16 16">
+                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
+                                <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L4.854 4.854a.5.5 0 1 1-.708-.708z"/>
+                            </svg>
+                            <span>Importar</span>
+                        </button>
+                        <button class="btn btn-backup" id="btnBackup" data-tooltip="Salvar Dados Atuais (.json)">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
+                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
+                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L4.854 8.146a.5.5 0 1 0-.708.708z"/>
+                            </svg>
+                            <span>Backup</span>
+                        </button>
+                        <button class="btn btn-restore" id="btnRestaurar" data-tooltip="Carregar Backup (.json)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-clockwise" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/>
+                                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/>
+                            </svg>
+                            <span>Restaurar</span>
+                        </button>
+                        <button class="btn btn-clear" id="btnLimparDados" data-tooltip="Excluir Todos os Dados" aria-label="Excluir Todos os Dados">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
+                                <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <input type="file" id="restoreFile" accept=".json" class="hidden">
+                    <input type="file" id="htmlFile" accept=".htm,.html" class="hidden">
+
+                    <div class="search-section">
+                        <label for="globalSearchInput">Buscar Agendamentos por Paciente:</label>
+                        <div class="search-bar autocomplete-container">
+                            <input type="text" id="globalSearchInput" class="form-input" placeholder="Digite nome ou número do prontuário...">
+                            <button class="btn btn-search" id="globalSearchButton" aria-label="Buscar agendamentos">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                                </svg>
+                            </button>
+                            <div class="sugestoes-lista" id="globalSugestoesLista"></div>
+                        </div>
+                        <div id="searchResultsContainer"></div>
+                    </div>
+
+                    <div class="backup-settings-section">
+                      <h4>Configurar Horário de Backup</h4>
+                      <p>Defina o horário para o lembrete de backup obrigatório. Horário atual: <span id="backupTimeDisplay" style="color: var(--color-primary); font-weight: bold;">16:00</span></p>
+                      <div class="backup-settings-form">
+                        <input type="time" id="backupTimeInput" class="form-input" value="16:00">
+                        <button class="btn btn-primary" id="saveBackupTimeBtn" style="background-color: #28a745; border-color: #28a745;">Definir Horário</button> </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section id="vagasSearchSection" class="management-section">
+            <div class="glass-card">
+                <div class="card-header">
+                    <div class="header-icon">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search-heart" viewBox="0 0 16 16">
+                            <path d="M6.5 4.482c1.664-1.673 5.825 1.254 0 5.018-5.825-3.764-1.664-6.69 0-5.018"/>
+                            <path d="M13 6.5a6.47 6.47 0 0 1-1.258 3.844q.06.044.115.098l3.85 3.85a1 1 0 0 1-1.414 1.415l-3.85-3.85a1 1 0 0 1-.1-.115h.002A6.5 6.5 0 1 1 13 6.5M6.5 12a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11"/>
+                        </svg>
+                    </div>
+                    <h2 class="card-title">Procurar Vagas</h2>
+                </div>
+                <div class="card-content">
+                    <div class="vagas-search-form">
+                        <div class="form-group date-input">
+                            <label for="vagasStartDate">Data Inicial:</label>
+                            <input type="date" id="vagasStartDate" class="form-input" max="2031-12-31">
+                        </div>
+                        <div class="form-group date-input">
+                            <label for="vagasEndDate">Data Final:</label>
+                            <input type="date" id="vagasEndDate" class="form-input" max="2031-12-31">
+                        </div>
+                        <button class="btn btn-primary" id="btnProcurarVagas">Procurar</button>
+                    </div>
+                    <p id="vagasErrorMessage" class="hidden"></p> 
+                    <div id="vagasResultadosContainer" class="hidden">
+                        <div class="vagas-results-header">
+                            <h3 id="vagasPeriodoTitulo"></h3>
+                            <button class="btn-icon btn-clear-search" id="btnClearVagasSearch" aria-label="Limpar busca de vagas" title="Limpar Busca">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+                                    <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="vagasSumario"></div>
+                        <div id="vagasBloqueiosDetalhes"></div>
+                        <button class="btn btn-secondary btn-sm hidden" id="btnPrintVagas">Imprimir Resumo</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="main-layout">
+            <aside>
+                <div class="calendar-wrapper">
+                    <div class="calendar-navigation">
+                        <h3 id="mesAno" class="month-title"></h3>
+                        <div class="nav-buttons">
+                            <button class="nav-btn" id="btnMesAnterior" aria-label="Mês anterior">
+                                <svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"></path></svg>
+                            </button>
+                            <button class="nav-btn" id="btnProximoMes" aria-label="Próximo mês">
+                                <svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="calendar-container" id="calendarContainer">
+                        </div>
+
+                    <div id="availabilityIndicator" class="availability-section hidden">
+                        <div class="availability-title">Disponibilidade de Vagas</div>
+                        <div class="turnos-container">
+                            <div class="turno-disponibilidade">
+                                <div class="turno-label manha">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-brightness-alt-high-fill" viewBox="0 0 16 16">
+                                        <path d="M8 3a.5.5 0 0 1 .5.5v2.5a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 3m8 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5m-13.5.5a.5.5 0 0 0 0-1h-2a.5.5 0 0 0 0 1zm11.157-6.157a.5.5 0 0 1 0 .707l-1.414 1.414a.5.5 0 1 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m-9.9 2.121a.5.5 0 0 0 .707-.707L3.05 5.343a.5.5 0 1 0-.707.707zM8 7a4 4 0 0 0-4 4 .5.5 0 0 0 .5.5h7a.5.5 0 0 0 .5-.5 4 4 0 0 0-4-4"/>
+                                    </svg>
+                                    Manhã
+                                </div>
+                                <div class="vagas-bolinhas" id="bolinhasManha"></div>
+                            </div>
+                            <div class="turno-disponibilidade">
+                                <div class="turno-label tarde">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-brightness-high-fill" viewBox="0 0 16 16">
+                                        <path d="M12 8a4 4 0 1 1-8 0 4 4 0 0 1 8 0M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708"/>
+                                    </svg>
+                                    Tarde
+                                </div>
+                                <div class="vagas-bolinhas" id="bolinhasTarde"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="resumoSemanalContainer"></div>
+                    <div id="resumoMensalContainer"></div>
+
+                </div>
+            </aside>
+
+            <section>
+                <div id="appointmentsContainer">
+                    <div class="glass-card empty-state-card">
+                        <div class="card-content">
+                            <div class="empty-state">
+                                <svg class="empty-icon" xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-calendar-check" viewBox="0 0 16 16">
+                                  <path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/>
+                                  <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/>
+                                </svg>
+                                <h3>Selecione uma Data</h3>
+                                <p>Clique num dia útil no calendário para visualizar e gerenciar os agendamentos.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <div id="print-container"></div>
+    <div id="print-vagas-container"></div>
+    
+    <div id="floatingDateHint" class="floating-date-hint hidden"></div>
+
+    <div id="choiceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Gerar Declaração</h3>
+            </div>
+            <div class="modal-body">
+                <p>Para quem deseja emitir a declaração de comparecimento?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="btnCancelarChoice">Cancelar</button>
+                <button class="btn btn-primary" id="btnDeclaracaoPaciente">Paciente</button>
+                <button class="btn btn-success" id="btnDeclaracaoAcompanhante">Acompanhante</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="acompanhanteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Nome do Acompanhante</h3>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="acompanhanteNomeInput">Nome Completo do Acompanhante:</label>
+                    <input type="text" id="acompanhanteNomeInput" class="form-input" placeholder="Digite o nome aqui...">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="btnCancelarAcompanhante">Cancelar</button>
+                <button class="btn btn-primary" id="btnConfirmarAcompanhante">Confirmar</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Confirmar Ação</h3>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">Deseja realmente cancelar este agendamento?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="btnCancelarModal">Não</button>
+                <button class="btn btn-danger" id="confirmButton">Sim</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="blockDayModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Bloquear Agenda</h3>
+            </div>
+            <div class="modal-body">
+                <form id="blockDayForm">
+                    <div class="form-group">
+                        <label for="blockType">Tipo de Bloqueio:</label>
+                        <select id="blockType" name="blockType" class="form-input">
+                            <option value="all_day">Dia Inteiro</option>
+                            <option value="morning">Apenas Manhã</option>
+                            <option value="afternoon">Apenas Tarde</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="blockReason">Motivo (ex: Feriado, Ausência):</label>
+                        <input type="text" id="blockReason" name="blockReason" class="form-input" maxlength="50" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="btnCancelarBloqueio">Cancelar</button>
+                <button class="btn btn-danger" id="btnConfirmarBloqueio">Confirmar Bloqueio</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="justificationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Adicionar Justificativa</h3>
+            </div>
+            <div class="modal-body">
+                <form id="justificationForm">
+                    <div class="form-group">
+                        <label>Motivo da Justificativa:</label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" id="justificativaReagendado" name="justificativaTipo" value="Reagendado" checked>
+                                <label for="justificativaReagendado">Agendou para outro dia</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" id="justificativaContatoTR" name="justificativaTipo" value="Contato TR">
+                                <label for="justificativaContatoTR">Entrará em contato com o TR</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group" id="reagendamentoDataContainer">
+                        <label for="reagendamentoData">Nova data do agendamento:</label>
+                        <input type="date" id="reagendamentoData" name="reagendamentoData" class="form-input">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="btnCancelarJustificativa">Cancelar</button>
+                <button class="btn btn-success" id="btnConfirmarJustificativa">Confirmar Justificativa</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="floating-notifications"></div>
+
+    <div id="backupModal" class="modal backup-modal">
+        <div class="backup-modal-content">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-shield-lock-fill" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M8 0c-.084 0-.168.003-.25.007l-5.25.75A1 1 0 0 0 2 1.75V9.5a5.5 5.5 0 0 0 3.305 5.066l1.98 1.043a1 1 0 0 0 .93 0l1.98-1.043A5.5 5.5 0 0 0 14 9.5V1.75a1 1 0 0 0-.5-.993l-5.25-.75A.98.98 0 0 0 8 0M9 6a1 1 0 1 0-2 0v1H6v2h1v1a1 1 0 1 0 2 0v-1h1V7h-1z"/>
+            </svg>
+            <h3 class="modal-title">Backup Obrigatório</h3>
+            <p>Para garantir a segurança dos dados, por favor, realize o backup da agenda.</p>
+            <button class="btn btn-primary btn-backup-modal" id="btnBackupModalAction">Fazer Backup Agora</button>
+        </div>
+    </div>
+
+    <div id="reportModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="reportModalTitle">Relatório</h3>
+                <button class="btn-icon" id="btnFecharReportModal" aria-label="Fechar relatório">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+                        <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" id="reportModalBody">
+                <div class="report-filters">
+                    <select id="reportFilterType" class="form-input">
+                        <option value="">Filtrar por:</option>
+                        <option value="tecRef">Téc. Ref.</option>
+                        <option value="distrito">Distrito</option>
+                    </select>
+                    <select id="reportFilterValue" class="form-input" disabled>
+                        <option value="">Selecione o valor</option>
+                    </select>
+                    <button id="btnApplyFilter" class="btn btn-sm btn-primary">Aplicar</button>
+                    <button id="btnClearFilter" class="btn btn-sm btn-secondary">Limpar</button>
+                </div>
+                <p id="reportTotalCount"></p>
+                <div id="reportTableContainer">
+                    </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="btnFecharReportModalFooter">Fechar</button>
+                <button class="btn btn-secondary" id="btnVerRelatorioAnual">Ver Relatório Anual</button> <button class="btn btn-primary" id="btnPrintReport">Imprimir Relatório</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="declaracaoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Declaração de Comparecimento</h3>
+            </div>
+            <div class="modal-body">
+                <div class="print-only-header">
+                    <img src="logocaps.png" alt="Logo CAPS ia Liberdade">
+                    <p class="header-title">CAPS ia Liberdade</p>
+                    <p>Rua Conde de Porto Alegre, nº 11 - IAPI - CEP: 40320-200</p>
+                    <p>Telefone: (71) 3202-0615</p>
+                </div>
+                <div id="declaracao-content-wrapper"></div>
+                
+                <div class="assinatura-block">
+                    <div class="assinatura-input-container form-group autocomplete-container">
+                        <label for="assinaturaInput">Assinatura do Profissional:</label>
+                        <input type="text" id="assinaturaInput" class="form-input assinatura-input" placeholder="Digite o nome para buscar...">
+                        <div class="sugestoes-lista" id="assinaturaSugestoes"></div>
+                    </div>
+                    
+                    <div class="assinatura-linha"></div>
+                    <p class="assinatura-nome" id="assinaturaNomePrint">&nbsp;</p>
+                    <p class="assinatura-funcao" id="assinaturaFuncaoPrint">&nbsp;</p>
+                </div>
+                </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="btnFecharDeclaracao">Fechar</button>
+                <button class="btn btn-primary" id="btnImprimirDeclaracao">Imprimir</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="clearDataModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" style="color: var(--color-danger);">Limpeza Total de Dados</h3>
+            </div>
+            <div class="modal-body">
+                <p id="clearDataMessage">Tem certeza?</p>
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label for="clearDataPassword">Digite a senha para confirmar:</label>
+                    <div style="position: relative; display: flex; align-items: center;">
+                        <input type="password" id="clearDataPassword" class="form-input" style="padding-right: 40px;">
+                        <button type="button" class="btn-icon" id="togglePassword" style="position: absolute; right: 5px; color: var(--text-secondary);">
+                            <i class="bi bi-eye-slash"></i>
+                        </button>
+                    </div>
+                    <small id="clearDataError" class="hidden" style="color: var(--color-danger); margin-top: 0.5rem;"></small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="btnCancelClearData">Cancelar</button>
+                <button class="btn btn-danger" id="btnConfirmClearData">Confirmar Exclusão</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <script src="pacientes-default.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>

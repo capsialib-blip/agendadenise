@@ -1,0 +1,2263 @@
+/* style.css */
+/* --- RESET BÁSICO E VARIÁVEIS DE COR (Estilo Google Calendar) --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    /* Paleta Principal (Inspirada no Google) */
+    --color-primary: #1a73e8;         /* Google Blue */
+    --color-primary-light: #e8f0fe;   /* Fundo de hover/seleção leve (Azul claro) */
+    --color-danger: #d93025;          /* Google Red */
+    --color-danger-light: #fce8e6;    /* Fundo de hover/seleção leve (Vermelho claro) */
+    --color-success: #1e8e3e;         /* Google Green */
+    --color-success-light: #e6f4ea;
+    --color-warning: #fbbc04;         /* Google Yellow */
+
+    /* Cores Neutras e de Fundo */
+    --color-bg-main: #f8f9fa;
+    --color-bg-card: #ffffff;
+    --color-border: #dadce0;
+    --color-bg-neutral: #f1f3f4;
+    --text-primary: #3c4043;
+    --text-secondary: #5f6368;
+    --text-on-primary: #ffffff;
+
+    /* Cores de Turno */
+    --color-morning: #1a73e8;
+    --color-afternoon: #d93025;
+
+    /* Layout e Sombras */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 16px;
+    --radius-pill: 100px;
+    --shadow-sm: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.08);
+    --transition: all 0.2s ease-in-out;
+}
+
+body {
+    font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background-color: var(--color-bg-main);
+    color: var(--text-primary);
+    line-height: 1.5;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* --- TELA DE LOGIN (Target 13) --- */
+/* Esconde a agenda por padrão */
+header, main {
+    display: none;
+}
+
+/* Exibe a agenda após o login */
+body.logged-in header {
+    display: block;
+}
+body.logged-in main {
+    display: block;
+}
+/* Esconde o login após o login */
+body.logged-in #loginScreen {
+    display: none;
+}
+
+.login-container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-bg-main);
+    padding: 1rem;
+}
+.login-box {
+    width: 100%;
+    max-width: 400px;
+    background-color: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 2.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: var(--shadow-md);
+}
+.login-logo {
+    width: 200px;
+    height: auto;
+    margin-bottom: 1.5rem;
+}
+.login-title {
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+.login-subtitle {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+}
+.login-box .form-group {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+.login-box .form-group label {
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+.login-box .form-input {
+    background-color: white;
+}
+.login-box .btn {
+    width: 100%;
+    border-radius: var(--radius-md);
+    padding: 0.75rem;
+    font-size: 1rem;
+    margin-top: 1rem;
+}
+.login-error {
+    color: var(--color-danger);
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-top: 0.5rem;
+    text-align: center;
+    width: 100%;
+}
+
+
+/* --- HEADER (Estilo Google App Bar) --- */
+header {
+    background-color: var(--color-bg-card);
+    border-bottom: 1px solid var(--color-border);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+.header-container {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0.75rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.header-left { display: flex; align-items: center; gap: 1rem; }
+.logo {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-primary);
+    background-color: transparent;
+}
+.logo svg { width: 24px; height: 24px; }
+.header-text h1 {
+    font-size: 1.375rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    line-height: 1;
+}
+
+/* --- ESTILIZAÇÃO DE BOTÕES --- */
+.btn {
+    border: 1px solid transparent;
+    border-radius: var(--radius-pill);
+    padding: 0.5rem 1.25rem;
+    cursor: pointer;
+    transition: var(--transition);
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    min-height: 36px;
+    box-sizing: border-box;
+}
+.btn:hover { background-color: rgba(0,0,0,0.05); }
+
+.btn-primary {
+    background-color: var(--color-primary);
+    color: white;
+}
+.btn-primary:hover { background-color: #1b66c9; }
+
+.btn-sm {
+    padding: 0.25rem 0.75rem;
+    min-height: 30px;
+    font-size: 0.8rem;
+}
+
+.btn-icon {
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition);
+}
+.btn-icon:hover {
+    background-color: var(--color-bg-neutral);
+    color: var(--text-primary);
+}
+
+.btn-today {
+    padding: 0.5rem 1rem;
+    border-color: var(--color-border);
+    color: var(--text-primary);
+}
+.btn-today:hover { background-color: var(--color-primary-light); border-color: var(--color-border); }
+
+.btn-success {
+    background-color: var(--color-success);
+    color: var(--text-on-primary);
+    border-color: var(--color-success);
+}
+.btn-success:hover { background-color: #1b8237; }
+
+.btn-secondary {
+    color: var(--text-secondary);
+    border-color: var(--color-border);
+}
+.btn-secondary:hover { background-color: var(--color-bg-neutral); }
+
+.btn-danger {
+    background-color: var(--color-danger);
+    color: var(--text-on-primary);
+    border-color: var(--color-danger);
+}
+.btn-danger:hover { background-color: #c5221f; }
+
+/* Botões de Gerenciamento */
+.action-grid { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.action-grid .btn {
+    border-radius: var(--radius-md);
+    background-color: var(--color-bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--color-border);
+    padding: 0.5rem 1rem;
+}
+.action-grid .btn:hover { background-color: var(--color-bg-main); }
+.action-grid .btn-import { color: var(--color-primary); }
+.action-grid .btn-backup { color: var(--color-success); }
+.action-grid .btn-restore { color: var(--color-warning); }
+.action-grid .btn-clear { color: var(--color-danger); border-radius: 50%; width: 36px; height: 36px; padding: 0; }
+.action-grid .btn-clear span { display: none; }
+
+/* Tooltip */
+.action-grid .btn { position: relative; }
+.action-grid .btn::before,
+.action-grid .btn::after {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    opacity: 0; visibility: hidden; pointer-events: none;
+    transition: opacity 0.2s ease-in-out; z-index: 10;
+}
+.action-grid .btn::after {
+    content: attr(data-tooltip); bottom: calc(100% + 8px);
+    background-color: var(--text-secondary);
+    color: var(--color-bg-card); padding: 5px 10px;
+    border-radius: var(--radius-sm); font-size: 0.75rem;
+    font-weight: 500; white-space: nowrap;
+}
+.action-grid .btn::before {
+    content: ''; bottom: 100%; border-style: solid; border-width: 5px;
+    border-color: var(--text-secondary) transparent transparent transparent;
+    transform: translateX(-50%) translateY(5px);
+}
+.action-grid .btn:hover::before, .action-grid .btn:hover::after { opacity: 1; visibility: visible; transition-delay: 0.5s; }
+
+/* --- LAYOUT PRINCIPAL E CARDS --- */
+main { max-width: 1600px; margin: 0 auto; padding: 1.5rem; }
+.glass-card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+.management-section { margin-bottom: 1.5rem; }
+.card-header {
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border-bottom: 1px solid var(--color-border);
+}
+.header-icon {
+    width: 2.5rem; height: 2.5rem; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-on-primary); background-color: var(--color-primary);
+}
+#vagasSearchSection .header-icon { background-color: var(--color-danger); } /* Ícone específico */
+.card-title { font-size: 1.125rem; font-weight: 500; color: var(--text-primary); }
+.card-content { padding: 1.5rem; }
+.main-layout { display: grid; grid-template-columns: 320px 1fr; gap: 1.5rem; }
+
+/* --- LAYOUT DO CALENDÁRIO --- */
+.calendar-wrapper { padding: 1rem; }
+.calendar-container {
+    /* Este container agora é preenchido pelo JS */
+}
+.calendar-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0 0.25rem;
+}
+.nav-buttons { display: flex; gap: 0.5rem; }
+.nav-btn {
+    width: 2rem; height: 2rem; border: none; background-color: transparent;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--text-secondary); user-select: none;
+}
+.nav-btn:hover { background-color: var(--color-primary-light); }
+.month-title { font-size: 1rem; font-weight: 500; color: var(--text-primary); user-select: none; }
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+.weekday {
+    text-align: center;
+    font-weight: 500;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    padding-bottom: 0.5rem;
+    user-select: none;
+}
+.day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.15s ease-out, color 0.15s ease-out, border-color 0.15s ease-out;
+    font-weight: 400;
+    font-size: 0.8rem;
+    border: 2px solid transparent;
+    user-select: none;
+    position: relative; /* Para o indicador ::after */
+}
+.day.workday:hover {
+    background-color: var(--color-primary-light);
+}
+.day.weekend {
+    color: #aaa;
+    cursor: not-allowed;
+}
+.day.today {
+    background-color: var(--color-primary);
+    color: var(--text-on-primary);
+    font-weight: bold;
+}
+.day.selected {
+    border-color: var(--color-primary);
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+    font-weight: bold;
+}
+.day.today.selected {
+    border-color: var(--color-primary);
+    background-color: var(--color-primary);
+    color: var(--text-on-primary);
+}
+
+.day.day-holiday {
+    font-weight: bold;
+}
+
+/* --- [ESTILOS VISUAIS DE BLOQUEIO ATUALIZADOS] --- */
+
+/* Dia Inteiro Bloqueado - Vermelho Suave e Limpo */
+.day.blocked-day {
+    background-color: var(--color-danger-light); /* Vermelho claro */
+    color: var(--color-danger); /* Texto vermelho escuro */
+    cursor: not-allowed;
+    text-decoration: none; /* Remove o risco */
+    font-weight: 500;
+}
+.day.blocked-day:hover {
+    background-color: #fad2cf; /* Vermelho um pouco mais escuro no hover */
+}
+
+/* Manhã Bloqueada - Gradiente Diagonal (Topo Esquerdo Vermelho Claro) */
+.day.blocked-morning {
+    background: linear-gradient(135deg, var(--color-danger-light) 50%, white 50%);
+    color: var(--color-danger); /* Texto vermelho para destaque */
+    font-weight: 500;
+}
+
+/* Tarde Bloqueada - Gradiente Diagonal (Fundo Direito Vermelho Claro) */
+.day.blocked-afternoon {
+    background: linear-gradient(135deg, white 50%, var(--color-danger-light) 50%);
+    color: var(--color-danger); /* Texto vermelho para destaque */
+    font-weight: 500;
+}
+
+/* Indicador de dia com agendamentos */
+.day.day-has-appointments::after {
+    content: '';
+    position: absolute;
+    bottom: 5px; /* Ajuste a posição vertical */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background-color: var(--color-primary);
+}
+.day.today.day-has-appointments::after,
+.day.today.selected.day-has-appointments::after {
+    background-color: var(--text-on-primary); /* Branco no dia 'hoje' */
+}
+.day.selected.day-has-appointments::after {
+    background-color: var(--color-primary); /* Azul no dia selecionado (se não for hoje) */
+}
+.day.blocked-day::after, /* Esconde o ponto em dias bloqueados */
+.day.weekend::after {   /* Esconde o ponto nos fins de semana */
+    display: none;
+}
+/* Disponibilidade (Bolinhas) */
+.availability-section { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--color-border); }
+.availability-title { text-align: left; font-size: 0.875rem; font-weight: 500; color: var(--text-primary); margin-bottom: 1rem; }
+.turnos-container { display: flex; flex-direction: column; gap: 1rem; }
+.turno-disponibilidade { text-align: left; }
+.turno-label {
+    font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.turno-label.manha { color: var(--color-morning); }
+.turno-label.tarde { color: var(--color-danger); }
+
+.vagas-bolinhas { display: grid; grid-template-columns: repeat(auto-fill, minmax(18px, 1fr)); gap: 6px; padding-left: 2px; }
+.vaga-bolinha {
+    width: 18px; height: 18px; border-radius: 4px;
+    background-color: #e0e0e0; border: 1px solid #ccc;
+    transition: var(--transition); cursor: help;
+}
+.vaga-bolinha.ocupada.manha { background-color: var(--color-morning); border-color: var(--color-morning); }
+.vaga-bolinha.ocupada.tarde { background-color: var(--color-danger); border-color: var(--color-danger); }
+
+/* --- SEÇÃO DE AGENDAMENTOS (DIREITA) --- */
+.empty-state { text-align: center; padding: 4rem 2rem; opacity: 0.7; }
+.empty-icon { color: var(--color-border); margin-bottom: 1.5rem; }
+.empty-state h3 { font-size: 1.25rem; font-weight: 500; margin-bottom: 0.5rem; color: var(--text-primary); }
+.empty-state p { font-size: 0.9rem; color: var(--text-secondary); }
+
+.blocked-state { text-align: center; padding: 3rem 1rem; opacity: 0.8; }
+.blocked-state.turno { padding: 2rem 1rem; }
+.blocked-icon { font-size: 3rem; color: var(--color-danger); margin-bottom: 1rem; }
+.blocked-state.turno .blocked-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+.blocked-state h3 { font-size: 1.25rem; color: var(--color-danger); margin-bottom: 0.5rem; }
+.blocked-state.turno h4 { font-size: 1rem; color: var(--color-danger); margin-bottom: 0.5rem; }
+.blocked-state p { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.5rem; }
+.blocked-state.turno p { margin-bottom: 1rem; }
+.blocked-actions .btn { border-radius: var(--radius-md); }
+
+.appointment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+}
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.appointment-header .btn-icon.btn-lock {
+    font-size: 1.2rem;
+    color: var(--color-danger);
+}
+.appointment-header .btn-icon.btn-lock:hover {
+    background-color: var(--color-danger-light);
+}
+
+.appointment-title {
+    font-size: 1rem; /* Tamanho de fonte menor, mais apropriado para uma tag */
+    font-weight: 500; /* Peso padrão de tags/botões */
+    color: var(--color-primary); /* Texto azul */
+    background-color: var(--color-primary-light); /* Fundo azul claro */
+    padding: 0.5rem 1rem; /* Preenchimento interno */
+    border-radius: var(--radius-pill); /* Cantos arredondados (pílula) */
+    display: inline-block; /* Faz o fundo se ajustar ao conteúdo */
+}
+
+.stats { padding: 1rem; background-color: var(--color-bg-main); border-radius: var(--radius-md); margin-bottom: 1.5rem; border: 1px solid transparent; }
+.stats h4 { font-weight: 500; margin-bottom: 0.5rem; color: var(--text-primary); font-size: 0.9rem; }
+.stats p { font-size: 0.875rem; color: var(--text-secondary); line-height: 1.4; }
+
+.tabs { display: flex; border-bottom: 2px solid var(--color-border); margin-bottom: 1.5rem; }
+.tab-btn {
+    flex: 1; background-color: transparent; border: none;
+    padding: 0.75rem; cursor: pointer; font-weight: 500;
+    color: var(--text-secondary); transition: var(--transition); font-size: 0.9rem;
+    border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 0;
+}
+.tab-btn:hover { background-color: var(--color-bg-main); }
+
+.tab-btn.active.manha {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+    font-weight: bold;
+}
+.tab-btn.active.tarde {
+    color: var(--color-danger);
+    border-bottom-color: var(--color-danger);
+    font-weight: bold;
+}
+.turno-content { display: none; }
+.turno-content.active { display: block; }
+
+.vagas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+    gap: 1rem;
+    align-items: start;
+}
+
+/* Animação de Destaque para o Card */
+@keyframes highlight-card {
+    0% {
+        box-shadow: 0 0 0 0 var(--color-primary-light);
+        border-color: var(--color-primary);
+    }
+    50% {
+        box-shadow: 0 0 0 6px var(--color-primary-light);
+        border-color: var(--color-primary);
+    }
+    100% {
+        box-shadow: 0 0 0 0 var(--color-primary-light);
+        border-color: var(--color-border);
+    }
+}
+/* Classe de Destaque */
+.vaga-card.highlight-card {
+    border-color: var(--color-primary);
+    animation: highlight-card 1.5s ease-out;
+}
+
+
+/* --- CARD DE VAGA (Formulário e Info) --- */
+.vaga-card {
+    background-color: white; border: 1px solid var(--color-border);
+    border-radius: var(--radius-md); transition: var(--transition);
+    display: flex; flex-direction: column;
+}
+.vaga-card:hover { box-shadow: var(--shadow-sm); }
+.vaga-card.editing {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+.vaga-card.status-compareceu { border-left: 4px solid var(--color-success); margin-left: -1px; }
+.vaga-card.status-faltou { border-left: 4px solid var(--color-danger); margin-left: -1px; }
+.vaga-card.status-justificou { border-left: 4px solid #d68400; margin-left: -1px; }
+
+.vaga-card.primeira-consulta {
+    border-top: 4px solid var(--color-success);
+}
+
+/* Cabeçalho do Card */
+.vaga-header {
+    padding: 0.5rem 1rem; font-weight: 600; font-size: 0.8rem;
+    border-bottom: 1px solid var(--color-border);
+    transition: background-color 0.2s ease;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.vaga-header > div {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.vaga-header.manha {
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+}
+.vaga-header.tarde {
+    background-color: var(--color-danger-light);
+    color: var(--color-danger);
+}
+.vaga-card.ocupada .vaga-header {
+    background-color: var(--color-bg-neutral);
+    color: var(--text-secondary);
+}
+.vaga-card.ocupada.editing .vaga-header {
+    background-color: var(--color-warning);
+    color: var(--text-primary);
+}
+
+/* Estilos para Status Tags */
+.status-tag {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--radius-pill);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.status-tag.status-aguardando { background-color: var(--color-bg-neutral); color: var(--text-secondary); }
+.status-tag.status-compareceu { background-color: var(--color-success-light); color: var(--color-success); }
+.status-tag.status-faltou { background-color: var(--color-danger-light); color: var(--color-danger); }
+.status-tag.status-justificou { background-color: #fff2e0; color: #d68400; }
+
+/* Estilo aprimorado para a tag de primeira consulta */
+.primeira-consulta-tag {
+    font-size: 0.7rem; /* Mesmo tamanho das outras tags */
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--radius-pill);
+    background-color: var(--color-success-light); /* Fundo verde claro */
+    color: var(--color-success); /* Texto verde */
+    border: 1px solid var(--color-success); /* Borda verde */
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1; /* Ajusta altura da linha */
+    white-space: nowrap; /* Evita quebra de linha */
+}
+
+
+.vaga-content { padding: 1rem; flex-grow: 1; display: flex; flex-direction: column; }
+
+/* Informações do Paciente Agendado */
+.agendamento-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.paciente-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 0.5rem; }
+.paciente-nome { font-weight: 500; font-size: 1.1rem; color: var(--text-primary); line-height: 1.3; }
+.paciente-numero-value {
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-pill);
+    font-size: 0.8rem;
+    font-weight: 500;
+    border: none;
+    white-space: nowrap;
+}
+.paciente-info p { font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.25rem; }
+.paciente-info p strong { color: var(--text-primary); font-weight: 500; }
+
+/* Estilos para Botões de Status */
+.status-buttons-container {
+    padding-top: 1rem;
+    margin-top: 1rem;
+    border-top: 1px dashed var(--color-border);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+.btn-status {
+    border: 1px solid var(--color-border);
+    background-color: transparent;
+    color: var(--text-secondary);
+    border-radius: var(--radius-pill);
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+.btn-status:hover { background-color: var(--color-bg-neutral); }
+.btn-status.active[data-status="Compareceu"] { background-color: var(--color-success); color: white; border-color: var(--color-success); }
+.btn-status.active[data-status="Faltou"] { background-color: var(--color-danger); color: white; border-color: var(--color-danger); }
+.btn-status.active[data-status="Justificou"] { background-color: var(--color-warning); color: var(--text-primary); border-color: var(--color-warning); }
+
+/* Exibição das Solicitações e Justificativas Salvas */
+.solicitacoes-display, .justificativa-display, .observacao-display {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px dashed var(--color-border);
+}
+.justificativa-display {
+    background-color: #fff2e0;
+    color: #a06e00;
+    padding: 0.75rem;
+    border-radius: var(--radius-md);
+    border-top: none;
+    font-size: 0.875rem;
+}
+.justificativa-display p strong {
+    color: #6c4800;
+}
+
+.solicitacoes-display-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    display: block;
+}
+.tags-container { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.solicitacao-tag {
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-pill);
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.observacao-display {
+    background-color: var(--color-bg-main);
+    padding: 0.75rem;
+    border-radius: var(--radius-md);
+}
+.observacao-display p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+.observacao-display p strong { color: var(--text-primary); }
+
+/* Ações do Card Ocupado */
+.agendamento-acoes { display: flex; justify-content: flex-end; align-items: center; gap: 0.5rem; margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--color-border); }
+.agendamento-acoes .btn-cancel-appointment {
+    background-color: transparent;
+    color: var(--color-danger);
+    border: none;
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+.agendamento-acoes .btn-cancel-appointment:hover {
+    background-color: var(--color-danger-light);
+    text-decoration: none;
+}
+
+.agendamento-acoes .btn-edit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    height: 36px;
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    border: 1px solid var(--color-border);
+    background-color: transparent;
+}
+.agendamento-acoes .btn-edit:hover {
+    background-color: var(--color-bg-neutral);
+    color: var(--text-primary);
+}
+.agendamento-acoes .btn-edit svg { width: 1em; height: 1em; }
+/* --- FORMULÁRIO DE AGENDAMENTO --- */
+.vaga-form { display: flex; flex-direction: column; height: 100%; }
+.form-content-wrapper { flex-grow: 1; }
+.form-row { display: flex; gap: 1rem; margin-bottom: 1rem; }
+.form-group { display: flex; flex-direction: column; flex: 1; }
+.form-group label {
+    font-weight: 500; color: var(--text-secondary); font-size: 0.75rem;
+    margin-bottom: 0.25rem; padding-left: 0.5rem; }
+.form-group.numero { flex: 0 0 7rem; }
+.form-group.full-width { flex-basis: 100%; }
+
+.form-group-checkbox-single {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+.form-group-checkbox-single input {
+    width: 1rem;
+    height: 1rem;
+    accent-color: var(--color-primary);
+}
+.form-group-checkbox-single label {
+    margin: 0;
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+
+.form-input {
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    transition: var(--transition);
+    width: 100%;
+    background-color: var(--color-bg-main);
+}
+.form-input:focus {
+    outline: 0;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 1px var(--color-primary);
+    background-color: white;
+}
+textarea.form-input {
+    resize: vertical;
+    min-height: 60px;
+    line-height: 1.4;
+}
+/* Autocomplete suggestions */
+.autocomplete-container { position: relative; }
+.sugestoes-lista {
+    position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+    background: white; border: 1px solid var(--color-border);
+    border-radius: var(--radius-md); max-height: 200px;
+    overflow-y: auto; z-index: 1000; display: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.sugestao-item { padding: 10px 12px; cursor: pointer; border-bottom: 1px solid var(--color-border); font-size: 0.85rem;}
+.sugestao-item:last-child { border-bottom: none; }
+.sugestao-item:hover { background-color: var(--color-primary-light); }
+.sugestao-item small { color: var(--text-secondary); }
+
+/* Estilos da Grade de Checkbox */
+.solicitacoes-group { margin-bottom: 1.5rem; }
+.solicitacoes-group label { margin-bottom: 0.5rem; }
+.checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    padding: 0.25rem;
+}
+.checkbox-item { display: flex; align-items: center; gap: 0.5rem; }
+.checkbox-item input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+    accent-color: var(--color-primary);
+    cursor: pointer;
+}
+.checkbox-item label {
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    font-weight: 400;
+    margin-bottom: 0;
+    cursor: pointer;
+}
+
+/* Botões do Formulário */
+.form-actions-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1rem;
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border);
+}
+/* CAMPO AGENDADO POR (FIXO E COMPACTO - FINAL) */
+.form-group.agendado-por {
+    flex: 0 0 135px;    /* Tamanho fixo: não cresce, não encolhe */
+    min-width: 135px;   /* Força o tamanho mínimo */
+    width: 135px;       /* Largura ideal */
+    margin-bottom: 0;
+}
+.form-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+.form-buttons .btn {
+    border-radius: var(--radius-md);
+    padding: 0.5rem 1rem;
+}
+.form-buttons .btn-success.manha {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+}
+.form-buttons .btn-success.tarde {
+    background-color: var(--color-danger);
+    border-color: var(--color-danger);
+    color: white;
+}
+.form-buttons .btn-success.manha:hover { background-color: #1b66c9; }
+.form-buttons .btn-success.tarde:hover { background-color: #c5221f; }
+
+.form-buttons .btn-secondary { background-color: transparent; }
+.form-buttons .btn-secondary.manha {
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary);
+}
+.form-buttons .btn-secondary.manha:hover { background-color: var(--color-primary-light); }
+.form-buttons .btn-secondary.tarde {
+    color: var(--color-danger);
+    border: 1px solid var(--color-danger);
+}
+.form-buttons .btn-secondary.tarde:hover { background-color: var(--color-danger-light); }
+
+/* Mensagem de Erro no Card */
+.form-error-message {
+    background-color: var(--color-danger-light);
+    color: var(--color-danger);
+    border: 1px solid var(--color-danger);
+    border-radius: var(--radius-md);
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    font-weight: 500;
+    font-size: 0.875rem;
+    text-align: center;
+}
+
+/* --- Seção de Busca Global --- */
+.search-section {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+.search-section label {
+    display: block;
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+.search-bar {
+    display: flex;
+    gap: 0.5rem;
+    position: relative;
+}
+.search-bar .form-input { flex-grow: 1; }
+.search-bar .btn-search {
+    background-color: var(--color-primary);
+    color: white;
+    border-radius: var(--radius-md);
+    padding: 0 1.25rem;
+    flex-shrink: 0;
+}
+.search-bar .btn-search:hover { background-color: #1b66c9; }
+
+#globalSugestoesLista {
+    width: calc(100% - 60px);
+    top: calc(100% + 2px);
+}
+
+.backup-settings-section {
+    padding-top: 1.5rem;
+}
+
+.backup-settings-section h4 {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+.backup-settings-section p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+.backup-settings-form {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+.backup-settings-form .form-input {
+    max-width: 120px;
+}
+.backup-settings-form .btn {
+    border-radius: var(--radius-md);
+    padding: 0.5rem 1rem;
+}
+
+
+/* Resultados da Busca */
+#searchResultsContainer {
+    margin-top: 1rem;
+    max-height: 350px;
+    overflow-y: auto;
+    border-radius: var(--radius-md);
+    background-color: var(--color-bg-card);
+    border: 1px solid transparent;
+}
+#searchResultsContainer:not(:empty) {
+    border-color: var(--color-border);
+}
+.search-results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background-color: var(--color-bg-main);
+    border-bottom: 1px solid var(--color-border);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+.search-results-header h4 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+.btn-clear-search {
+    color: var(--color-danger);
+}
+.btn-clear-search:hover {
+    background-color: var(--color-danger-light);
+}
+
+.search-result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--color-border);
+    background-color: var(--color-bg-card);
+}
+.search-result-item:last-child { border-bottom: none; }
+.search-result-item:hover { background-color: var(--color-bg-main); }
+
+.result-info strong {
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    display: block;
+}
+.result-info span {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+.search-result-item.past .result-info .status-text { color: var(--color-danger); }
+.search-result-item.future .result-info .status-text { color: var(--color-success); }
+.search-result-item .justificativa-display {
+    padding: 0;
+    border: none;
+    margin-top: 0.25rem;
+    font-size: 0.8rem;
+    background-color: transparent;
+}
+
+
+/* Estilos para Status no Resultado da Busca */
+.result-status {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--radius-pill);
+    text-transform: uppercase;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+    letter-spacing: 0.5px;
+}
+.result-status.status-aguardando { background-color: var(--color-bg-neutral); color: var(--text-secondary); }
+.result-status.status-compareceu { background-color: var(--color-success-light); color: var(--color-success); }
+.result-status.status-faltou { background-color: var(--color-danger-light); color: var(--color-danger); }
+.result-status.status-justificou { background-color: #fff2e0; color: #d68400; }
+
+
+.search-result-item .btn-jump {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    border-radius: var(--radius-pill);
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+    border: none;
+    min-height: auto;
+}
+.search-result-item .btn-jump:hover { background-color: #dbeafe; }
+p.search-feedback {
+    padding: 1rem;
+    text-align: center;
+    color: var(--text-secondary);
+    background-color: var(--color-bg-card);
+}
+/* --- MODAL E NOTIFICAÇÕES --- */
+.modal {
+    display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(2px);
+    align-items: center; justify-content: center;
+}
+.modal-content {
+    background-color: white; margin: 1rem; border-radius: var(--radius-lg);
+    width: 90%; max-width: 450px; box-shadow: var(--shadow-sm); overflow: hidden;
+}
+#reportModal .modal-content { /* Aumenta largura para o modal de relatório */
+    max-width: 700px;
+}
+
+#reportModal .modal-body,
+#declaracaoModal .modal-body { /* Permite rolagem no corpo do relatório e declaração */
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+}
+.modal-title { font-size: 1.25rem; font-weight: 500; color: var(--text-primary); margin: 0; }
+.modal-body { padding: 0 1.5rem 1.5rem; }
+.modal-body .form-group { margin-bottom: 1rem; }
+.modal-body .form-group:last-child { margin-bottom: 0; }
+.radio-group { display: flex; flex-direction: column; gap: 0.75rem; }
+.radio-item { display: flex; align-items: center; gap: 0.5rem; }
+.radio-item label { font-weight: 400; font-size: 0.9rem; margin: 0; }
+#reagendamentoDataContainer.hidden { display: none; }
+
+
+.modal-footer {
+    padding: 1rem 1.5rem; display: flex; gap: 0.75rem;
+    justify-content: flex-end; background-color: var(--color-bg-main);
+    flex-wrap: wrap; /* Permite que os botões quebrem linha se necessário */
+}
+.modal-footer .btn {
+    border-radius: var(--radius-md);
+    margin-left: 0.5rem; /* Espaçamento entre botões */
+}
+/* Garante que o botão Fechar fique à esquerda e os outros à direita */
+#btnFecharReportModalFooter {
+    margin-right: auto;
+    margin-left: 0; /* Remove margem esquerda padrão */
+}
+#btnVerRelatorioAnual.hidden { /* Classe para esconder o botão */
+    display: none;
+}
+/* MODAL DE BACKUP */
+.backup-modal {
+    z-index: 3000;
+    background: rgba(30, 30, 30, 0.8);
+    backdrop-filter: blur(5px);
+}
+.backup-modal-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 2rem;
+    background-color: white; margin: 1rem; border-radius: var(--radius-lg);
+    width: 90%; max-width: 450px; box-shadow: var(--shadow-sm); overflow: hidden;
+}
+.backup-modal-content svg {
+    color: var(--color-primary);
+    margin-bottom: 1rem;
+}
+.backup-modal-content h3 {
+    margin-bottom: 0.5rem;
+}
+.backup-modal-content p {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+    max-width: 300px;
+}
+.btn-backup-modal {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+}
+
+
+.data-loaded-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 0.6rem 1.2rem;
+    border-radius: var(--radius-md);
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+.data-loaded-indicator svg { display: none; }
+
+.data-loaded-indicator.not-loaded {
+    background-color: var(--color-danger-light);
+    color: var(--color-danger);
+    border-color: var(--color-danger);
+}
+.data-loaded-indicator.not-loaded .icon-not-loaded {
+    display: block;
+}
+
+.data-loaded-indicator.loaded {
+    background-color: var(--color-success-light);
+    color: var(--color-success);
+    border-color: transparent;
+}
+.data-loaded-indicator.loaded .icon-loaded {
+    display: block;
+}
+
+@keyframes highlight-feedback {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(26, 115, 232, 0.4); }
+    50% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(26, 115, 232, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(26, 115, 232, 0); }
+}
+.data-loaded-indicator.animate-highlight {
+    animation: highlight-feedback 1.5s ease-out;
+}
+
+.hidden { display: none; }
+
+#floating-notifications {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 2000;
+    pointer-events: none;
+}
+.floating-notification {
+    background-color: white;
+    border-radius: var(--radius-md);
+    padding: 1rem 1.25rem;
+    box-shadow: var(--shadow-sm);
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    border-left: 5px solid;
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+    pointer-events: all;
+    min-width: 250px;
+    max-width: 350px;
+    overflow-wrap: break-word;
+}
+.floating-notification.success { border-color: var(--color-success); color: var(--color-success); }
+.floating-notification.warning { border-color: var(--color-warning); color: #a06e00; }
+.floating-notification.info { border-color: var(--color-primary); color: var(--color-primary); }
+
+/* --- CARD DE RESUMO MENSAL --- */
+#resumoMensalContainer { margin-top: 1.5rem; }
+.monthly-summary-card {
+    padding: 1rem;
+    background-color: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+}
+.monthly-summary-title {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--color-border);
+}
+.summary-stats-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.summary-stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.875rem;
+}
+.summary-stat-item .label {
+    color: var(--text-secondary);
+}
+/* Transforma .value em botão */
+.summary-stat-item .value {
+    font-weight: bold;
+    padding: 0.1rem 0.5rem;
+    border-radius: var(--radius-pill);
+    color: white;
+    font-size: 0.8rem;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease; /* Adiciona transição de sombra */
+    min-width: 28px; /* Largura mínima para manter o círculo */
+    height: 28px;    /* Altura para manter o círculo */
+    display: inline-flex; /* Para centralizar o número */
+    align-items: center;
+    justify-content: center;
+    line-height: 1; /* Remove altura extra da linha */
+}
+.summary-stat-item .value:hover {
+    transform: scale(1.1);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2); /* Sombra no hover */
+}
+.summary-stat-item .value.compareceu { background-color: var(--color-success); }
+.summary-stat-item .value.faltou { background-color: var(--color-danger); }
+.summary-stat-item .value.justificou { background-color: #d68400; } /* Cor ajustada para justificar */
+/* Estilos para Filtros do Relatório */
+.report-filters {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap; /* Permite quebrar linha */
+    padding-bottom: 1rem; /* Espaço antes da contagem */
+    border-bottom: 1px solid var(--color-border); /* Linha divisória */
+}
+.report-filters .form-input {
+    flex: 1 1 150px; /* Base flexível */
+    min-width: 120px; /* Largura mínima */
+    padding: 0.4rem 0.6rem; /* Padding menor */
+    font-size: 0.85rem;
+    height: 36px; /* Altura igual aos botões sm */
+}
+.report-filters .btn {
+    border-radius: var(--radius-md);
+    flex-shrink: 0; /* Impede que botões encolham */
+    height: 36px; /* Altura igual aos inputs */
+}
+#reportTotalCount {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    text-align: right; /* Alinha contagem à direita */
+}
+
+/* Tabela de Relatório no Modal */
+#reportTableContainer { /* Container para a tabela */
+    max-height: calc(60vh - 100px); /* Ajusta altura máxima considerando filtros */
+    overflow-y: auto; /* Adiciona rolagem se necessário */
+}
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+.report-table th, .report-table td {
+    border: 1px solid var(--color-border);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+}
+.report-table th {
+    background-color: var(--color-bg-main);
+    font-weight: 500;
+    position: sticky; /* Cabeçalho fixo */
+    top: 0;
+    z-index: 1;
+}
+.report-table tbody tr:nth-child(even) {
+    background-color: var(--color-bg-main);
+}
+.report-table .col-data { width: 25%; }
+.report-table .col-nome { width: 40%; }
+.report-table .col-numero { width: 15%; }
+.report-table .col-tr { width: 20%; }
+
+/* --- CARD DE RESUMO SEMANAL --- */
+#resumoSemanalContainer { margin-top: 1.5rem; }
+.weekly-summary-card {
+    padding: 1rem;
+    background-color: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+}
+.weekly-summary-title {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--color-border);
+}
+.week-chart-container {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.75rem;
+    text-align: center;
+}
+.week-day-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem; /* Ajustado */
+}
+.chart-values {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    font-size: 0.8rem;
+    font-weight: bold;
+    height: 1.2em; /* Altura fixa */
+    line-height: 1.2em; /* Alinhamento vertical */
+}
+.chart-value-manha, .chart-value-tarde {
+    flex: 1;
+    text-align: center;
+}
+.chart-value-manha {
+    color: var(--color-morning);
+}
+.chart-value-tarde {
+    color: var(--color-afternoon);
+}
+.chart-bars {
+    width: 100%;
+    height: 80px;
+    background-color: var(--color-bg-neutral);
+    border-radius: var(--radius-sm);
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 2px;
+    padding: 2px;
+    position: relative;
+}
+.chart-bar {
+    width: 50%;
+    border-radius: 2px;
+    transition: height 0.3s ease-out;
+    position: relative;
+}
+.chart-bar.manha { background-color: var(--color-morning); }
+.chart-bar.tarde { background-color: var(--color-afternoon); }
+
+.week-day-label { font-size: 0.7rem; font-weight: 500; color: var(--text-secondary); }
+.week-date-label { font-size: 0.8rem; font-weight: 500; }
+
+.chart-bar::before, .chart-bar::after {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    opacity: 0; visibility: hidden; pointer-events: none;
+    transition: opacity 0.2s ease-in-out; z-index: 10;
+}
+.chart-bar::after {
+    content: attr(data-tooltip); bottom: calc(100% + 8px);
+    background-color: var(--text-secondary);
+    color: var(--color-bg-card); padding: 5px 10px;
+    border-radius: var(--radius-sm); font-size: 0.75rem;
+    font-weight: 500; white-space: nowrap;
+}
+.chart-bar::before {
+    content: ''; bottom: 100%; border-style: solid; border-width: 5px;
+    border-color: var(--text-secondary) transparent transparent transparent;
+    transform: translateX(-50%) translateY(5px);
+}
+.chart-bar:hover::before, .chart-bar:hover::after { opacity: 1; visibility: visible; transition-delay: 0.3s; }
+
+/* --- Seção Procurar Vagas (Refatorada) --- */
+#vagasSearchSection { margin-top: 1.5rem; }
+.vagas-search-form {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+.vagas-search-form .form-group {
+    margin-bottom: 0;
+}
+.vagas-search-form .form-group.date-input {
+    flex: 1 1 180px;
+    max-width: 200px;
+}
+.vagas-search-form .btn {
+    border-radius: var(--radius-md);
+    height: 38px;
+    flex-shrink: 0;
+}
+
+#vagasResultadosContainer {
+    margin-top: 1.5rem;
+    padding: 1.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background-color: var(--color-bg-main);
+}
+#vagasResultadosContainer.hidden {
+    display: none;
+}
+.vagas-results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 1rem;
+}
+#vagasPeriodoTitulo {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin: 0;
+}
+#vagasSumario {
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+#vagasSumario strong {
+    font-weight: bold;
+}
+
+/* Grid de Resultados de Vagas */
+#vagas-resultado-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
+}
+
+.vaga-dia-card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.vaga-dia-card.fim-de-semana,
+.vaga-dia-card.bloqueado {
+    background-color: var(--color-bg-neutral);
+    border-style: dashed;
+    color: var(--text-secondary);
+    padding: 1rem;
+    align-items: center;
+    justify-content: center;
+}
+
+.vaga-dia-header {
+    font-size: 1.1rem;
+    font-weight: 500;
+    padding: 0.75rem 1rem;
+    background-color: var(--color-bg-main);
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.vaga-dia-header .btn-jump-day {
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+.vaga-dia-header .btn-jump-day:hover {
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+}
+
+
+.turno-detalhe {
+    padding: 1rem;
+}
+.turno-detalhe + .turno-detalhe {
+    border-top: 1px dashed var(--color-border);
+}
+
+.turno-titulo {
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+}
+.turno-titulo.manha { color: var(--color-morning); }
+.turno-titulo.tarde { color: var(--color-danger); }
+
+.aviso-bloqueio {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--color-danger);
+    background-color: var(--color-danger-light);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-danger);
+}
+.vaga-dia-card.fim-de-semana .aviso-bloqueio,
+.vaga-dia-card.bloqueado .aviso-bloqueio {
+    background-color: transparent;
+    border: none;
+    text-align: center;
+    font-size: 1rem;
+    color: var(--text-secondary);
+}
+
+
+.vaga-lista {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.vaga-lista-item {
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    border: 1px solid var(--color-border);
+}
+.vaga-lista-item.ocupada {
+    background-color: var(--color-bg-card);
+    color: var(--text-primary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+}
+.vaga-lista-item.ocupada strong {
+    font-weight: 500;
+}
+.vaga-lista-item.ocupada span {
+    font-weight: bold;
+    color: var(--color-primary);
+    margin-right: 0.25rem;
+}
+.vaga-lista-item.ocupada .btn-jump-patient {
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+.vaga-lista-item.ocupada .btn-jump-patient:hover {
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+}
+.vaga-lista-item.ocupada .btn-jump-patient svg {
+    width: 16px;
+    height: 16px;
+}
+
+
+.vaga-lista-item.livre {
+    background-color: var(--color-success-light);
+    color: var(--color-success);
+    border-color: var(--color-success);
+    font-weight: 500;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.vaga-lista-item.livre:hover {
+    background-color: var(--color-success);
+    color: var(--text-on-primary);
+}
+
+
+#btnPrintVagas {
+    margin-top: 1.5rem;
+}
+#btnPrintVagas.hidden {
+    display: none;
+}
+/* --- Fim da Seção Procurar Vagas --- */
+
+
+/* Modal de Declaração */
+#declaracao-content-wrapper {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 12pt;
+    line-height: 1.6;
+    color: #000;
+}
+#declaracao-content-wrapper h4 {
+    text-align: center;
+    font-size: 14pt;
+    margin-bottom: 1.5rem;
+    font-weight: bold;
+}
+#declaracao-content-wrapper p {
+    text-align: justify;
+    margin-bottom: 1.5rem;
+    text-indent: 40px; /* Recuo de parágrafo */
+}
+/* Bloco de Assinatura */
+.assinatura-block {
+    margin-top: 3rem;
+    text-align: center;
+}
+.assinatura-linha {
+    width: 80%;
+    margin: 0 auto 5px auto;
+    border: 0;
+    border-top: 1px solid #000;
+}
+.assinatura-nome {
+    font-weight: bold;
+    font-size: 11pt;
+    margin: 0;
+    padding: 0;
+    min-height: 1.2em; /* Garante espaço mesmo vazio */
+}
+.assinatura-funcao {
+    font-size: 10pt;
+    margin: 0;
+    padding: 0;
+    min-height: 1.2em; /* Garante espaço mesmo vazio */
+}
+.assinatura-input {
+    border: none;
+    border-bottom: 1px dashed #ccc;
+    width: 80%;
+    text-align: center;
+    font-size: 11pt;
+    font-family: 'Times New Roman', Times, serif;
+    margin-bottom: 5px;
+}
+.assinatura-input:focus {
+    outline: none;
+    border-bottom: 1px solid #333;
+}
+.assinatura-autocomplete-container {
+    position: relative;
+    width: 80%;
+    margin: 0 auto;
+}
+.assinatura-autocomplete-container .sugestoes-lista {
+    font-family: 'Google Sans', sans-serif; /* Muda a fonte para a padrão da UI */
+    text-align: left;
+    width: 100%;
+}
+.assinatura-autocomplete-container .sugestao-item {
+    font-size: 0.9rem;
+}
+
+
+/* --- RESPONSIVIDADE --- */
+@media (max-width: 1024px) {
+    .main-layout { grid-template-columns: 1fr; }
+    .calendar-wrapper { padding: 0.5rem; }
+    .vagas-grid {
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    }
+    .header-container { padding: 0.5rem 1rem; }
+    main { padding: 1rem; }
+    .header-text h1 { font-size: 1.1rem; }
+    .btn-today { display: none; }
+
+    #floating-notifications {
+        bottom: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: unset;
+    }
+    .floating-notification {
+        min-width: unset;
+        width: 100%;
+        text-align: center;
+    }
+    .checkbox-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .report-filters { /* Ajusta filtros em telas menores */
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .report-filters .form-input {
+        flex-basis: auto;
+        min-width: 0;
+    }
+    .modal-footer { /* Centraliza botões do rodapé em telas menores */
+        justify-content: center;
+    }
+    #btnFecharReportModalFooter { /* Remove margem automática */
+        margin-right: 0;
+    }
+    
+    /* --- [INÍCIO DA ADIÇÃO - TELA DE LOGIN] --- */
+    .login-box {
+        padding: 2rem 1.5rem;
+    }
+    .login-logo {
+        width: 200px;
+    }
+    /* --- [FIM DA ADIÇÃO - TELA DE LOGIN] --- */
+}
+
+@media (max-width: 480px) {
+    .checkbox-grid {
+        grid-template-columns: repeat(1, 1fr);
+    }
+    .search-bar { flex-direction: column; }
+    #globalSugestoesLista { width: 100%; }
+    .vagas-search-form { flex-direction: column; align-items: stretch; }
+    .vagas-search-form .form-group.date-input { max-width: none; } /* Permite expandir em mobile */
+}
+/* --- ESTILOS PARA ÍCONES DO CARD --- */
+.paciente-info .info-line {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.5rem;
+}
+
+.paciente-info .info-icon {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1em;
+}
+
+.info-icon.icon-cns { color: var(--color-success); }
+.info-icon.icon-distrito { color: var(--color-danger); }
+.info-icon.icon-tecref { color: var(--color-primary); }
+.info-icon.icon-cid { color: var(--text-secondary); }
+
+.paciente-info .info-line:last-child {
+    margin-bottom: 0;
+}
+
+.paciente-header {
+    margin-bottom: 0.5rem;
+}
+
+#reportPrintLogo, #reportPrintHeaderInfo {
+    display: none;
+}
+
+
+/* --- ESTILOS DE IMPRESSÃO --- */
+#print-container, #print-vagas-container {
+    display: none;
+}
+
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 1.5cm;
+    }
+
+    html, body {
+        height: auto;
+        min-height: initial;
+        overflow: visible;
+        background: none;
+        width: 100%;
+        color: #000 !important; /* Força cor preta para texto */
+    }
+
+    /* --- INÍCIO DA CIRURGIA CSS (Versão 2 - CORRIGIDA) --- */
+    
+    /* 1. Esconde tudo por padrão na impressão */
+    body > * {
+        display: none !important;
+    }
+    
+    /* 2. Mostra APENAS o container correto baseado na classe do body */
+    body.printing-agenda > #print-container,
+    body.printing-vagas > #print-vagas-container,
+    body.printing-report > #reportModal,
+    body.printing-declaracao > #declaracaoModal {
+        display: block !important;
+    }
+
+    /* 3. Adapta APENAS os modais que devem ser impressos (Regras condicionais) */
+    body.printing-report > #reportModal,
+    body.printing-declaracao > #declaracaoModal {
+        position: static !important;
+        background: none !important;
+        backdrop-filter: none !important;
+        width: 100% !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    body.printing-report > #reportModal .modal-content, 
+    body.printing-declaracao > #declaracaoModal .modal-content {
+        box-shadow: none !important;
+        border: none !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        background: none !important;
+        width: 100% !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+    
+    /* --- FIM DA CIRURGIA CSS --- */
+
+
+    /* Esconde cabeçalho/rodapé do modal e filtros na impressão */
+    #reportModal .modal-header .btn-icon,
+    #reportModal .modal-footer,
+    #reportModal .report-filters,
+    #declaracaoModal .modal-header,
+    #declaracaoModal .modal-footer {
+        display: none !important;
+    }
+    #declaracaoModal .modal-body {
+        padding: 0 !important;
+    }
+    /* Esconde o input de assinatura na impressão */
+    .assinatura-input, #assinaturaSugestoes {
+        display: none !important;
+    }
+    .assinatura-linha {
+        display: block !important;
+    }
+
+    /* REQ 1 e 2: Centraliza logo e endereço na impressão da declaração */
+    .print-only-header {
+        display: block !important;
+        text-align: center !important;
+        margin-bottom: 1.5cm; /* Adiciona espaço antes do texto da declaração */
+    }
+    .print-only-header img {
+        max-width: 250px; /* Limita tamanho do logo */
+        margin-bottom: 10px;
+    }
+    .print-only-header p {
+        margin: 0 !important;
+        padding: 0 !important;
+        font-size: 11pt !important;
+        line-height: 1.4 !important;
+        color: #000 !important;
+        font-family: 'Times New Roman', Times, serif; /* Garante a fonte do endereço */
+    }
+    .print-only-header .header-title {
+        font-weight: bold;
+        font-size: 12pt !important;
+    }
+
+    /* REQ 3: Oculta a etiqueta "Assinatura do Profissional:" na impressão */
+    .assinatura-input-container label {
+        display: none !important;
+    }
+    
+    /* REQ 1 & 2 (CORREÇÃO DESTA SESSÃO): Remove rolagem e altura máxima do corpo do modal de declaração NA IMPRESSÃO */
+    #declaracaoModal .modal-body {
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+
+    #reportModal .modal-header {
+        border-bottom: 1px solid #ccc !important;
+        padding: 1cm 0 0.5cm 0 !important; /* Ajusta padding para impressão */
+        display: block !important;
+        text-align: center;
+    }
+     #reportModal .modal-body {
+        max-height: none !important; /* Remove altura máxima */
+        overflow: visible !important; /* Remove rolagem */
+        padding: 0.5cm 0 !important;
+    }
+     #reportModalTitle {
+         text-align: center !important;
+         width: 100%;
+         display: none !important;
+     }
+     #reportPrintLogo {
+         display: block !important;
+         margin: 0 auto 10px auto;
+         max-width: 300px; /* ou um tamanho apropriado */
+     }
+     #reportPrintHeaderInfo {
+         display: block !important;
+         text-align: center;
+         font-size: 9pt;
+         line-height: 1.4;
+         margin-bottom: 20px;
+     }
+     #reportPrintHeaderInfo p {
+         margin: 0;
+     }
+     #reportTotalCount { /* Ajusta contagem para impressão */
+         margin-bottom: 10px;
+         font-size: 10pt;
+         text-align: left; /* Alinha à esquerda na impressão */
+     }
+    #reportTableContainer { /* Remove limite de altura e rolagem */
+         max-height: none !important;
+         overflow: visible !important;
+     }
+
+    #print-container, #print-vagas-container, #reportModal .modal-content, #declaracaoModal .modal-content {
+        display: block !important;
+        font-family: Arial, sans-serif !important;
+        font-size: 10pt !important;
+        color: #000 !important; /* Garante cor preta no container */
+        background: none !important; /* Remove fundos */
+    }
+    #print-container h4 { text-align: center; font-size: 14pt; margin-bottom: 20px; color: #000; }
+    #print-container p { text-align: justify; font-size: 12pt; line-height: 1.5; margin-bottom: 1em; color: #000; }
+
+    /* Estilos comuns de título */
+    #print-container h1, #print-vagas-container h1 {
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 16pt;
+        color: #000;
+    }
+    
+    /* Estilo do Título da Impressão Diária */
+    #print-container .print-title-tag {
+        background-color: #1a73e8 !important; /* Cor primária exata */
+        color: #ffffff !important; /* Cor do texto no primário */
+        padding: 0.5rem 1rem;
+        border-radius: 8px; /* Raio médio (md) */
+        font-size: 16pt;
+        text-align: center;
+        font-weight: 500; /* Peso de fonte 500 (como botões) */
+        margin-bottom: 20px;
+    }
+
+    /* Estilos para impressão da agenda diária - Classe agenda-table */
+    #print-container h2 { text-align: left; font-size: 12pt; margin-top: 15px; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 3px; color: #000; }
+    #print-container table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+        margin-bottom: 20px;
+        page-break-inside: avoid;
+    }
+    #print-container th, #print-container td {
+        border: 1px solid #333;
+        padding: 5px;
+        text-align: left;
+        vertical-align: top;
+        word-wrap: break-word;
+        font-size: 9pt;
+        color: #000 !important;
+        background: none !important;
+    }
+    #print-container th {
+        background-color: #eee !important;
+        font-weight: bold;
+    }
+    
+    /* --- LARGURAS CORRIGIDAS PARA AGENDA DIÁRIA (agenda-table) --- */
+    .agenda-table .col-numero { width: 8% !important; }
+    .agenda-table .col-nome { width: 42% !important; }
+    .agenda-table .col-tr { width: 15% !important; }
+    .agenda-table .col-obs { width: 35% !important; }
+
+
+    /* Estilos para impressão do Relatório Mensal/Anual - Classe report-table */
+    .report-table {
+        width: 100%;
+        border-collapse: separate; /* CORREÇÃO: Mudar para separate */
+        border-spacing: 0;
+        border: 1px solid #333; /* Aplicar a borda externa (incluindo a superior) à tabela */
+        margin-bottom: 20px;
+        page-break-inside: avoid;
+        table-layout: fixed;
+    }
+    .report-table th, .report-table td {
+        border: none; /* Remover bordas padrão da célula */
+        border-bottom: 1px solid #333; /* Adicionar linha inferior para a linha */
+        border-right: 1px solid #333; /* Adicionar linha direita para a coluna */
+        padding: 5px;
+        text-align: left;
+        vertical-align: top;
+        word-wrap: break-word;
+        font-size: 9pt;
+        color: #000 !important;
+        background: none !important;
+    }
+    .report-table th { /* Manter o fundo do cabeçalho */
+        background-color: #eee !important;
+        font-weight: bold;
+        /* A borda superior da célula th é desnecessária pois a tabela tem */
+    }
+    /* A borda esquerda é controlada pela tabela, não precisa de :first-child */
+    .report-table th:last-child, 
+    .report-table td:last-child {
+        border-right: none; /* Remover borda direita da última coluna */
+    }
+    .report-table tbody tr:last-child td {
+        border-bottom: none; /* Remover borda inferior da última linha do corpo */
+    }
+    /* Ajustes específicos para tabela do relatório modal */
+    .report-table .col-data { width: 25% !important; }
+    .report-table .col-nome { width: 40% !important; }
+    .report-table .col-numero { width: 15% !important; }
+    .report-table .col-tr { width: 20% !important; }
+
+    /* --- ESTILOS PARA IMPRESSÃO DE VAGAS (DESIGN LIMPO) --- */
+    
+    #print-vagas-container {
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+    }
+
+    #print-vagas-container h1 {
+        font-weight: 300 !important; /* Mais leve */
+        text-align: center;
+        font-size: 18pt; /* Maior */
+        margin-bottom: 1.5cm;
+        color: #000;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .print-day-container {
+        margin-bottom: 1cm;
+        page-break-inside: avoid;
+    }
+    
+    /* Cabeçalho do Dia: Limpo com marcador lateral */
+    #print-vagas-container h2.print-day-header {
+        margin-top: 0;
+        margin-bottom: 10px;
+        font-size: 12pt;
+        background-color: transparent !important;
+        padding: 5px 10px;
+        border-left: 4px solid #333; /* Marcador visual */
+        font-weight: 700;
+        color: #000;
+        background: #f8f9fa !important; /* Fundo muito sutil para destacar o bloco do dia */
+    }
+
+    .print-row {
+        display: flex !important;
+        width: 100%;
+        gap: 1cm; /* Mais espaço entre colunas */
+    }
+    
+    .print-col {
+        width: 50%;
+        flex: 1;
+    }
+
+    /* Cabeçalho do Turno: Sem sublinhado, com linha divisória */
+    #print-vagas-container h3.print-turno-header {
+        margin-top: 0;
+        font-size: 10pt;
+        text-decoration: none !important; /* Remove sublinhado */
+        font-weight: 600;
+        margin-bottom: 8px;
+        padding-bottom: 4px;
+        border-bottom: 1px solid #000; /* Linha de separação sólida */
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #000;
+    }
+
+    /* Listas */
+    #print-vagas-container ul.print-turno-list {
+        padding-left: 0;
+        margin: 0;
+        list-style: none;
+    }
+    
+    #print-vagas-container li {
+        font-size: 9pt;
+        padding: 4px 0;
+        border-bottom: 1px dotted #ccc; /* Guia visual leve */
+        color: #000;
+        display: flex;
+        justify-content: flex-start !important; /* CORREÇÃO: Alinha à esquerda */
+        align-items: center;
+    }
+    
+    #print-vagas-container li:last-child {
+        border-bottom: none;
+    }
+    
+    #print-vagas-container li.print-vaga-ocupada strong { 
+        font-weight: 600; 
+        margin-left: 5px;
+    } 
+    
+    #print-vagas-container li.print-vaga-ocupada span { 
+        font-family: monospace; /* Para alinhar números */
+        font-size: 10pt;
+        font-weight: bold;
+        min-width: auto !important; /* CORREÇÃO: Remove largura fixa */
+        margin-right: 10px; /* CORREÇÃO: Adiciona espaçamento */
+    }
+
+    /* Avisos */
+    #print-vagas-container p.print-aviso {
+        font-size: 9pt;
+        font-style: italic;
+        color: #444;
+        margin: 5px 0;
+        padding: 5px;
+        background-color: #f0f0f0 !important;
+        border-radius: 4px;
+    }
+    
+    /* Oculta botões */
+    .vaga-dia-header .btn-jump-day,
+    .vaga-lista-item.ocupada .btn-jump-patient {
+        display: none !important;
+    }
+}
+
+/* --- HINT LATERAL FLUTUANTE (NOVO) --- */
+#floatingDateHint {
+    position: fixed;
+    top: 130px; /* Logo abaixo do cabeçalho fixo */
+    right: 30px;
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-pill);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--color-primary-light);
+    color: var(--color-primary);
+    font-weight: 600;
+    font-size: 1rem;
+    z-index: 99; /* Acima do conteúdo, abaixo de modais */
+    
+    /* Estado inicial: escondido para a direita */
+    transform: translateX(150%); 
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Efeito elástico suave */
+    pointer-events: none; /* Permite clicar através dele se necessário */
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Ícone decorativo antes da data */
+#floatingDateHint::before {
+    content: '';
+    display: block;
+    width: 8px;
+    height: 8px;
+    background-color: var(--color-primary);
+    border-radius: 50%;
+}
+
+/* Classe ativada via JS */
+#floatingDateHint.visible {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+/* Responsividade: Esconde em telas muito pequenas para não cobrir conteúdo */
+@media (max-width: 768px) {
+    #floatingDateHint {
+        top: auto;
+        bottom: 20px; /* No celular, fica melhor embaixo */
+        right: 50%;
+        transform: translateX(50%) translateY(150%); /* Centralizado embaixo */
+    }
+    #floatingDateHint.visible {
+        transform: translateX(50%) translateY(0);
+    }
+}
