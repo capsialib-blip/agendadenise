@@ -2065,7 +2065,7 @@ p.search-feedback {
         table-layout: fixed;
     }
     .report-table th, .report-table td {
-        border: none; /* Remover bordas padrão da célula */
+        border: none; /* Remover borda padrão da célula */
         border-bottom: 1px solid #333; /* Adicionar linha inferior para a linha */
         border-right: 1px solid #333; /* Adicionar linha direita para a coluna */
         padding: 5px;
@@ -2260,4 +2260,58 @@ p.search-feedback {
     #floatingDateHint.visible {
         transform: translateX(50%) translateY(0);
     }
+}
+
+/* [ARCOSAFE] REFORÇO VISUAL DE TURNOS (OPÇÃO A) */
+.turno-content {
+    position: relative; /* Para o carimbo */
+    padding: 1.5rem; /* Espaço interno */
+    border-radius: var(--radius-md);
+    margin-top: 1rem;
+    border: 2px solid transparent; /* Para borda colorida */
+    transition: all 0.3s ease;
+}
+
+/* TURNO MANHÃ - AZUL */
+#turno-manha {
+    background-color: #f0f7ff; /* Azul muito suave */
+    border-color: var(--color-primary-light);
+}
+#turno-manha::before {
+    content: "MANHÃ";
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) rotate(-15deg);
+    font-size: 5rem;
+    font-weight: 900;
+    color: var(--color-primary);
+    opacity: 0.05;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 0;
+}
+
+/* TURNO TARDE - VERDE (Solicitado) */
+#turno-tarde {
+    background-color: #e6f4ea; /* Verde suave (--color-success-light) */
+    border-color: var(--color-success);
+}
+#turno-tarde::before {
+    content: "TARDE";
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) rotate(-15deg);
+    font-size: 5rem;
+    font-weight: 900;
+    color: var(--color-success);
+    opacity: 0.05;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 0;
+}
+
+/* Ajuste de Z-Index para o conteúdo ficar acima do carimbo */
+.vagas-grid {
+    position: relative;
+    z-index: 1;
 }
