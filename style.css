@@ -7,35 +7,41 @@
 }
 
 :root {
-    /* Paleta Principal (Inspirada no Google) */
-    --color-primary: #1a73e8;         /* Google Blue */
-    --color-primary-light: #e8f0fe;   /* Fundo de hover/seleção leve (Azul claro) */
-    --color-danger: #d93025;          /* Google Red */
-    --color-danger-light: #fce8e6;    /* Fundo de hover/seleção leve (Vermelho claro) */
-    --color-success: #1e8e3e;         /* Google Green */
-    --color-success-light: #e6f4ea;
-    --color-warning: #fbbc04;         /* Google Yellow */
+    /* [ARCOSAFE-UX] PALETA 2: CICLO CIRCADIANO (Natural) */
+    /* Inspirada na transição da luz: Ciano (Manhã/Luz) para Índigo/Roxo (Tarde/Crepúsculo) */
+
+    /* Cores Principais (Baseadas no Turno Manhã - Frescor) */
+    --color-primary: #00838F;         /* Cyan 800 */
+    --color-primary-light: #E0F7FA;   /* Cyan 50 - Fundo muito suave */
+
+    /* Cores de Ação */
+    --color-success: #00695C;         /* Teal 800 - Estabilidade */
+    --color-success-light: #E0F2F1;   /* Teal 50 */
+    --color-danger: #AD1457;          /* Pink 800 - Alerta Distinto mas não agressivo */
+    --color-danger-light: #FCE4EC;    /* Pink 50 */
+    --color-warning: #F9A825;         /* Yellow 800 */
 
     /* Cores Neutras e de Fundo */
-    --color-bg-main: #f8f9fa;
+    --color-bg-main: #FAFAFA;         /* Grey 50 - Quase branco para leveza */
     --color-bg-card: #ffffff;
-    --color-border: #dadce0;
-    --color-bg-neutral: #f1f3f4;
-    --text-primary: #3c4043;
-    --text-secondary: #5f6368;
+    --color-border: #B0BEC5;          /* Blue Grey 200 */
+    --color-bg-neutral: #F5F5F5;      /* Grey 100 */
+    --text-primary: #212121;          /* Grey 900 - Contraste alto */
+    --text-secondary: #616161;        /* Grey 700 */
     --text-on-primary: #ffffff;
 
-    /* Cores de Turno */
-    --color-morning: #1a73e8;
-    --color-afternoon: #d93025;
+    /* Cores de Turno Específicas da Paleta */
+    --color-morning: #00838F;         /* Cyan 800 (Manhã) */
+    --color-afternoon: #4527A0;       /* Purple 800 (Tarde - Crepúsculo) */
+    --color-afternoon-light: #EDE7F6; /* Deep Purple 50 */
 
     /* Layout e Sombras */
     --radius-sm: 4px;
     --radius-md: 8px;
     --radius-lg: 16px;
     --radius-pill: 100px;
-    --shadow-sm: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
-    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.08);
+    --shadow-sm: 0 1px 2px 0 rgba(0, 131, 143, 0.15), 0 1px 3px 1px rgba(0, 131, 143, 0.1);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     --transition: all 0.2s ease-in-out;
 }
 
@@ -189,7 +195,8 @@ header {
     background-color: var(--color-primary);
     color: white;
 }
-.btn-primary:hover { background-color: #1b66c9; }
+/* [ARCOSAFE-UX] Hover escurecido */
+.btn-primary:hover { background-color: #006064; } 
 
 .btn-sm {
     padding: 0.25rem 0.75rem;
@@ -227,7 +234,7 @@ header {
     color: var(--text-on-primary);
     border-color: var(--color-success);
 }
-.btn-success:hover { background-color: #1b8237; }
+.btn-success:hover { background-color: #004D40; }
 
 .btn-secondary {
     color: var(--text-secondary);
@@ -240,7 +247,7 @@ header {
     color: var(--text-on-primary);
     border-color: var(--color-danger);
 }
-.btn-danger:hover { background-color: #c5221f; }
+.btn-danger:hover { background-color: #880E4F; }
 
 /* Botões de Gerenciamento */
 .action-grid { display: flex; gap: 0.75rem; flex-wrap: wrap; }
@@ -443,7 +450,8 @@ main { max-width: 1600px; margin: 0 auto; padding: 1.5rem; }
     display: flex; align-items: center; gap: 0.5rem;
 }
 .turno-label.manha { color: var(--color-morning); }
-.turno-label.tarde { color: var(--color-danger); }
+/* [ARCOSAFE-UX] Correção para Paleta 2: Tarde usa a cor da Tarde, não do perigo */
+.turno-label.tarde { color: var(--color-afternoon); }
 
 .vagas-bolinhas { display: grid; grid-template-columns: repeat(auto-fill, minmax(18px, 1fr)); gap: 6px; padding-left: 2px; }
 .vaga-bolinha {
@@ -452,7 +460,8 @@ main { max-width: 1600px; margin: 0 auto; padding: 1.5rem; }
     transition: var(--transition); cursor: help;
 }
 .vaga-bolinha.ocupada.manha { background-color: var(--color-morning); border-color: var(--color-morning); }
-.vaga-bolinha.ocupada.tarde { background-color: var(--color-danger); border-color: var(--color-danger); }
+/* [ARCOSAFE-UX] Correção para Paleta 2 */
+.vaga-bolinha.ocupada.tarde { background-color: var(--color-afternoon); border-color: var(--color-afternoon); }
 
 /* --- SEÇÃO DE AGENDAMENTOS (DIREITA) --- */
 .empty-state { text-align: center; padding: 4rem 2rem; opacity: 0.7; }
@@ -519,8 +528,9 @@ main { max-width: 1600px; margin: 0 auto; padding: 1.5rem; }
     font-weight: bold;
 }
 .tab-btn.active.tarde {
-    color: var(--color-danger);
-    border-bottom-color: var(--color-danger);
+    /* [ARCOSAFE-UX] Tarde agora usa cor da Tarde, não do Perigo */
+    color: var(--color-afternoon);
+    border-bottom-color: var(--color-afternoon);
     font-weight: bold;
 }
 .turno-content { display: none; }
@@ -591,8 +601,9 @@ main { max-width: 1600px; margin: 0 auto; padding: 1.5rem; }
     color: var(--color-primary);
 }
 .vaga-header.tarde {
-    background-color: var(--color-danger-light);
-    color: var(--color-danger);
+    /* [ARCOSAFE-UX] Uso das variáveis corretas da Paleta 2 para o turno da Tarde */
+    background-color: var(--color-afternoon-light);
+    color: var(--color-afternoon);
 }
 .vaga-card.ocupada .vaga-header {
     background-color: var(--color-bg-neutral);
@@ -885,12 +896,13 @@ textarea.form-input {
     color: white;
 }
 .form-buttons .btn-success.tarde {
-    background-color: var(--color-danger);
-    border-color: var(--color-danger);
+    /* [ARCOSAFE-UX] Botão 'Agendar' Tarde agora usa cor da Tarde (Brown) em vez de Danger */
+    background-color: var(--color-afternoon);
+    border-color: var(--color-afternoon);
     color: white;
 }
-.form-buttons .btn-success.manha:hover { background-color: #1b66c9; }
-.form-buttons .btn-success.tarde:hover { background-color: #c5221f; }
+.form-buttons .btn-success.manha:hover { background-color: #006064; }
+.form-buttons .btn-success.tarde:hover { background-color: #311B92; }
 
 .form-buttons .btn-secondary { background-color: transparent; }
 .form-buttons .btn-secondary.manha {
@@ -899,10 +911,10 @@ textarea.form-input {
 }
 .form-buttons .btn-secondary.manha:hover { background-color: var(--color-primary-light); }
 .form-buttons .btn-secondary.tarde {
-    color: var(--color-danger);
-    border: 1px solid var(--color-danger);
+    color: var(--color-afternoon);
+    border: 1px solid var(--color-afternoon);
 }
-.form-buttons .btn-secondary.tarde:hover { background-color: var(--color-danger-light); }
+.form-buttons .btn-secondary.tarde:hover { background-color: var(--color-afternoon-light); }
 
 /* Mensagem de Erro no Card */
 .form-error-message {
@@ -946,7 +958,7 @@ textarea.form-input {
     padding: 0 1.25rem;
     flex-shrink: 0;
 }
-.search-bar .btn-search:hover { background-color: #1b66c9; }
+.search-bar .btn-search:hover { background-color: #006064; }
 
 #globalSugestoesLista {
     width: calc(100% - 60px);
@@ -1075,7 +1087,7 @@ textarea.form-input {
     border: none;
     min-height: auto;
 }
-.search-result-item .btn-jump:hover { background-color: #dbeafe; }
+.search-result-item .btn-jump:hover { background-color: #B0BEC5; }
 p.search-feedback {
     padding: 1rem;
     text-align: center;
@@ -1401,6 +1413,7 @@ p.search-feedback {
 .chart-value-manha {
     color: var(--color-morning);
 }
+/* [ARCOSAFE-UX] Correção para Paleta 2 */
 .chart-value-tarde {
     color: var(--color-afternoon);
 }
@@ -1423,6 +1436,7 @@ p.search-feedback {
     position: relative;
 }
 .chart-bar.manha { background-color: var(--color-morning); }
+/* [ARCOSAFE-UX] Correção para Paleta 2 */
 .chart-bar.tarde { background-color: var(--color-afternoon); }
 
 .week-day-label { font-size: 0.7rem; font-weight: 500; color: var(--text-secondary); }
@@ -1572,7 +1586,8 @@ p.search-feedback {
     margin-bottom: 0.75rem;
 }
 .turno-titulo.manha { color: var(--color-morning); }
-.turno-titulo.tarde { color: var(--color-danger); }
+/* [ARCOSAFE-UX] Correção para Paleta 2 */
+.turno-titulo.tarde { color: var(--color-afternoon); }
 
 .aviso-bloqueio {
     font-size: 0.9rem;
@@ -2260,4 +2275,5 @@ p.search-feedback {
     #floatingDateHint.visible {
         transform: translateX(50%) translateY(0);
     }
+}
 }
