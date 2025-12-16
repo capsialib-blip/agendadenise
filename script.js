@@ -22,6 +22,7 @@ try {
 }
 
 // [ARCOSAFE-FIX] LISTA DE USUÁRIOS E SENHAS
+// Edite aqui para mudar os acessos
 const CREDENCIAIS = {
     'admin': 'mastercaps',      // Acesso mestre
     'recepcao': 'agenda2025',   // Acesso padrão
@@ -133,6 +134,7 @@ function tentarLogin() {
     // [ARCOSAFE-FIX] Validação contra a lista de credenciais
     if (CREDENCIAIS[usuario] && CREDENCIAIS[usuario] === senha) {
         sessionStorage.setItem('usuarioLogado', 'true');
+        // Opcional: Salvar qual usuário logou para auditoria futura
         sessionStorage.setItem('nomeUsuario', usuario);
         
         if (errorMessage) errorMessage.classList.add('hidden');
@@ -143,6 +145,7 @@ function tentarLogin() {
             errorMessage.textContent = 'Usuário ou senha incorretos.';
             errorMessage.classList.remove('hidden');
             
+            // Efeito visual de erro (shake)
             const loginBox = document.querySelector('.login-box');
             if(loginBox) {
                 loginBox.style.animation = 'none';
@@ -155,7 +158,7 @@ function tentarLogin() {
 function inicializarApp() {
     console.log('Inicializando sistema...');
 
-    // [ARCOSAFE-FIX] Carregamento inicial
+    // [ARCOSAFE-FIX] Carregamento inicial (Cache Local para evitar tela branca)
     const agendamentosSalvos = localStorage.getItem('agenda_completa_final');
     const pacientesSalvos = localStorage.getItem('pacientes_dados');
     const bloqueiosSalvos = localStorage.getItem('dias_bloqueados');
@@ -179,13 +182,14 @@ function inicializarApp() {
         try { feriadosDesbloqueados = JSON.parse(feriadosDesbloqueadosSalvos); } catch (error) { feriadosDesbloqueados = {}; }
     }
 
-    // [ARCOSAFE-FIX] Conexão com Firebase
+    // [ARCOSAFE-FIX] Conexão com Firebase (Sincronização em Tempo Real)
     if (database) {
+        // Sincronizar Agendamentos
         database.ref('agendamentos').on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
                 agendamentos = data;
-                localStorage.setItem('agenda_completa_final', JSON.stringify(agendamentos));
+                localStorage.setItem('agenda_completa_final', JSON.stringify(agendamentos)); // Mantém cache
                 atualizarCalendario();
                 if (dataSelecionada) exibirAgendamentos(dataSelecionada);
                 atualizarResumoMensal();
@@ -194,6 +198,7 @@ function inicializarApp() {
             }
         });
 
+        // Sincronizar Bloqueios
         database.ref('dias_bloqueados').on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
@@ -204,6 +209,7 @@ function inicializarApp() {
             }
         });
 
+        // Sincronizar Pacientes
         database.ref('pacientes').on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
@@ -214,6 +220,7 @@ function inicializarApp() {
             }
         });
 
+        // Sincronizar Feriados Desbloqueados
         database.ref('feriados_desbloqueados').on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
@@ -227,6 +234,7 @@ function inicializarApp() {
     configurarHorarioBackup();
     setInterval(verificarNecessidadeBackup, 30000);
 
+    // Inicialização imediata dos componentes visuais
     configurarEventListenersApp(); 
     atualizarCalendario();
     atualizarResumoMensal();
@@ -390,10 +398,12 @@ function configurarVagasEventListeners() {
     const btnPrintVagas = document.getElementById('btnPrintVagas');
     if (btnPrintVagas) btnPrintVagas.addEventListener('click', imprimirVagas);
 
+    // CONTROLE DE TABULAÇÃO: Pular o ícone de calendário
     const startDateInput = document.getElementById('vagasStartDate');
     const endDateInput = document.getElementById('vagasEndDate');
     
     if (startDateInput && endDateInput) {
+        // 1. Se pressionar TAB, vai para o próximo campo
         startDateInput.addEventListener('keydown', (event) => {
             if (event.key === 'Tab' && !event.shiftKey) {
                 event.preventDefault(); 
@@ -401,10 +411,14 @@ function configurarVagasEventListeners() {
             }
         });
 
+        // 2. Se terminar de digitar (data válida E ano completo), vai para o próximo campo
         startDateInput.addEventListener('input', () => {
             const val = startDateInput.value;
             if (val) {
+                // O value vem no formato YYYY-MM-DD
                 const year = parseInt(val.split('-')[0], 10);
+                // Só muda o foco se o ano tiver 4 dígitos (maior que 999)
+                // Isso impede o salto quando o navegador interpreta "0002" ao digitar "2"
                 if (year > 999) {
                     endDateInput.focus();
                 }
@@ -439,6 +453,7 @@ function verificarDadosCarregados() {
 
 function salvarAgendamentos() {
     try {
+        // [ARCOSAFE-FIX] Storage key atualizada para agenda_completa_final e Firebase
         if (database) {
             database.ref('agendamentos').set(agendamentos);
         }
@@ -452,6 +467,7 @@ function salvarAgendamentos() {
 
 function salvarBloqueios() {
     try {
+        // [ARCOSAFE-FIX] Salva no Firebase
         if (database) {
             database.ref('dias_bloqueados').set(diasBloqueados);
         }
@@ -465,6 +481,7 @@ function salvarBloqueios() {
 
 function salvarFeriadosDesbloqueados() {
     try {
+        // [ARCOSAFE-FIX] Salva no Firebase
         if (database) {
             database.ref('feriados_desbloqueados').set(feriadosDesbloqueados);
         }
@@ -478,6 +495,7 @@ function salvarFeriadosDesbloqueados() {
 
 function salvarPacientesNoLocalStorage() {
     try {
+        // [ARCOSAFE-FIX] Salva no Firebase e Local
         if (database) {
             database.ref('pacientes').set(pacientesGlobais);
         }
@@ -622,6 +640,7 @@ function atualizarCalendario() {
                     diaEl.classList.add('blocked-day');
                     totalmenteBloqueado = true;
                 } else {
+                    // --- [BLOQUEIO PARCIAL - GRÁFICO] ---
                     if (bloqueio.manha) {
                         diaEl.classList.add('blocked-morning');
                     }
@@ -669,11 +688,13 @@ function selecionarDia(data, elemento) {
     atualizarBolinhasDisponibilidade(data);
     atualizarResumoSemanal(new Date(data + 'T12:00:00'));
 
+    // --- Lógica do Hint Lateral ---
     const hint = document.getElementById('floatingDateHint');
     if (hint) {
         const dataObj = new Date(data + 'T12:00:00');
         const opcoes = { weekday: 'long', day: 'numeric', month: 'long' };
         let dataTexto = dataObj.toLocaleDateString('pt-BR', opcoes);
+        // Capitaliza a primeira letra
         dataTexto = dataTexto.charAt(0).toUpperCase() + dataTexto.slice(1);
         
         hint.textContent = dataTexto;
@@ -700,6 +721,7 @@ function goToToday() {
         if (container) container.innerHTML = criarEmptyState();
         esconderBolinhasDisponibilidade();
         
+        // Esconde o hint se não for dia útil/selecionável
         const hint = document.getElementById('floatingDateHint');
         if(hint) hint.classList.remove('visible');
     }
@@ -919,7 +941,7 @@ function gerarVagasTurno(agendamentosTurno, turno, data) {
                          <div class="form-group-checkbox-single">
                              <input type="checkbox" name="primeiraConsulta" id="primeiraConsulta_${uniqueIdPrefix}" ${dadosPreenchimento.primeiraConsulta ? 'checked' : ''}>
                              <label for="primeiraConsulta_${uniqueIdPrefix}">Primeira Consulta</label>
-                          </div>
+                         </div>
                         <div class="form-row">
                             <div class="form-group numero autocomplete-container">
                                 <label>Número:</label>
@@ -1180,7 +1202,7 @@ function buscarAgendamentosGlobais() {
             <div class="search-results-header">
                 <h4>Nenhum agendamento encontrado</h4>
                 <button class="btn-icon btn-clear-search" onclick="limparBuscaGlobal()" aria-label="Limpar busca" title="Limpar Busca">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/></svg>
+                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L7.293 8z"/></svg>
                 </button>
             </div>
             <p class="search-feedback">Nenhum agendamento encontrado para este paciente.</p>
@@ -1656,7 +1678,7 @@ function agendarPaciente(event, data, turno, vaga) {
         const duplicado = agendamentosDia.find(ag => {
             const encontrado = ag.numero === numeroPaciente;
             if (slotEmEdicao && slotEmEdicao.data === data && slotEmEdicao.turno === turno && slotEmEdicao.vaga === vaga) {
-                    return false; 
+                   return false; 
             }
             return encontrado; 
         });
@@ -1787,7 +1809,7 @@ function verificarDuplicidadeAoDigitar(inputElement, data, turno, vaga) {
 
             const encontrado = valorAgendamento === valorVerificacao;
             if (slotEmEdicao && slotEmEdicao.data === data && slotEmEdicao.turno === turno && slotEmEdicao.vaga === vaga) {
-                    return false;
+                   return false;
             }
             return encontrado; 
         });
@@ -2385,11 +2407,6 @@ function verificarNecessidadeBackup() {
     // [ARCOSAFE-FIX] Verifica se o backup já foi feito NESTA sessão de configuração.
     // Ignora dias da semana e datas anteriores.
     if (sessionStorage.getItem('backupRealizadoSessao') === 'true') return;
-
-    // [ARCOSAFE-FIX] Verifica persistência (se já fez hoje, mesmo fechando o navegador)
-    const ultimoBackup = localStorage.getItem('ultimoBackupRealizado');
-    const hoje = new Date().toLocaleDateString('pt-BR');
-    if (ultimoBackup === hoje) return;
 
     const horarioSalvo = localStorage.getItem('backupTime') || '16:00';
     const [hora, minuto] = horarioSalvo.split(':').map(Number);
