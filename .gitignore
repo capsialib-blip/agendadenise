@@ -1,0 +1,13 @@
+# Ignorar credenciais e configurações reais
+config.js
+
+# Ignorar dados de pacientes (CRÍTICO)
+pacientes-default.js
+*.json
+*.csv
+*.xls
+*.xlsx
+
+# Ignorar arquivos de sistema
+.DS_Store
+Thumbs.db
