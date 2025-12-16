@@ -1,20 +1,35 @@
 /* script.js */
 'use strict';
 
+// [ARCOSAFE-FIX] Configuração do Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyDu_n6yDxrSEpv0eCcJDjUIyH4h0UiYx14",
+  authDomain: "caps-libia.firebaseapp.com",
+  projectId: "caps-libia",
+  storageBucket: "caps-libia.firebasestorage.app",
+  messagingSenderId: "164764567114",
+  appId: "1:164764567114:web:2701ed4a861492c0e388b3"
+};
+
 // [ARCOSAFE-FIX] Inicialização do serviço de banco de dados
-// Depende do objeto FIREBASE_CONFIG definido em config.js
 let database;
 try {
-    if (typeof firebase !== 'undefined' && typeof FIREBASE_CONFIG !== 'undefined') {
-        firebase.initializeApp(FIREBASE_CONFIG);
-        database = firebase.database();
-        console.log("Firebase inicializado com sucesso.");
-    } else {
-        console.warn("Firebase ou Configuração não detectados. Modo offline ativo.");
-    }
+    firebase.initializeApp(firebaseConfig);
+    database = firebase.database();
+    console.log("Firebase inicializado com sucesso.");
 } catch (e) {
-    console.error("Erro ao inicializar Firebase.", e);
+    console.error("Erro ao inicializar Firebase. Verifique se os scripts do SDK foram adicionados ao HTML.", e);
 }
+
+// [ARCOSAFE-FIX] LISTA DE USUÁRIOS E SENHAS (HARDCODED)
+const CREDENCIAIS = {
+    'admin': 'mastercaps',      // Acesso mestre
+    'recepcao': 'agenda2025',   // Acesso padrão
+    'coordenacao': 'gestao',    // Acesso gestão
+    'medico': 'caps'            // Acesso simples
+};
+// Senha de Reset
+const SENHA_RESET_GLOBAL = "apocalipse";
 
 // ============================================
 // 1. VARIÁVEIS GLOBAIS E CONSTANTES
@@ -27,7 +42,7 @@ const meses = [
 ];
 const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
 
-// Lista de profissionais para assinatura (Autocomplete da Declaração)
+// Lista de profissionais para assinatura
 const PROFISSIONAIS_LISTA = [
     { nome: "ALESSANDRA OLIVEIRA MONTALVAO DA CRUZ", funcao: "ASSISTENTE ADMINISTRATIVO" },
     { nome: "ANDRESSA RIBEIRO LEAL", funcao: "ENFERMEIRO" },
@@ -115,8 +130,8 @@ function tentarLogin() {
     const usuario = usuarioInput ? usuarioInput.value.trim().toLowerCase() : '';
     const senha = senhaInput ? senhaInput.value.trim() : '';
 
-    // [ARCOSAFE-FIX] Validação segura usando SISTEMA_CREDENCIAIS do arquivo config.js
-    if (typeof SISTEMA_CREDENCIAIS !== 'undefined' && SISTEMA_CREDENCIAIS[usuario] && SISTEMA_CREDENCIAIS[usuario] === senha) {
+    // Validação direta (Monolítico)
+    if (CREDENCIAIS[usuario] && CREDENCIAIS[usuario] === senha) {
         sessionStorage.setItem('usuarioLogado', 'true');
         sessionStorage.setItem('nomeUsuario', usuario);
         
@@ -401,8 +416,6 @@ function configurarVagasEventListeners() {
 // 4. FUNÇÕES DO SISTEMA (CALENDÁRIO, VAGAS, ETC.)
 // ============================================
 
-// ... (Funções utilitárias mantidas iguais) ...
-
 function verificarDadosCarregados() {
     const indicator = document.getElementById('dataLoadedIndicator');
     const indicatorText = document.getElementById('indicatorText');
@@ -474,7 +487,7 @@ function salvarPacientesNoLocalStorage() {
     }
 }
 
-// ... (Funções de Navegação e Feriados mantidas iguais) ...
+// --- NAVEGAÇÃO DO CALENDÁRIO ---
 
 function voltarMes() {
     if (mesAtual === 0) { mesAtual = 11; anoAtual--; } else { mesAtual--; }
@@ -490,6 +503,7 @@ function avancarMes() {
     atualizarResumoSemanal(new Date(anoAtual, mesAtual, 1));
 }
 
+// --- LÓGICA DE FERIADOS ---
 function getFeriados(ano) {
     function calcularPascoa(ano) {
         const a = ano % 19;
@@ -547,7 +561,8 @@ function getFeriados(ano) {
     return feriados;
 }
 
-// ... (Renderização do Calendário mantida igual) ...
+
+// --- RENDERIZAÇÃO DO CALENDÁRIO E AGENDAMENTOS ---
 
 function atualizarCalendario() {
     const container = document.getElementById('calendarContainer');
@@ -707,7 +722,6 @@ function exibirAgendamentos(data) {
 
     const agendamentosDia = agendamentos[data] || { manha: [], tarde: [] };
 
-    // [ARCOSAFE-FIX] Bloco de stats removido da visualização, variáveis mantidas para integridade
     let statsDiarios = { compareceu: 0, faltou: 0, justificou: 0 };
     (agendamentosDia.manha || []).forEach(ag => {
         if (ag.status === 'Compareceu') statsDiarios.compareceu++;
@@ -729,6 +743,7 @@ function exibirAgendamentos(data) {
         `;
     }
 
+    // [ARCOSAFE-FIX] Bloco de estatísticas (Resumo de Ocupação) RESTAURADO
     container.innerHTML = `
         <div class="appointment-header">
             <h2 class="appointment-title">${dataFmt}</h2>
@@ -750,6 +765,12 @@ function exibirAgendamentos(data) {
         </div>
         <div class="glass-card" style="border-top-left-radius: 0; border-top-right-radius: 0; border-top: none;">
             <div class="card-content">
+                <div class="stats">
+                    <h4>Resumo de Ocupação:</h4>
+                    <p>Manhã: ${agendamentosDia.manha?.length || 0} de ${VAGAS_POR_TURNO} preenchidas</p>
+                    <p>Tarde: ${agendamentosDia.tarde?.length || 0} de ${VAGAS_POR_TURNO} preenchidas</p>
+                    ${statsHTML}
+                </div>
                 <div class="tabs">
                     <button class="tab-btn manha ${turnoAtivo === 'manha' ? 'active' : ''}" onclick="mostrarTurno('manha')">Manhã</button>
                     <button class="tab-btn tarde ${turnoAtivo === 'tarde' ? 'active' : ''}" onclick="mostrarTurno('tarde')">Tarde</button>
@@ -787,8 +808,6 @@ function exibirAgendamentos(data) {
         });
     }, 0);
 }
-
-// ... (Funções auxiliares como gerarVagasTurno, etc. mantidas iguais) ...
 
 function gerarVagasTurno(agendamentosTurno, turno, data) {
     let html = '<div class="vagas-grid">';
@@ -995,7 +1014,7 @@ function gerarVagasTurno(agendamentosTurno, turno, data) {
     return html + '</div>';
 }
 
-// ... (Restante das funções auxiliares mantidas) ...
+// --- Funções de Notificação e Importação ---
 
 function mostrarNotificacao(mensagem, tipo = 'info') {
     const container = document.getElementById('floating-notifications');
@@ -1266,6 +1285,1006 @@ function configurarBuscaGlobalAutocomplete() {
     });
 }
 
+// --- Funções de Declaração e Atestado ---
+
+function iniciarProcessoDeclaracao(data, turno, vaga) {
+    const agendamentosDia = agendamentos[data];
+    if (!agendamentosDia || !agendamentosDia[turno]) return;
+    const agendamento = agendamentosDia[turno].find(ag => ag.vaga === vaga);
+    if (!agendamento) return;
+    atestadoEmGeracao = { ...agendamento, data, turno }; 
+    const choiceModal = document.getElementById('choiceModal');
+    if (choiceModal) choiceModal.style.display = 'flex';
+}
+
+function fecharModalEscolha() {
+    const choiceModal = document.getElementById('choiceModal');
+    if (choiceModal) choiceModal.style.display = 'none';
+    atestadoEmGeracao = null; 
+}
+
+function gerarDeclaracaoPaciente() {
+    if (!atestadoEmGeracao) return;
+    const { nome, cns, data, turno } = atestadoEmGeracao;
+    const dataObj = new Date(data + 'T12:00:00');
+    const dataFormatada = dataObj.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+    const turnoFormatado = turno === 'manha' ? 'manhã' : 'tarde';
+
+    const conteudoAtestado = `
+        <h4>DECLARAÇÃO DE COMPARECIMENTO</h4>
+        <p>Declaramos, para os devidos fins, que o(a) paciente&nbsp;<strong>${nome.toUpperCase()}</strong>, CNS&nbsp;<strong>${cns}</strong>, esteve presente nesta unidade, CAPS ia Liberdade, no período da ${turnoFormatado}, participando de atividades relacionadas ao seu Projeto Terapêutico Singular.</p>
+        <p>Essa declaração é emitida para fins de comprovação da presença no âmbito do acompanhamento terapêutico do(a) referido(a) paciente, conforme previsto em seu plano terapêutico.</p>
+        <br><br>
+        <p style="text-align: center;">Salvador, ${dataFormatada}.</p>
+    `;
+
+    const wrapper = document.getElementById('declaracao-content-wrapper');
+    if (wrapper) wrapper.innerHTML = conteudoAtestado;
+    
+    fecharModalEscolha();
+    const declaracaoModal = document.getElementById('declaracaoModal');
+    if (declaracaoModal) declaracaoModal.style.display = 'flex';
+}
+
+function gerarDeclaracaoAcompanhante() {
+    if (!atestadoEmGeracao) return;
+    const modal = document.getElementById('acompanhanteModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        const input = document.getElementById('acompanhanteNomeInput');
+        if (input) input.focus();
+    }
+}
+
+function fecharModalAcompanhante() {
+    const input = document.getElementById('acompanhanteNomeInput');
+    if (input) input.value = ''; 
+    const modal = document.getElementById('acompanhanteModal');
+    if (modal) modal.style.display = 'none';
+}
+
+function confirmarNomeAcompanhante() {
+    const nomeAcompanhanteInput = document.getElementById('acompanhanteNomeInput');
+    if (!nomeAcompanhanteInput) return;
+    const nomeAcompanhante = nomeAcompanhanteInput.value.trim();
+
+    if (nomeAcompanhante) {
+        if (!atestadoEmGeracao) return;
+        const { nome, cns, data, turno } = atestadoEmGeracao;
+        const dataObj = new Date(data + 'T12:00:00');
+        const dataFormatada = dataObj.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+        const turnoFormatado = turno === 'manha' ? 'manhã' : 'tarde';
+
+        const conteudoAtestado = `
+            <h4>DECLARAÇÃO DE COMPARECIMENTO</h4>
+            <p>Declaramos, para os devidos fins, que <strong>${nomeAcompanhante}</strong>, esteve presente nesta unidade, CAPS ia Liberdade, no período da ${turnoFormatado}, acompanhando o(a) paciente <strong>${nome.toUpperCase()}</strong>, CNS <strong>${cns}</strong> nas atividades relacionadas ao seu Projeto Terapêutico Singular.</p>
+            <p>Essa declaração é emitida para fins de comprovação da presença no âmbito do acompanhamento terapêutico do(a) referido(a) paciente, conforme previsto em seu plano terapêutico.</p>
+            <br><br>
+            <p style="text-align: center;">Salvador, ${dataFormatada}.</p>
+        `;
+
+        const wrapper = document.getElementById('declaracao-content-wrapper');
+        if (wrapper) wrapper.innerHTML = conteudoAtestado;
+        
+        fecharModalAcompanhante();
+        fecharModalEscolha();
+        const declaracaoModal = document.getElementById('declaracaoModal');
+        if (declaracaoModal) declaracaoModal.style.display = 'flex';
+    } else {
+        mostrarNotificacao('Por favor, digite o nome do acompanhante.', 'warning');
+        if (nomeAcompanhanteInput) nomeAcompanhanteInput.focus();
+    }
+}
+
+function fecharModalAtestado() {
+    const declaracaoModal = document.getElementById('declaracaoModal');
+    if (declaracaoModal) declaracaoModal.style.display = 'none';
+    atestadoEmGeracao = null; 
+    try {
+        document.getElementById('assinaturaInput').value = '';
+        document.getElementById('assinaturaNomePrint').textContent = '\u00A0'; 
+        document.getElementById('assinaturaFuncaoPrint').textContent = '\u00A0'; 
+        document.getElementById('assinaturaSugestoes').style.display = 'none';
+    } catch (e) {}
+}
+
+// --- Funções de Impressão ---
+
+// Helper para garantir estado limpo antes de qualquer impressão
+function limparEstadoImpressao() {
+    document.body.classList.remove('printing-agenda', 'printing-vagas', 'printing-report', 'printing-declaracao');
+    const containers = ['print-container', 'print-vagas-container'];
+    containers.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = '';
+    });
+}
+
+function handlePrint(printClass) {
+    // Limpeza preventiva de classes
+    document.body.classList.remove('printing-agenda', 'printing-vagas', 'printing-report', 'printing-declaracao');
+    
+    document.body.classList.add(printClass);
+    const handleAfterPrint = () => {
+        document.body.classList.remove(printClass);
+        limparEstadoImpressao(); // Limpeza pós-impressão também
+        window.removeEventListener('afterprint', handleAfterPrint);
+    };
+    window.addEventListener('afterprint', handleAfterPrint);
+    try {
+        window.print();
+    } catch (e) {
+        console.error('Erro ao chamar window.print():', e);
+        handleAfterPrint();
+    }
+}
+
+function imprimirDeclaracao() {
+    const nomeAssinatura = document.getElementById('assinaturaNomePrint');
+    if (!nomeAssinatura || nomeAssinatura.textContent.trim() === '' || nomeAssinatura.textContent === '\u00A0') {
+        mostrarNotificacao('Por favor, selecione um profissional para a assinatura.', 'warning');
+        return; 
+    }
+    limparEstadoImpressao(); // Garante limpeza
+    handlePrint('printing-declaracao');
+}
+
+function imprimirAgendaDiaria(dataParaImpressao) {
+    limparEstadoImpressao(); // Garante limpeza inicial
+
+    const printContainer = document.getElementById('print-container');
+    if (!printContainer) return;
+
+    // LÓGICA DE TÍTULO MODIFICADA
+    const data = dataParaImpressao || dataSelecionada;
+    const dataObj = new Date(data + 'T12:00:00');
+    const dia = String(dataObj.getDate()).padStart(2, '0');
+    const mes = String(dataObj.getMonth() + 1).padStart(2, '0');
+    const ano = dataObj.getFullYear();
+    const diaSemanaNome = diasSemana[dataObj.getDay()].toLowerCase();
+
+    let printHTML = `<h1>Agendamentos em ${dia}/${mes}/${ano} - ${diaSemanaNome}</h1>`;
+
+    const agendamentosDia = agendamentos[data] || { manha: [], tarde: [] };
+    
+    const criarTabelaTurno = (turno, agendamentosTurno) => {
+        let tabela = `
+            <h2>Turno: ${turno.charAt(0).toUpperCase() + turno.slice(1)}</h2>
+            <table class="agenda-table">
+                <thead>
+                    <tr>
+                        <th class="col-numero">Nº</th>
+                        <th class="col-nome">Paciente</th>
+                        <th class="col-tr">Téc. Ref.</th>
+                        <th class="col-obs">Observação/Solicitação</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        if (!agendamentosTurno || agendamentosTurno.length === 0) {
+            tabela += '<tr><td colspan="4">Nenhum agendamento para este turno.</td></tr>';
+        } else {
+            agendamentosTurno.sort((a, b) => a.vaga - b.vaga); 
+            agendamentosTurno.forEach(ag => {
+                const obs = ag.observacao || '';
+                const solicitacoes = (ag.solicitacoes && ag.solicitacoes.length > 0) 
+                    ? `<strong>Solicitações:</strong> ${ag.solicitacoes.join(', ')}` 
+                    : '';
+                const obsFinal = [obs, solicitacoes].filter(Boolean).join('<br><br>');
+                tabela += `
+                    <tr>
+                        <td class="col-numero">${ag.numero}</td>
+                        <td class="col-nome">${ag.nome}</td>
+                        <td class="col-tr">${ag.tecRef || ''}</td>
+                        <td class="col-obs">${obsFinal}</td>
+                    </tr>
+                `;
+            });
+        }
+        tabela += '</tbody></table>';
+        return tabela;
+    };
+    
+    printHTML += criarTabelaTurno('Manhã', agendamentosDia.manha);
+    printHTML += criarTabelaTurno('Tarde', agendamentosDia.tarde);
+    printContainer.innerHTML = printHTML;
+    handlePrint('printing-agenda');
+    const cleanup = () => {
+        printContainer.innerHTML = '';
+        window.removeEventListener('afterprint', cleanup);
+    };
+    window.addEventListener('afterprint', cleanup);
+}
+
+function imprimirVagas() {
+    limparEstadoImpressao(); // Garante limpeza inicial
+
+    const printContainer = document.getElementById('print-vagas-container');
+    const contentToPrintEl = document.getElementById('vagasResultadosContainer'); 
+    if (!printContainer || !contentToPrintEl || !vagasResultadosAtuais || vagasResultadosAtuais.length === 0) {
+        mostrarNotificacao('Não há dados de vagas para imprimir.', 'warning');
+        return;
+    }
+    
+    const titleEl = contentToPrintEl.querySelector('#vagasPeriodoTitulo');
+    const title = titleEl ? titleEl.textContent : 'Resumo de Vagas Encontradas';
+
+    let printHTML = `<h1>${title}</h1>`;
+    let detalhesHTML = '<div id="vagasBloqueiosDetalhes">'; 
+
+    vagasResultadosAtuais.forEach(d => {
+        const dateFmt = new Date(d.date + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+
+        detalhesHTML += `<div class="print-day-container">`;
+        detalhesHTML += `<h2 class="print-day-header">${d.weekday}, ${dateFmt}</h2>`;
+
+        if (d.type === 'Fim de Semana') {
+            detalhesHTML += `<p class="print-aviso fim-semana">Fim de Semana</p>`;
+        } else {
+            detalhesHTML += `<div class="print-row">`;
+            detalhesHTML += `<div class="print-col">`;
+            const statusManha = d.manha.livres === VAGAS_POR_TURNO ? 'LIVRE' : (d.manha.livres > 0 ? `${d.manha.livres} Livres` : 'CHEIO');
+            detalhesHTML += `<h3 class="print-turno-header">Manhã (${statusManha})</h3>`;
+            
+            if (d.motivo && d.manha.livres === 0) {
+                 detalhesHTML += `<p class="print-aviso bloqueio">Bloqueado: ${d.motivo}</p>`;
+            } else if (d.manha.ocupados.length > 0) {
+                 detalhesHTML += `<ul class="print-turno-list">`;
+                 d.manha.ocupados.forEach(ag => {
+                     detalhesHTML += `<li class="print-vaga-ocupada"><span>Nº ${ag.numero}</span> - ${ag.nome}</li>`;
+                 });
+                 detalhesHTML += `</ul>`;
+            } else if (d.manha.livres === 0 && !d.motivo) {
+                 detalhesHTML += `<p class="print-aviso bloqueio">8 vagas ocupadas.</p>`;
+            } else if (d.manha.livres === VAGAS_POR_TURNO) {
+                 detalhesHTML += `<p class="print-aviso print-vaga-livre">8 vagas livres.</p>`;
+            }
+            detalhesHTML += `</div>`; 
+            detalhesHTML += `<div class="print-col">`;
+            const statusTarde = d.tarde.livres === VAGAS_POR_TURNO ? 'LIVRE' : (d.tarde.livres > 0 ? `${d.tarde.livres} Livres` : 'CHEIO');
+            detalhesHTML += `<h3 class="print-turno-header">Tarde (${statusTarde})</h3>`;
+            
+            if (d.motivo && (d.tarde.livres === 0 || d.tarde.ocupados.length === 0)) {
+                 detalhesHTML += `<p class="print-aviso bloqueio">Bloqueado: ${d.motivo}</p>`;
+            } else if (d.tarde.ocupados.length > 0) {
+                 detalhesHTML += `<ul class="print-turno-list">`;
+                 d.tarde.ocupados.forEach(ag => {
+                     detalhesHTML += `<li class="print-vaga-ocupada"><span>Nº ${ag.numero}</span> - ${ag.nome}</li>`;
+                 });
+                 detalhesHTML += `</ul>`;
+            } else if (d.tarde.livres === 0 && !d.motivo) {
+                 detalhesHTML += `<p class="print-aviso bloqueio">8 vagas ocupadas.</p>`;
+            } else if (d.tarde.livres === VAGAS_POR_TURNO) {
+                 detalhesHTML += `<p class="print-aviso print-vaga-livre">8 vagas livres.</p>`;
+            }
+            detalhesHTML += `</div>`; 
+            detalhesHTML += `</div>`; 
+        }
+        detalhesHTML += `</div>`; 
+    });
+
+    detalhesHTML += '</div>';
+    printContainer.innerHTML = printHTML + detalhesHTML;
+    handlePrint('printing-vagas');
+    const cleanup = () => {
+        printContainer.innerHTML = '';
+        window.removeEventListener('afterprint', cleanup);
+    };
+    window.addEventListener('afterprint', cleanup);
+}
+
+function configurarAutocompleteAssinatura() {
+    const input = document.getElementById('assinaturaInput');
+    const sugestoesLista = document.getElementById('assinaturaSugestoes');
+    const nomePrint = document.getElementById('assinaturaNomePrint');
+    const funcaoPrint = document.getElementById('assinaturaFuncaoPrint');
+    if (!input || !sugestoesLista || !nomePrint || !funcaoPrint) return;
+    
+    const container = input.closest('.autocomplete-container');
+
+    input.addEventListener('input', () => {
+        const termo = input.value.trim().toLowerCase();
+        if (termo === '') {
+            nomePrint.textContent = '\u00A0'; 
+            funcaoPrint.textContent = '\u00A0'; 
+            sugestoesLista.innerHTML = '';
+            sugestoesLista.style.display = 'none';
+            return;
+        }
+        if (termo.length < 2) {
+            sugestoesLista.innerHTML = '';
+            sugestoesLista.style.display = 'none';
+            return;
+        }
+        const sugestoesFiltradas = PROFISSIONAIS_LISTA.filter(p => 
+            p.nome.toLowerCase().includes(termo)
+        );
+
+        if (sugestoesFiltradas.length > 0) {
+            sugestoesLista.innerHTML = sugestoesFiltradas.map(p => 
+                `<div class="sugestao-item" data-nome="${p.nome}">
+                    <strong>${p.nome}</strong><br>
+                    <small>${p.funcao}</small>
+                </div>`
+            ).join('');
+            sugestoesLista.style.display = 'block';
+        } else {
+            sugestoesLista.innerHTML = '';
+            sugestoesLista.style.display = 'none';
+        }
+    });
+
+    sugestoesLista.addEventListener('click', (e) => {
+        const item = e.target.closest('.sugestao-item');
+        if (item) {
+            const nomeSelecionado = item.dataset.nome;
+            const profissional = PROFISSIONAIS_LISTA.find(p => p.nome === nomeSelecionado);
+            if (profissional) {
+                nomePrint.textContent = profissional.nome;
+                funcaoPrint.textContent = profissional.funcao;
+                input.value = '';
+                sugestoesLista.innerHTML = '';
+                sugestoesLista.style.display = 'none';
+            }
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (container && !container.contains(e.target)) {
+            sugestoesLista.style.display = 'none';
+        }
+    });
+}
+
+// --- Funções de Agendamento e Edição ---
+
+function agendarPaciente(event, data, turno, vaga) {
+    event.preventDefault();
+    const form = event.target; 
+    const solicitacoes = Array.from(form.querySelectorAll('input[name="solicitacao"]:checked')).map(cb => cb.value);
+    const numeroPaciente = form.querySelector('[name="numero"]').value.trim();
+
+    const erroAntigo = form.querySelector('.form-error-message');
+    if (erroAntigo) erroAntigo.remove();
+
+    if (agendamentos[data]) {
+        const agendamentosDia = [
+            ...(agendamentos[data].manha || []),
+            ...(agendamentos[data].tarde || [])
+        ];
+        const duplicado = agendamentosDia.find(ag => {
+            const encontrado = ag.numero === numeroPaciente;
+            if (slotEmEdicao && slotEmEdicao.data === data && slotEmEdicao.turno === turno && slotEmEdicao.vaga === vaga) {
+                    return false; 
+            }
+            return encontrado; 
+        });
+
+        if (duplicado) {
+            const erroEl = document.createElement('p');
+            erroEl.className = 'form-error-message';
+            erroEl.textContent = 'ERRO: Paciente já agendado para este dia.';
+            const actionsWrapper = form.querySelector('.form-actions-wrapper');
+            if (actionsWrapper) form.insertBefore(erroEl, actionsWrapper);
+            return; 
+        }
+    }
+
+    const novoAgendamento = {
+        vaga: vaga,
+        numero: numeroPaciente, 
+        nome: form.querySelector('[name="nome"]').value.trim(),
+        cns: form.querySelector('[name="cns"]').value.trim(),
+        distrito: form.querySelector('[name="distrito"]').value.trim(),
+        tecRef: form.querySelector('[name="tecRef"]').value.trim(),
+        cid: form.querySelector('[name="cid"]').value.trim().toUpperCase(),
+        agendadoPor: form.querySelector('[name="agendadoPor"]').value.trim(),
+        observacao: form.querySelector('[name="observacao"]').value.trim(),
+        primeiraConsulta: form.querySelector('[name="primeiraConsulta"]').checked,
+        solicitacoes: solicitacoes,
+        status: 'Aguardando',
+    };
+
+    if (!agendamentos[data]) agendamentos[data] = {};
+    if (!agendamentos[data][turno]) agendamentos[data][turno] = [];
+
+    const index = agendamentos[data][turno].findIndex(a => a.vaga === vaga);
+    if (index !== -1) {
+        agendamentos[data][turno][index] = { ...agendamentos[data][turno][index], ...novoAgendamento };
+    } else {
+        agendamentos[data][turno].push(novoAgendamento);
+    }
+    
+    agendamentos[data][turno].sort((a, b) => a.vaga - b.vaga);
+    
+    salvarAgendamentos();
+    slotEmEdicao = null;
+    selecionarDia(data, document.querySelector(`.day[data-date="${data}"]`));
+    atualizarCalendario();
+    atualizarResumoMensal();
+    atualizarResumoSemanal(new Date(data + 'T12:00:00'));
+    mostrarNotificacao('Agendamento salvo com sucesso!', 'success');
+}
+
+function iniciarEdicao(data, turno, vaga) {
+    slotEmEdicao = { data, turno, vaga };
+    exibirAgendamentos(data);
+}
+
+function cancelarEdicao() {
+    const data = slotEmEdicao.data;
+    slotEmEdicao = null;
+    exibirAgendamentos(data);
+}
+
+function executarCancelamento(data, turno, vaga) {
+    if (!agendamentos[data] || !agendamentos[data][turno]) return;
+    const index = agendamentos[data][turno].findIndex(a => a.vaga === vaga);
+    if (index !== -1) {
+        agendamentos[data][turno].splice(index, 1);
+        if (agendamentos[data][turno].length === 0) delete agendamentos[data][turno];
+        if (Object.keys(agendamentos[data]).length === 0) delete agendamentos[data];
+
+        salvarAgendamentos();
+        selecionarDia(data, document.querySelector(`.day[data-date="${data}"]`));
+        atualizarCalendario();
+        atualizarResumoMensal();
+        atualizarResumoSemanal(new Date(data + 'T12:00:00'));
+        mostrarNotificacao('Agendamento cancelado com sucesso!', 'info');
+    }
+    fecharModalConfirmacao();
+}
+
+function marcarStatus(data, turno, vaga, novoStatus) {
+    const agendamento = agendamentos[data]?.[turno]?.find(a => a.vaga === vaga);
+    if (!agendamento) return;
+
+    if (novoStatus === 'Justificou') {
+        abrirModalJustificativa(data, turno, vaga);
+        return; 
+    }
+    agendamento.status = (agendamento.status === novoStatus) ? 'Aguardando' : novoStatus;
+    if (agendamento.status !== 'Justificou') delete agendamento.justificativa;
+    
+    salvarAgendamentos();
+    exibirAgendamentos(data);
+    atualizarResumoMensal();
+}
+
+function limparFormulario(button) {
+    const form = button.closest('form');
+    if (form) {
+        form.reset();
+        const erroAntigo = form.querySelector('.form-error-message');
+        if (erroAntigo) erroAntigo.remove();
+        const numeroInput = form.querySelector('[name="numero"]');
+        if (numeroInput) numeroInput.focus();
+    }
+}
+
+function verificarDuplicidadeAoDigitar(inputElement, data, turno, vaga) {
+    const form = inputElement.closest('form');
+    const valorInput = inputElement.value.trim();
+    const erroAntigo = form.querySelector('.form-error-message');
+    if (erroAntigo) erroAntigo.remove();
+    
+    if (valorInput === '') return;
+
+    const campoVerificacao = inputElement.name;
+    const valorVerificacao = valorInput.toLowerCase();
+
+    if (agendamentos[data]) {
+        const agendamentosDia = [
+            ...(agendamentos[data].manha || []),
+            ...(agendamentos[data].tarde || [])
+        ];
+        const duplicado = agendamentosDia.find(ag => {
+            let valorAgendamento = '';
+            if (campoVerificacao === 'numero') valorAgendamento = ag.numero;
+            else if (campoVerificacao === 'nome') valorAgendamento = ag.nome.toLowerCase();
+            else if (campoVerificacao === 'cns') valorAgendamento = ag.cns;
+
+            const encontrado = valorAgendamento === valorVerificacao;
+            if (slotEmEdicao && slotEmEdicao.data === data && slotEmEdicao.turno === turno && slotEmEdicao.vaga === vaga) {
+                    return false;
+            }
+            return encontrado; 
+        });
+
+        if (duplicado) {
+            const erroEl = document.createElement('p');
+            erroEl.className = 'form-error-message';
+            erroEl.textContent = 'ERRO: Paciente já agendado para este dia.';
+            const actionsWrapper = form.querySelector('.form-actions-wrapper');
+            if (actionsWrapper) form.insertBefore(erroEl, actionsWrapper);
+        }
+    }
+}
+
+function criarEmptyState() {
+    return `
+        <div class="glass-card empty-state-card">
+            <div class="card-content">
+                <div class="empty-state">
+                    <svg class="empty-icon" xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-calendar-check" viewBox="0 0 16 16"><path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/></svg>
+                    <h3>Selecione uma Data</h3>
+                    <p>Clique num dia útil no calendário para visualizar e gerenciar os agendamentos.</p>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function criarBlockedState(data, dataFmt, motivo, tipo, isHoliday) {
+    const icon = isHoliday ? 'bi-calendar-x-fill' : 'bi-lock-fill';
+    return `
+        <div class="appointment-header">
+            <h2 class="appointment-title">${dataFmt}</h2>
+            <div class="header-actions">
+                <button id="btnLockDay" class="btn-icon btn-lock" title="Desbloquear Agenda" aria-label="Desbloquear agenda do dia">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-unlock-fill" viewBox="0 0 16 16"><path d="M11 1a2 2 0 0 0-2 2v4a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h5V3a3 3 0 0 1 6 0v4a.5.5 0 0 1-1 0V3a2 2 0 0 0-2-2"/></svg>
+                </button>
+            </div>
+        </div>
+        <div class="glass-card" style="border-top-left-radius: 0; border-top-right-radius: 0; border-top: none;">
+            <div class="card-content">
+                <div class="blocked-state">
+                    <i class="bi ${icon} blocked-icon"></i>
+                    <h3>Agenda Bloqueada</h3>
+                    <p>Motivo: <strong>${motivo || 'Não especificado'}</strong></p>
+                </div>
+            </div>
+        </div>`;
+}
+
+function criarBlockedTurnoState(turno, motivo, isHoliday) {
+    const icon = isHoliday ? 'bi-calendar-x' : 'bi-lock-fill';
+    return `
+        <div class="blocked-state turno">
+            <i class="bi ${icon} blocked-icon"></i>
+            <h4>Turno da ${turno} Bloqueado</h4>
+            <p>Motivo: <strong>${motivo || 'Não especificado'}</strong></p>
+        </div>`;
+}
+
+function mostrarTurno(turno) {
+    turnoAtivo = turno;
+    const activeTab = document.querySelector('.tab-btn.active');
+    if (activeTab) activeTab.classList.remove('active');
+    const newTab = document.querySelector(`.tab-btn.${turno}`);
+    if (newTab) newTab.classList.add('active');
+    const activeContent = document.querySelector('.turno-content.active');
+    if (activeContent) activeContent.classList.remove('active');
+    const newContent = document.getElementById(`turno-${turno}`);
+    if (newContent) newContent.classList.add('active');
+}
+
+function abrirModalConfirmacao(mensagem, acao) {
+    const msgElement = document.getElementById('confirmMessage');
+    if (msgElement) msgElement.textContent = mensagem;
+    confirmAction = acao;
+    const modal = document.getElementById('confirmModal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function fecharModalConfirmacao() {
+    const modal = document.getElementById('confirmModal');
+    if (modal) modal.style.display = 'none';
+    confirmAction = null;
+}
+
+function executarAcaoConfirmada() {
+    if (typeof confirmAction === 'function') confirmAction();
+    fecharModalConfirmacao();
+}
+
+function abrirModalJustificativa(data, turno, vaga) {
+    justificativaEmEdicao = { data, turno, vaga };
+    const form = document.getElementById('justificationForm');
+    if (form) form.reset();
+    const container = document.getElementById('reagendamentoDataContainer');
+    if (container) container.style.display = 'block'; 
+    const modal = document.getElementById('justificationModal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function fecharModalJustificativa() {
+    const modal = document.getElementById('justificationModal');
+    if (modal) modal.style.display = 'none';
+    justificativaEmEdicao = null;
+}
+
+function salvarJustificativa() {
+    if (!justificativaEmEdicao) return;
+    const { data, turno, vaga } = justificativaEmEdicao;
+    const agendamento = agendamentos[data]?.[turno]?.find(a => a.vaga === vaga);
+    if (!agendamento) return;
+
+    const tipoInput = document.querySelector('input[name="justificativaTipo"]:checked');
+    if (!tipoInput) return;
+    
+    const tipo = tipoInput.value;
+    let detalhe = '';
+
+    if (tipo === 'Reagendado') {
+        const dataInput = document.getElementById('reagendamentoData');
+        if (dataInput) detalhe = dataInput.value;
+        if (!detalhe) {
+            mostrarNotificacao('Por favor, selecione a data de reagendamento.', 'warning');
+            return;
+        }
+    } else {
+        detalhe = 'Contato TR';
+    }
+
+    agendamento.status = 'Justificou';
+    agendamento.justificativa = { tipo, detalhe };
+    salvarAgendamentos();
+    fecharModalJustificativa();
+    exibirAgendamentos(data);
+    atualizarResumoMensal();
+    mostrarNotificacao('Justificativa salva com sucesso!', 'success');
+}
+
+function configurarAutopreenchimento(form) {
+    const inputs = form.querySelectorAll('input[name="numero"], input[name="nome"], input[name="cns"], input[name="tecRef"]');
+    inputs.forEach(input => {
+        const container = input.closest('.autocomplete-container');
+        if (!container) return;
+        const sugestoesLista = container.querySelector('.sugestoes-lista');
+        if (!sugestoesLista) return;
+
+        input.addEventListener('input', () => {
+            const termo = input.value.toLowerCase();
+            const campo = input.name;
+            if (termo.length < 2) {
+                sugestoesLista.innerHTML = '';
+                sugestoesLista.style.display = 'none';
+                return;
+            }
+            const sugestoesFiltradas = pacientesGlobais.filter(p => {
+                const valorCampo = p[campo] ? p[campo].toString().toLowerCase() : '';
+                return valorCampo.includes(termo);
+            }).slice(0, 5);
+
+            if (sugestoesFiltradas.length > 0) {
+                sugestoesLista.innerHTML = sugestoesFiltradas.map(p => 
+                    `<div class="sugestao-item" data-numero="${p.numero}">
+                        <strong>${p.nome}</strong> (Nº: ${p.numero})
+                    </div>`
+                ).join('');
+                sugestoesLista.style.display = 'block';
+            } else {
+                sugestoesLista.style.display = 'none';
+            }
+        });
+
+        sugestoesLista.addEventListener('click', (e) => {
+            const item = e.target.closest('.sugestao-item');
+            if (item) {
+                const numeroPaciente = item.dataset.numero;
+                const paciente = pacientesGlobais.find(p => p.numero === numeroPaciente);
+                if (paciente) {
+                    const numeroInput = form.querySelector('[name="numero"]');
+                    if (numeroInput) numeroInput.value = paciente.numero || '';
+                    const nomeInput = form.querySelector('[name="nome"]');
+                    if (nomeInput) nomeInput.value = paciente.nome || '';
+                    const cnsInput = form.querySelector('[name="cns"]');
+                    if (cnsInput) cnsInput.value = paciente.cns || '';
+                    const distritoInput = form.querySelector('[name="distrito"]');
+                    if (distritoInput) distritoInput.value = paciente.distrito || '';
+                    const tecRefInput = form.querySelector('[name="tecRef"]');
+                    if (tecRefInput) tecRefInput.value = paciente.tecRef || '';
+                    const cidInput = form.querySelector('[name="cid"]');
+                    if (cidInput) cidInput.value = paciente.cid || '';
+                }
+                sugestoesLista.innerHTML = '';
+                sugestoesLista.style.display = 'none';
+            }
+        });
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!form.contains(e.target)) {
+            form.querySelectorAll('.sugestoes-lista').forEach(lista => {
+                if (lista) lista.style.display = 'none';
+            });
+        }
+    });
+}
+
+function isWeekend(date) {
+    const day = new Date(date + 'T00:00:00').getDay();
+    return day === 0 || day === 6; 
+}
+
+function displayVagasError(message, show) {
+    const errorElement = document.getElementById('vagasErrorMessage');
+    if (!errorElement) return;
+    errorElement.textContent = message;
+    errorElement.classList.toggle('hidden', !show); 
+}
+
+function procurarVagas() {
+    const startDateInput = document.getElementById('vagasStartDate');
+    const endDateInput = document.getElementById('vagasEndDate');
+    const resultsContainer = document.getElementById('vagasResultadosContainer');
+    const printButton = document.getElementById('btnPrintVagas');
+    if (!startDateInput || !endDateInput || !resultsContainer || !printButton) return;
+
+    displayVagasError('', false); 
+    const startDateStr = startDateInput.value;
+    const endDateStr = endDateInput.value;
+
+    if (!startDateStr || !endDateStr) {
+        displayVagasError('Preencha as datas de início e fim da pesquisa.', true);
+        resultsContainer.classList.add('hidden');
+        return;
+    }
+
+    const startDate = new Date(startDateStr + 'T00:00:00');
+    const endDate = new Date(endDateStr + 'T00:00:00');
+    const diffTime = endDate.getTime() - startDate.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) {
+         displayVagasError('A data final não pode ser anterior à data inicial.', true);
+         resultsContainer.classList.add('hidden');
+         return;
+    }
+    if (diffDays >= MAX_DAYS_SEARCH) {
+        displayVagasError('POR FAVOR, DIGITE UM INTERVALO DE NO MAXIMO DEZ DIAS', true);
+        resultsContainer.classList.add('hidden');
+        return;
+    }
+
+    let totalVagasLivres = 0;
+    let diasProcessados = [];
+    let day = new Date(startDate);
+    
+    while (day <= endDate) {
+        const dateStr = day.toISOString().split('T')[0];
+        const dayOfWeek = day.getDay();
+        const bloqueio = diasBloqueados[dateStr];
+        const agendamentosDia = agendamentos[dateStr];
+        let vagasLivresManha = VAGAS_POR_TURNO;
+        let vagasLivresTarde = VAGAS_POR_TURNO;
+        let ocupadosManha = [];
+        let ocupadosTarde = [];
+        let bloqueioMotivo = null;
+
+        if (isWeekend(dateStr)) {
+            diasProcessados.push({ date: dateStr, weekday: diasSemana[dayOfWeek], type: 'Fim de Semana', totalVagas: 0 });
+        } else {
+            if (bloqueio) {
+                bloqueioMotivo = bloqueio.motivo;
+                if (bloqueio.diaInteiro) {
+                    vagasLivresManha = 0;
+                    vagasLivresTarde = 0;
+                } else {
+                    if (bloqueio.manha) vagasLivresManha = 0;
+                    if (bloqueio.tarde) vagasLivresTarde = 0;
+                }
+            }
+            if (agendamentosDia) {
+                if (vagasLivresManha > 0 && agendamentosDia.manha) {
+                    ocupadosManha = agendamentosDia.manha.map(ag => ({...ag, turno: 'manha'}));
+                    vagasLivresManha -= ocupadosManha.length;
+                    vagasLivresManha = Math.max(0, vagasLivresManha);
+                }
+                if (vagasLivresTarde > 0 && agendamentosDia.tarde) {
+                    ocupadosTarde = agendamentosDia.tarde.map(ag => ({...ag, turno: 'tarde'}));
+                    vagasLivresTarde -= ocupadosTarde.length;
+                    vagasLivresTarde = Math.max(0, vagasLivresTarde);
+                }
+            }
+            totalVagasLivres += vagasLivresManha + vagasLivresTarde;
+            diasProcessados.push({
+                date: dateStr,
+                weekday: diasSemana[dayOfWeek],
+                type: bloqueioMotivo ? 'Bloqueio' : (vagasLivresManha + vagasLivresTarde > 0 ? 'Disponível' : 'Cheio'),
+                manha: { livres: vagasLivresManha, ocupados: ocupadosManha },
+                tarde: { livres: vagasLivresTarde, ocupados: ocupadosTarde },
+                motivo: bloqueioMotivo
+            });
+        }
+        day.setDate(day.getDate() + 1);
+    }
+
+    renderizarResultadosVagas(startDate, endDate, totalVagasLivres, diasProcessados);
+    vagasResultadosAtuais = diasProcessados; 
+    resultsContainer.classList.remove('hidden');
+    printButton.classList.remove('hidden');
+}
+
+function renderizarResultadosVagas(startDate, endDate, totalVagasLivres, diasProcessados) {
+    const resultsSummary = document.getElementById('vagasSumario');
+    const resultsDetails = document.getElementById('vagasBloqueiosDetalhes');
+    const title = document.getElementById('vagasPeriodoTitulo');
+    if (!resultsSummary || !resultsDetails || !title) return;
+
+    const startFmt = startDate.toLocaleDateString('pt-BR');
+    const endFmt = endDate.toLocaleDateString('pt-BR');
+
+    title.textContent = `Vagas Encontradas: ${startFmt} a ${endFmt}`;
+    resultsSummary.innerHTML = ''; 
+
+    const gerarListaVagas = (vagas, tipo, data, turno) => {
+        let listaHTML = '';
+        if (tipo === 'ocupada') {
+            vagas.forEach(ag => {
+                listaHTML += `
+                <li class="vaga-lista-item ocupada">
+                    <div class="vaga-ocupada-info">
+                        <span>Nº ${ag.numero}</span> - <strong>${ag.nome}</strong>
+                    </div>
+                    <button class="btn-icon btn-jump-patient" onclick="pularParaCard('${data}', '${turno}', ${ag.vaga})" title="Ver na agenda">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar-check" viewBox="0 0 16 16"><path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/></svg>
+                    </button>
+                </li>`;
+            });
+        } else { 
+            for (let i = 0; i < vagas; i++) {
+                listaHTML += `<li class="vaga-lista-item livre" onclick="pularParaVagaLivre('${data}', '${turno}')">Vaga Livre</li>`;
+            }
+        }
+        return listaHTML;
+    };
+
+    let detalhesHTML = '<div id="vagas-resultado-grid">';
+    
+    diasProcessados.forEach(d => {
+        const dateFmt = new Date(d.date + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+        const jumpButton = `
+            <button class="btn-icon btn-jump-day" onclick="pularParaAgendamento('${d.date}')" title="Ir para este dia">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right-circle" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8m15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0M4.5 7.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5z"/></svg>
+            </button>`;
+
+        if (d.type === 'Fim de Semana') {
+            detalhesHTML += `
+                <div class="vaga-dia-card fim-de-semana">
+                    <div class="vaga-dia-header"><span>${d.weekday}, ${dateFmt}</span></div>
+                    <p class="aviso-bloqueio">Fim de Semana</p>
+                </div>`;
+        } else if (d.type === 'Bloqueio' && d.manha.livres === 0 && d.tarde.livres === 0) {
+             detalhesHTML += `
+                <div class="vaga-dia-card bloqueado">
+                    <div class="vaga-dia-header"><span>${d.weekday}, ${dateFmt}</span>${jumpButton}</div>
+                    <p class="aviso-bloqueio">Dia Inteiro Bloqueado. Motivo: ${d.motivo}</p>
+                </div>`;
+        } else {
+            detalhesHTML += `<div class="vaga-dia-card"><div class="vaga-dia-header"><span>${d.weekday}, ${dateFmt}</span>${jumpButton}</div>`;
+            
+            const statusManha = d.manha.livres === VAGAS_POR_TURNO ? 'LIVRE' : (d.manha.livres > 0 ? `${d.manha.livres} Livres` : 'CHEIO');
+            detalhesHTML += `<div class="turno-detalhe"><h3 class="turno-titulo manha">Manhã (${statusManha})</h3><ul class="vaga-lista">`;
+            if (d.motivo && d.manha.livres === 0) {
+                 detalhesHTML += `<p class="aviso-bloqueio">Turno Bloqueado: ${d.motivo}</p>`;
+            } else {
+                 detalhesHTML += gerarListaVagas(d.manha.ocupados, 'ocupada', d.date, 'manha');
+                 detalhesHTML += gerarListaVagas(d.manha.livres, 'livre', d.date, 'manha');
+            }
+            detalhesHTML += `</ul></div>`;
+            
+            const statusTarde = d.tarde.livres === VAGAS_POR_TURNO ? 'LIVRE' : (d.tarde.livres > 0 ? `${d.tarde.livres} Livres` : 'CHEIO');
+            detalhesHTML += `<div class="turno-detalhe"><h3 class="turno-titulo tarde">Tarde (${statusTarde})</h3><ul class="vaga-lista">`;
+             if (d.motivo && d.tarde.livres === 0) {
+                 detalhesHTML += `<p class="aviso-bloqueio">Turno Bloqueado: ${d.motivo}</p>`;
+            } else {
+                 detalhesHTML += gerarListaVagas(d.tarde.ocupados, 'ocupada', d.date, 'tarde'); 
+                 detalhesHTML += gerarListaVagas(d.tarde.livres, 'livre', d.date, 'tarde');
+            }
+            detalhesHTML += `</ul></div></div>`; 
+        }
+    });
+
+    detalhesHTML += '</div>'; 
+    resultsDetails.innerHTML = detalhesHTML;
+    
+    if (totalVagasLivres === 0) {
+        resultsSummary.innerHTML = '<p style="font-weight: bold; color: var(--color-danger);">Nenhuma vaga livre foi encontrada no período.</p>';
+    }
+}
+
+function limparBuscaVagas() {
+    const startDateInput = document.getElementById('vagasStartDate');
+    if (startDateInput) startDateInput.value = '';
+    const endDateInput = document.getElementById('vagasEndDate');
+    if (endDateInput) endDateInput.value = '';
+    const resultsContainer = document.getElementById('vagasResultadosContainer');
+    if (resultsContainer) resultsContainer.classList.add('hidden');
+    const summary = document.getElementById('vagasSumario');
+    if (summary) summary.innerHTML = '';
+    const details = document.getElementById('vagasBloqueiosDetalhes');
+    if (details) details.innerHTML = '';
+    const printButton = document.getElementById('btnPrintVagas');
+    if (printButton) printButton.classList.add('hidden');
+    vagasResultadosAtuais = []; 
+    displayVagasError('', false); 
+}
+
+function gerenciarBloqueioDia(data) {
+    const bloqueio = diasBloqueados[data];
+    if (bloqueio) {
+        let mensagem = '';
+        const dataFormatada = new Date(data + 'T12:00:00').toLocaleDateString('pt-BR');
+
+        if (bloqueio.diaInteiro) {
+            mensagem = `Deseja realmente desbloquear o dia ${dataFormatada}?`;
+        } else if (bloqueio.manha && !bloqueio.tarde) {
+            mensagem = `Deseja realmente desbloquear o turno da manhã do dia ${dataFormatada}?`;
+        } else if (bloqueio.tarde && !bloqueio.manha) {
+            mensagem = `Deseja realmente desbloquear o turno da tarde do dia ${dataFormatada}?`;
+        } else {
+            mensagem = `Deseja realmente desbloquear o dia ${dataFormatada}?`;
+        }
+
+        abrirModalConfirmacao(
+            mensagem,
+            () => executarDesbloqueio(data)
+        );
+    } else {
+        abrirModalBloqueio();
+    }
+}
+
+function executarDesbloqueio(data) {
+    const bloqueio = diasBloqueados[data];
+    if (bloqueio) {
+        if (bloqueio.isHoliday) {
+            feriadosDesbloqueados[data] = true;
+            salvarFeriadosDesbloqueados();
+        }
+        delete diasBloqueados[data];
+        salvarBloqueios();
+        atualizarCalendario();
+        const diaEl = document.querySelector(`.day[data-date="${data}"]`);
+        if (diaEl) selecionarDia(data, diaEl);
+        mostrarNotificacao('Dia desbloqueado com sucesso.', 'success');
+    }
+}
+
+function abrirModalBloqueio() {
+    const form = document.getElementById('blockDayForm');
+    if (form) form.reset();
+    const modal = document.getElementById('blockDayModal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function fecharModalBloqueio() {
+    const modal = document.getElementById('blockDayModal');
+    if (modal) modal.style.display = 'none';
+}
+
+function confirmarBloqueio() {
+    const data = dataSelecionada;
+    if (!data) return;
+    const tipoInput = document.getElementById('blockType');
+    const motivoInput = document.getElementById('blockReason');
+    if (!tipoInput || !motivoInput) return;
+
+    const tipo = tipoInput.value;
+    const motivo = motivoInput.value.trim();
+    if (!motivo) {
+        mostrarNotificacao('O motivo do bloqueio é obrigatório.', 'warning');
+        return;
+    }
+
+    if (!diasBloqueados[data]) diasBloqueados[data] = {};
+    diasBloqueados[data].diaInteiro = tipo === 'all_day';
+    diasBloqueados[data].manha = tipo === 'all_day' || tipo === 'morning';
+    diasBloqueados[data].tarde = tipo === 'all_day' || tipo === 'afternoon';
+    diasBloqueados[data].motivo = motivo;
+    diasBloqueados[data].isHoliday = false; 
+    diasBloqueados[data].manual = true; 
+
+    salvarBloqueios();
+    atualizarCalendario();
+    selecionarDia(data, document.querySelector(`.day[data-date="${data}"]`));
+    atualizarBolinhasDisponibilidade(data);
+    fecharModalBloqueio();
+    mostrarNotificacao('Dia/turno bloqueado com sucesso.', 'success');
+}
+
 function abrirModalLimpeza() {
     const modal = document.getElementById('clearDataModal');
     if (modal) {
@@ -1309,8 +2328,8 @@ function executarLimpezaTotal() {
     const errorMessage = document.getElementById('clearDataError');
     if (!passwordInput || !errorMessage) return;
 
-    // [ARCOSAFE-FIX] Validação da senha mestra vinda do config.js
-    if (typeof SENHA_RESET_GLOBAL !== 'undefined' && passwordInput.value === SENHA_RESET_GLOBAL) {
+    if (passwordInput.value === 'apocalipse') {
+        // [ARCOSAFE-FIX] Remove chave correta
         localStorage.removeItem('agenda_completa_final');
         localStorage.removeItem('pacientes_dados');
         localStorage.removeItem('dias_bloqueados');
@@ -1330,4 +2349,505 @@ function executarLimpezaTotal() {
     }
 }
 
-// ... (Restante das funções mantidas até o final) ...
+function configurarHorarioBackup() {
+    const saveBtn = document.getElementById('saveBackupTimeBtn');
+    if (saveBtn) saveBtn.addEventListener('click', salvarHorarioBackup);
+    carregarHorarioBackup();
+}
+
+function carregarHorarioBackup() {
+    const backupTimeDisplay = document.getElementById('backupTimeDisplay');
+    const backupTimeInput = document.getElementById('backupTimeInput');
+    const horarioSalvo = localStorage.getItem('backupTime') || '16:00';
+    if (backupTimeDisplay) backupTimeDisplay.textContent = horarioSalvo;
+    if (backupTimeInput) backupTimeInput.value = horarioSalvo;
+}
+
+function salvarHorarioBackup() {
+    const backupTimeInput = document.getElementById('backupTimeInput');
+    if (backupTimeInput) {
+        const novoHorario = backupTimeInput.value;
+        localStorage.setItem('backupTime', novoHorario);
+        
+        // [ARCOSAFE-FIX] Reset da sessão de backup para permitir nova verificação hoje
+        sessionStorage.removeItem('backupRealizadoSessao');
+        
+        const backupTimeDisplay = document.getElementById('backupTimeDisplay');
+        if (backupTimeDisplay) backupTimeDisplay.textContent = novoHorario;
+        mostrarNotificacao(`Horário de backup salvo para ${novoHorario}. Próximo backup agendado!`, 'success');
+    }
+}
+
+function verificarNecessidadeBackup() {
+    if (modalBackupAberto) return; 
+    
+    // [ARCOSAFE-FIX] Verifica se o backup já foi feito NESTA sessão de configuração.
+    // Ignora dias da semana e datas anteriores.
+    if (sessionStorage.getItem('backupRealizadoSessao') === 'true') return;
+
+    // [ARCOSAFE-FIX] Verifica persistência (se já fez hoje, mesmo fechando o navegador)
+    const ultimoBackup = localStorage.getItem('ultimoBackupRealizado');
+    const hoje = new Date().toLocaleDateString('pt-BR');
+    if (ultimoBackup === hoje) return;
+
+    const horarioSalvo = localStorage.getItem('backupTime') || '16:00';
+    const [hora, minuto] = horarioSalvo.split(':').map(Number);
+    const agora = new Date();
+    
+    // [ARCOSAFE-DEBUG] Visualizar o que o sistema está pensando
+    console.log(`[Backup Check] Agora: ${agora.getHours()}:${agora.getMinutes()} | Programado: ${hora}:${minuto}`);
+
+    if (agora.getHours() > hora || (agora.getHours() === hora && agora.getMinutes() >= minuto)) {
+        abrirModalBackup();
+    }
+}
+
+function abrirModalBackup() {
+    const modal = document.getElementById('backupModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        modalBackupAberto = true;
+    }
+}
+
+function fecharModalBackup() {
+    // [ARCOSAFE-FIX] Opção 3: Trava. Só fecha se backup estiver confirmado na SESSÃO.
+    if (sessionStorage.getItem('backupRealizadoSessao') !== 'true') {
+        // Backup ainda não realizado nesta sessão. Recusa o fechamento.
+        return;
+    }
+
+    const modal = document.getElementById('backupModal');
+    if (modal) {
+        modal.style.display = 'none';
+        modalBackupAberto = false;
+    }
+}
+
+function atualizarBolinhasDisponibilidade(data) {
+    const indicator = document.getElementById('availabilityIndicator');
+    const bolinhasManha = document.getElementById('bolinhasManha');
+    const bolinhasTarde = document.getElementById('bolinhasTarde');
+    if (!indicator || !bolinhasManha || !bolinhasTarde) return;
+
+    if (!data) {
+        indicator.classList.add('hidden');
+        return;
+    }
+    const agendamentosDia = agendamentos[data];
+    const bloqueio = diasBloqueados[data];
+    bolinhasManha.innerHTML = '';
+    bolinhasTarde.innerHTML = '';
+
+    const ocupadasManha = (bloqueio?.manha || bloqueio?.diaInteiro) ? VAGAS_POR_TURNO : (agendamentosDia?.manha?.length || 0);
+    for (let i = 0; i < VAGAS_POR_TURNO; i++) {
+        const bolinha = document.createElement('div');
+        bolinha.className = 'vaga-bolinha';
+        if (i < ocupadasManha) {
+            bolinha.classList.add('ocupada', 'manha');
+            bolinha.title = bloqueio?.manha ? `Turno bloqueado: ${bloqueio.motivo}` : `Vaga ${i+1} Ocupada`;
+        } else {
+            bolinha.title = `Vaga ${i+1} Livre`;
+        }
+        bolinhasManha.appendChild(bolinha);
+    }
+    
+    const ocupadasTarde = (bloqueio?.tarde || bloqueio?.diaInteiro) ? VAGAS_POR_TURNO : (agendamentosDia?.tarde?.length || 0);
+    for (let i = 0; i < VAGAS_POR_TURNO; i++) {
+        const bolinha = document.createElement('div');
+        bolinha.className = 'vaga-bolinha';
+        if (i < ocupadasTarde) {
+            bolinha.classList.add('ocupada', 'tarde');
+            bolinha.title = bloqueio?.tarde ? `Turno bloqueado: ${bloqueio.motivo}` : `Vaga ${i+1} Ocupada`;
+        } else {
+            bolinha.title = `Vaga ${i+1} Livre`;
+        }
+        bolinhasTarde.appendChild(bolinha);
+    }
+    indicator.classList.remove('hidden');
+}
+
+function esconderBolinhasDisponibilidade() {
+    const indicator = document.getElementById('availabilityIndicator');
+    if (indicator) indicator.classList.add('hidden');
+}
+
+function atualizarResumoMensal() {
+    const container = document.getElementById('resumoMensalContainer');
+    if (!container) return;
+    const stats = { compareceu: 0, faltou: 0, justificou: 0 };
+    const prefixoMes = `${anoAtual}-${String(mesAtual + 1).padStart(2, '0')}-`;
+
+    Object.keys(agendamentos).forEach(data => {
+        if (data.startsWith(prefixoMes)) {
+            ['manha', 'tarde'].forEach(turno => {
+                (agendamentos[data][turno] || []).forEach(ag => {
+                    if (ag.status === 'Compareceu') stats.compareceu++;
+                    else if (ag.status === 'Faltou') stats.faltou++;
+                    else if (ag.status === 'Justificou') stats.justificou++;
+                });
+            });
+        }
+    });
+
+    container.innerHTML = `
+        <div class="monthly-summary-card">
+            <h4 class="monthly-summary-title">Resumo de ${meses[mesAtual]}</h4>
+            <ul class="summary-stats-list">
+                <li class="summary-stat-item">
+                    <span class="label">Compareceram:</span>
+                    <button class="value compareceu" title="Ver relatório de comparecimentos" onclick="abrirModalRelatorio('Compareceu', 'current_month')">${stats.compareceu}</button>
+                </li>
+                <li class="summary-stat-item">
+                    <span class="label">Faltaram:</span>
+                    <button class="value faltou" title="Ver relatório de faltas" onclick="abrirModalRelatorio('Faltou', 'current_month')">${stats.faltou}</button>
+                </li>
+                <li class="summary-stat-item">
+                    <span class="label">Justificaram:</span>
+                    <button class="value justificou" title="Ver relatório de justificativas" onclick="abrirModalRelatorio('Justificou', 'current_month')">${stats.justificou}</button>
+                </li>
+            </ul>
+        </div>
+    `;
+}
+
+function atualizarResumoSemanal(dataReferencia) {
+    const container = document.getElementById('resumoSemanalContainer');
+    if (!container) return;
+
+    const data = new Date(dataReferencia.getTime());
+    const diaSemana = data.getDay();
+    const diff = data.getDate() - diaSemana + (diaSemana === 0 ? -6 : 1); 
+    const segundaFeira = new Date(data.setDate(diff));
+
+    let statsSemanais = [];
+    let maxAgendamentos = 0;
+
+    for (let i = 0; i < 5; i++) { 
+        const diaAtual = new Date(segundaFeira.getTime());
+        diaAtual.setDate(segundaFeira.getDate() + i);
+        const dataStr = diaAtual.toISOString().split('T')[0];
+        const diaFmt = String(diaAtual.getDate()).padStart(2, '0');
+        const diaSemanaCurto = diasSemana[diaAtual.getDay()].substring(0, 3);
+        const agendamentosDia = agendamentos[dataStr];
+        const bloqueio = diasBloqueados[dataStr];
+        
+        const totalManha = (bloqueio?.manha || bloqueio?.diaInteiro) ? VAGAS_POR_TURNO : (agendamentosDia?.manha?.length || 0);
+        const totalTarde = (bloqueio?.tarde || bloqueio?.diaInteiro) ? VAGAS_POR_TURNO : (agendamentosDia?.tarde?.length || 0);
+
+        statsSemanais.push({ dia: diaSemanaCurto, data: diaFmt, manha: totalManha, tarde: totalTarde });
+        maxAgendamentos = Math.max(maxAgendamentos, totalManha, totalTarde);
+    }
+    
+    const alturaMaxima = (maxAgendamentos === 0) ? VAGAS_POR_TURNO : maxAgendamentos;
+
+    container.innerHTML = `
+        <div class="weekly-summary-card">
+            <h4 class="weekly-summary-title">Resumo da Semana (${statsSemanais[0].data} a ${statsSemanais[4].data})</h4>
+            <div class="week-chart-container">
+                ${statsSemanais.map(dia => `
+                    <div class="week-day-column">
+                        <div class="chart-values">
+                            <span class="chart-value-manha">${dia.manha}</span>
+                            <span class="chart-value-tarde">${dia.tarde}</span>
+                        </div>
+                        <div class="chart-bars">
+                            <div class="chart-bar manha" style="height: ${(dia.manha / alturaMaxima) * 100}%" data-tooltip="${dia.manha} agend. manhã"></div>
+                            <div class="chart-bar tarde" style="height: ${(dia.tarde / alturaMaxima) * 100}%" data-tooltip="${dia.tarde} agend. tarde"></div>
+                        </div>
+                        <span class="week-date-label">${dia.data}</span>
+                        <span class="week-day-label">${dia.dia}</span>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+function abrirModalRelatorio(status = null, periodo = 'current_month') {
+    const modal = document.getElementById('reportModal');
+    const titleEl = document.getElementById('reportModalTitle');
+    const anualBtn = document.getElementById('btnVerRelatorioAnual');
+    if (!modal || !titleEl || !anualBtn) return;
+
+    reportCurrentStatus = status; 
+    let dados;
+    if (periodo === 'current_month') {
+        titleEl.textContent = `Relatório de ${status || 'Geral'} - ${meses[mesAtual]} ${anoAtual}`;
+        dados = coletarDadosRelatorio(mesAtual, anoAtual);
+        anualBtn.classList.remove('hidden'); 
+    } else { 
+        titleEl.textContent = `Relatório Anual - ${anoAtual}`;
+        dados = coletarDadosRelatorio(null, anoAtual);
+        anualBtn.classList.add('hidden'); 
+    }
+    reportUnfilteredResults = dados; 
+    let dadosFiltrados = dados;
+    if (status) dadosFiltrados = dados.filter(ag => ag.status === status);
+
+    renderizarTabelaRelatorio(dadosFiltrados);
+    popularFiltrosRelatorio(dados);
+    limparFiltroRelatorio(false); 
+    modal.style.display = 'flex';
+}
+
+function fecharModalRelatorio() {
+    const modal = document.getElementById('reportModal');
+    if (modal) modal.style.display = 'none';
+    reportUnfilteredResults = []; 
+    reportCurrentStatus = null;
+}
+
+function coletarDadosRelatorio(mes, ano) {
+    let resultados = [];
+    let prefixoBusca = `${ano}-`;
+    if (mes !== null) prefixoBusca += `${String(mes + 1).padStart(2, '0')}-`;
+
+    Object.keys(agendamentos).forEach(data => {
+        if (data.startsWith(prefixoBusca)) {
+            ['manha', 'tarde'].forEach(turno => {
+                (agendamentos[data][turno] || []).forEach(ag => {
+                    resultados.push({ ...ag, data, turno });
+                });
+            });
+        }
+    });
+    resultados.sort((a, b) => new Date(a.data) - new Date(b.data));
+    return resultados;
+}
+
+function renderizarTabelaRelatorio(dados) {
+    const container = document.getElementById('reportTableContainer');
+    const countEl = document.getElementById('reportTotalCount');
+    if (!container || !countEl) return;
+
+    countEl.textContent = `Total de ${dados.length} registros encontrados.`;
+    if (dados.length === 0) {
+        container.innerHTML = '<p style="text-align: center; padding: 1rem;">Nenhum registro encontrado para este filtro.</p>';
+        return;
+    }
+    let tabelaHTML = `
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th class="col-data">Data</th>
+                    <th class="col-nome">Paciente</th>
+                    <th class="col-numero">Nº</th>
+                    <th class="col-tr">Téc. Ref.</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${dados.map(ag => `
+                    <tr>
+                        <td>${new Date(ag.data + 'T12:00:00').toLocaleDateString('pt-BR')}</td>
+                        <td>${ag.nome}</td>
+                        <td>${ag.numero}</td>
+                        <td>${ag.tecRef || ''}</td>
+                        <td>${ag.status || 'Aguardando'}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+    container.innerHTML = tabelaHTML;
+}
+
+function popularFiltrosRelatorio(dados) {
+    const filtroTipo = document.getElementById('reportFilterType');
+    const filtroValor = document.getElementById('reportFilterValue');
+    if (!filtroTipo || !filtroValor) return;
+    const tecRefs = new Set();
+    const distritos = new Set();
+    dados.forEach(ag => {
+        if (ag.tecRef) tecRefs.add(ag.tecRef);
+        if (ag.distrito) distritos.add(ag.distrito);
+    });
+    filtroValor.dataset.tecRefs = JSON.stringify(Array.from(tecRefs).sort());
+    filtroValor.dataset.distritos = JSON.stringify(Array.from(distritos).sort());
+}
+
+function atualizarValoresFiltro() {
+    const filtroTipo = document.getElementById('reportFilterType');
+    const filtroValor = document.getElementById('reportFilterValue');
+    if (!filtroTipo || !filtroValor) return;
+    const tipoSelecionado = filtroTipo.value;
+    let valores = [];
+    if (tipoSelecionado === 'tecRef') valores = JSON.parse(filtroValor.dataset.tecRefs || '[]');
+    else if (tipoSelecionado === 'distrito') valores = JSON.parse(filtroValor.dataset.distritos || '[]');
+
+    filtroValor.innerHTML = '<option value="">Selecione o valor</option>';
+    valores.forEach(val => {
+        filtroValor.innerHTML += `<option value="${val}">${val}</option>`;
+    });
+    filtroValor.disabled = (tipoSelecionado === '');
+}
+
+function aplicarFiltroRelatorio() {
+    const filtroTipo = document.getElementById('reportFilterType');
+    const filtroValor = document.getElementById('reportFilterValue');
+    if (!filtroTipo || !filtroValor) return;
+    const tipo = filtroTipo.value;
+    const valor = filtroValor.value;
+    let dadosFiltrados = reportUnfilteredResults;
+    if (reportCurrentStatus) dadosFiltrados = dadosFiltrados.filter(ag => ag.status === reportCurrentStatus);
+    if (tipo && valor) dadosFiltrados = dadosFiltrados.filter(ag => ag[tipo] === valor);
+    renderizarTabelaRelatorio(dadosFiltrados);
+}
+
+function limparFiltroRelatorio(reRenderizar = true) {
+    const filtroTipo = document.getElementById('reportFilterType');
+    const filtroValor = document.getElementById('reportFilterValue');
+    if (!filtroTipo || !filtroValor) return;
+    filtroTipo.value = '';
+    filtroValor.innerHTML = '<option value="">Selecione o valor</option>';
+    filtroValor.disabled = true;
+    if (reRenderizar) {
+        let dadosFiltrados = reportUnfilteredResults;
+        if (reportCurrentStatus) dadosFiltrados = dadosFiltrados.filter(ag => ag.status === reportCurrentStatus);
+        renderizarTabelaRelatorio(dadosFiltrados);
+    }
+}
+
+function fazerBackup() {
+    const dataParaBackup = {
+        // [ARCOSAFE-FIX] Backup usa a chave agendamentos para compatibilidade interna, mas carrega da nova key
+        agendamentos,
+        pacientesGlobais,
+        diasBloqueados,
+        feriadosDesbloqueados
+    };
+    const dataString = JSON.stringify(dataParaBackup, null, 2);
+    const blob = new Blob([dataString], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const hoje = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `backup_agenda_${hoje}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    // [ARCOSAFE-FIX] Registra que o backup foi feito na memória (localStorage diário)
+    localStorage.setItem('ultimoBackupRealizado', new Date().toLocaleDateString('pt-BR'));
+    
+    // [ARCOSAFE-FIX] Registra que o ciclo de loop desta sessão foi cumprido
+    sessionStorage.setItem('backupRealizadoSessao', 'true');
+    
+    mostrarNotificacao('Backup realizado com sucesso!', 'success');
+}
+
+function restaurarBackup(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            if (data && typeof data.agendamentos === 'object' && Array.isArray(data.pacientesGlobais)) {
+                 abrirModalConfirmacao(
+                    'Tem certeza que deseja restaurar este backup? Todos os dados atuais serão substituídos permanentemente.',
+                    () => executarRestauracao(data)
+                );
+            } else {
+                mostrarNotificacao('Arquivo de backup inválido ou corrompido.', 'danger');
+            }
+        } catch (error) {
+            console.error('Erro ao ler o arquivo de backup:', error);
+            mostrarNotificacao('Falha ao ler o arquivo de backup. Verifique o formato.', 'danger');
+        } finally {
+            if (event.target) event.target.value = '';
+        }
+    };
+    reader.readAsText(file);
+}
+
+function executarRestauracao(data) {
+    agendamentos = data.agendamentos || {};
+    pacientesGlobais = data.pacientesGlobais || [];
+    diasBloqueados = data.diasBloqueados || {};
+    feriadosDesbloqueados = data.feriadosDesbloqueados || {};
+    salvarAgendamentos();
+    salvarPacientesNoLocalStorage();
+    salvarBloqueios();
+    salvarFeriadosDesbloqueados();
+    sessionStorage.setItem('restauracaoSucesso', 'true');
+    location.reload();
+}
+
+// ============================================
+// 5. INICIALIZAÇÃO DO DOM
+// ============================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Verifica se há mensagens de sucesso na sessão (após reload)
+    if (sessionStorage.getItem('limpezaSucesso')) {
+        mostrarNotificacao("Todos os dados foram apagados com sucesso.", 'success');
+        sessionStorage.removeItem('limpezaSucesso');
+    }
+    if (sessionStorage.getItem('restauracaoSucesso')) {
+        mostrarNotificacao("Dados restaurados com sucesso a partir do backup.", 'success');
+        sessionStorage.removeItem('restauracaoSucesso');
+    }
+    
+    // Inicia o processo de verificação de login
+    inicializarLogin();
+});
+
+
+// ============================================
+// 6. OVERRIDES PARA RECURSO DE HINT FLUTUANTE
+// ============================================
+// Sobrescrevemos estas funções aqui no final para garantir que o recurso 
+// funcione corretamente, já que a definição original delas está no início do arquivo.
+
+function selecionarDia(data, elemento) {
+    slotEmEdicao = null;
+    const diaSelecionadoAnterior = document.querySelector('.day.selected');
+    if(diaSelecionadoAnterior) diaSelecionadoAnterior.classList.remove('selected');
+    if(elemento) elemento.classList.add('selected');
+    dataSelecionada = data;
+    exibirAgendamentos(data);
+    
+    atualizarBolinhasDisponibilidade(data);
+    atualizarResumoSemanal(new Date(data + 'T12:00:00'));
+
+    // --- Lógica do Hint Lateral ---
+    const hint = document.getElementById('floatingDateHint');
+    if (hint) {
+        const dataObj = new Date(data + 'T12:00:00');
+        const opcoes = { weekday: 'long', day: 'numeric', month: 'long' };
+        let dataTexto = dataObj.toLocaleDateString('pt-BR', opcoes);
+        // Capitaliza a primeira letra
+        dataTexto = dataTexto.charAt(0).toUpperCase() + dataTexto.slice(1);
+        
+        hint.textContent = dataTexto;
+        hint.classList.add('visible');
+    }
+}
+
+function goToToday() {
+    const hoje = new Date();
+    mesAtual = hoje.getMonth();
+    anoAtual = hoje.getFullYear();
+    const dataFormatada = `${anoAtual}-${String(mesAtual + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
+    
+    atualizarCalendario();
+    atualizarResumoMensal();
+    atualizarResumoSemanal(hoje);
+
+    const diaEl = document.querySelector(`.day[data-date="${dataFormatada}"]`);
+    if (diaEl && !diaEl.classList.contains('weekend')) {
+        selecionarDia(dataFormatada, diaEl);
+    } else {
+        dataSelecionada = null;
+        const container = document.getElementById('appointmentsContainer');
+        if (container) container.innerHTML = criarEmptyState();
+        esconderBolinhasDisponibilidade();
+        
+        // Esconde o hint se não for dia útil/selecionável
+        const hint = document.getElementById('floatingDateHint');
+        if(hint) hint.classList.remove('visible');
+    }
+}
