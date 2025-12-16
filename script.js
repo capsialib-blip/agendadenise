@@ -724,8 +724,26 @@ function exibirAgendamentos(data) {
 
     const agendamentosDia = agendamentos[data] || { manha: [], tarde: [] };
 
-    // [ARCOSAFE-FIX] Bloco de statsDiarios removido visualmente conforme solicitação
-    // A lógica de cálculo foi mantida para integridade, mas o HTML não é gerado.
+    let statsDiarios = { compareceu: 0, faltou: 0, justificou: 0 };
+    (agendamentosDia.manha || []).forEach(ag => {
+        if (ag.status === 'Compareceu') statsDiarios.compareceu++;
+        else if (ag.status === 'Faltou') statsDiarios.faltou++;
+        else if (ag.status === 'Justificou') statsDiarios.justificou++;
+    });
+     (agendamentosDia.tarde || []).forEach(ag => {
+        if (ag.status === 'Compareceu') statsDiarios.compareceu++;
+        else if (ag.status === 'Faltou') statsDiarios.faltou++;
+        else if (ag.status === 'Justificou') statsDiarios.justificou++;
+    });
+
+    let statsHTML = '';
+    if (statsDiarios.compareceu > 0 || statsDiarios.faltou > 0 || statsDiarios.justificou > 0) {
+        statsHTML = `
+            <p><strong>Compareceram:</strong> ${statsDiarios.compareceu}</p>
+            <p><strong>Faltaram:</strong> ${statsDiarios.faltou}</p>
+            <p><strong>Justificaram:</strong> ${statsDiarios.justificou}</p>
+        `;
+    }
 
     container.innerHTML = `
         <div class="appointment-header">
@@ -748,6 +766,12 @@ function exibirAgendamentos(data) {
         </div>
         <div class="glass-card" style="border-top-left-radius: 0; border-top-right-radius: 0; border-top: none;">
             <div class="card-content">
+                <div class="stats">
+                    <h4>Resumo de Ocupação:</h4>
+                    <p>Manhã: ${agendamentosDia.manha?.length || 0} de ${VAGAS_POR_TURNO} preenchidas</p>
+                    <p>Tarde: ${agendamentosDia.tarde?.length || 0} de ${VAGAS_POR_TURNO} preenchidas</p>
+                    ${statsHTML}
+                </div>
                 <div class="tabs">
                     <button class="tab-btn manha ${turnoAtivo === 'manha' ? 'active' : ''}" onclick="mostrarTurno('manha')">Manhã</button>
                     <button class="tab-btn tarde ${turnoAtivo === 'tarde' ? 'active' : ''}" onclick="mostrarTurno('tarde')">Tarde</button>
