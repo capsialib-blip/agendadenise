@@ -2373,9 +2373,21 @@ function executarLimpezaTotal() {
 
     if (passwordInput.value === 'apocalipse') {
         
-        // --- [CORREÇÃO ARCOSAFE] APAGAR DA NUVEM (FIREBASE) ---
-        // Este bloco é essencial para impedir que os dados voltem.
+        // --- [CORREÇÃO ARCOSAFE] DESLIGAR LISTENERS E APAGAR ---
         if (typeof database !== 'undefined' && database) {
+            
+            // 1. DESLIGAR LISTENERS (Corta a conexão antes de apagar)
+            // Isso impede que o app reaja a mudanças enquanto deletamos
+            try {
+                database.ref('agendamentos').off();
+                database.ref('pacientes').off();
+                database.ref('dias_bloqueados').off();
+                database.ref('feriados_desbloqueados').off();
+            } catch (e) {
+                console.warn("Listeners já estavam desligados ou erro ao desligar:", e);
+            }
+
+            // 2. ORDEM DE EXCLUSÃO NA NUVEM
             database.ref('agendamentos').remove();
             database.ref('pacientes').remove();
             database.ref('dias_bloqueados').remove();
@@ -2383,7 +2395,7 @@ function executarLimpezaTotal() {
         }
         // -----------------------------------------------------
 
-        // Apaga a memória local (Navegador)
+        // 3. APAGAR LOCALMENTE
         localStorage.removeItem('agenda_completa_final');
         localStorage.removeItem('pacientes_dados');
         localStorage.removeItem('dias_bloqueados');
@@ -2915,6 +2927,7 @@ function goToToday() {
         if(hint) hint.classList.remove('visible');
     }
 }
+
 
 
 
