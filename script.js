@@ -2374,7 +2374,7 @@ function executarLimpezaTotal() {
     if (passwordInput.value === 'apocalipse') {
         
         // --- [CORREÇÃO ARCOSAFE] APAGAR DA NUVEM (FIREBASE) ---
-        // Sem isso, os dados voltam ao recarregar a página.
+        // Este bloco é essencial para impedir que os dados voltem.
         if (typeof database !== 'undefined' && database) {
             database.ref('agendamentos').remove();
             database.ref('pacientes').remove();
@@ -2403,7 +2403,6 @@ function executarLimpezaTotal() {
         passwordInput.focus();
     }
 }
-
 function configurarHorarioBackup() {
     const saveBtn = document.getElementById('saveBackupTimeBtn');
     if (saveBtn) saveBtn.addEventListener('click', salvarHorarioBackup);
@@ -2916,6 +2915,7 @@ function goToToday() {
         if(hint) hint.classList.remove('visible');
     }
 }
+
 
 
 
