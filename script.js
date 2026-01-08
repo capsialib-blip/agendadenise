@@ -58,6 +58,7 @@ const PROFISSIONAIS_LISTA = [
     { nome: "TALITA LUANA DOS SANTOS SILVA", funcao: "TERAPEUTA OCUPACIONAL" },
     { nome: "VINICIUS CORREIA CAVALCANTI DANTAS", funcao: "PSICOLOGO CLINICO" },
     { nome: "VINICIUS PEDREIRA ALMEIDA SANTOS", funcao: "MEDICO PSIQUIATRA" }
+    { nome: "DJENTILÂME FAMINÉ SANTA RITA", funcao: "PSICOLOGO" }
 ];
 
 let mesAtual = new Date().getMonth();
@@ -2902,3 +2903,4 @@ function goToToday() {
         if(hint) hint.classList.remove('visible');
     }
 }
+
