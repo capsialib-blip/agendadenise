@@ -21,16 +21,6 @@ try {
     console.error("Erro ao inicializar Firebase. Verifique se os scripts do SDK foram adicionados ao HTML.", e);
 }
 
-// [ARCOSAFE-FIX] LISTA DE USUÁRIOS E SENHAS (HARDCODED)
-const CREDENCIAIS = {
-    'admin': 'mastercaps',      // Acesso mestre
-    'recepcao': 'agenda2025',   // Acesso padrão
-    'coordenacao': 'gestao',    // Acesso gestão
-    'medico': 'caps'            // Acesso simples
-};
-// Senha de Reset
-const SENHA_RESET_GLOBAL = "apocalipse";
-
 // ============================================
 // 1. VARIÁVEIS GLOBAIS E CONSTANTES
 // ============================================
@@ -42,7 +32,7 @@ const meses = [
 ];
 const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
 
-// Lista de profissionais para assinatura
+// Lista de profissionais para assinatura (Autocomplete da Declaração)
 const PROFISSIONAIS_LISTA = [
     { nome: "ALESSANDRA OLIVEIRA MONTALVAO DA CRUZ", funcao: "ASSISTENTE ADMINISTRATIVO" },
     { nome: "ANDRESSA RIBEIRO LEAL", funcao: "ENFERMEIRO" },
@@ -127,14 +117,11 @@ function tentarLogin() {
     const senhaInput = document.getElementById('loginSenha');
     const errorMessage = document.getElementById('loginErrorMessage');
 
-    const usuario = usuarioInput ? usuarioInput.value.trim().toLowerCase() : '';
-    const senha = senhaInput ? senhaInput.value.trim() : '';
+    const usuario = usuarioInput ? usuarioInput.value : '';
+    const senha = senhaInput ? senhaInput.value : '';
 
-    // Validação direta (Monolítico)
-    if (CREDENCIAIS[usuario] && CREDENCIAIS[usuario] === senha) {
+    if (usuario === '0000' && senha === '0000') {
         sessionStorage.setItem('usuarioLogado', 'true');
-        sessionStorage.setItem('nomeUsuario', usuario);
-        
         if (errorMessage) errorMessage.classList.add('hidden');
         document.body.classList.add('logged-in');
         inicializarApp();
@@ -142,12 +129,6 @@ function tentarLogin() {
         if (errorMessage) {
             errorMessage.textContent = 'Usuário ou senha incorretos.';
             errorMessage.classList.remove('hidden');
-            
-            const loginBox = document.querySelector('.login-box');
-            if(loginBox) {
-                loginBox.style.animation = 'none';
-                setTimeout(() => loginBox.style.animation = 'shake 0.5s', 10);
-            }
         }
     }
 }
@@ -223,7 +204,9 @@ function inicializarApp() {
     }
 
     configurarHorarioBackup();
-    setInterval(verificarNecessidadeBackup, 30000);
+    
+    // [ARCOSAFE-FIX] Intervalo de Alta Precisão: 5 segundos
+    setInterval(verificarNecessidadeBackup, 5000);
 
     configurarEventListenersApp(); 
     atualizarCalendario();
@@ -233,6 +216,8 @@ function inicializarApp() {
     configurarBuscaGlobalAutocomplete();
     configurarVagasEventListeners();
     configurarAutocompleteAssinatura();
+    
+    // Verificação inicial imediata
     verificarNecessidadeBackup(); 
 }
 
@@ -656,51 +641,65 @@ function atualizarCalendario() {
     }
 }
 
-function selecionarDia(data, elemento) {
-    slotEmEdicao = null;
-    const diaSelecionadoAnterior = document.querySelector('.day.selected');
-    if(diaSelecionadoAnterior) diaSelecionadoAnterior.classList.remove('selected');
-    if(elemento) elemento.classList.add('selected');
-    dataSelecionada = data;
-    exibirAgendamentos(data);
-    
-    atualizarBolinhasDisponibilidade(data);
-    atualizarResumoSemanal(new Date(data + 'T12:00:00'));
+// [ARCOSAFE-LOGIC] Função Expandida para Calcular Métricas Mensais Completas
+function calcularResumoMensal(dataReferencia) {
+    const ano = new Date(dataReferencia).getFullYear();
+    const mes = new Date(dataReferencia).getMonth();
+    const totalVagasPorDia = 16;
+    const daysInMonth = new Date(ano, mes + 1, 0).getDate();
+    let businessDays = 0;
 
-    const hint = document.getElementById('floatingDateHint');
-    if (hint) {
-        const dataObj = new Date(data + 'T12:00:00');
-        const opcoes = { weekday: 'long', day: 'numeric', month: 'long' };
-        let dataTexto = dataObj.toLocaleDateString('pt-BR', opcoes);
-        dataTexto = dataTexto.charAt(0).toUpperCase() + dataTexto.slice(1);
-        
-        hint.textContent = dataTexto;
-        hint.classList.add('visible');
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dateCheck = new Date(ano, mes, day);
+        const dayOfWeek = dateCheck.getDay();
+        if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Exclui Sáb/Dom
+            businessDays++;
+        }
     }
-}
-
-function goToToday() {
-    const hoje = new Date();
-    mesAtual = hoje.getMonth();
-    anoAtual = hoje.getFullYear();
-    const dataFormatada = `${anoAtual}-${String(mesAtual + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
     
-    atualizarCalendario();
-    atualizarResumoMensal();
-    atualizarResumoSemanal(hoje);
+    const capacityTotal = businessDays * totalVagasPorDia;
+    let occupiedCount = 0;
+    let abstencaoCount = 0;
+    let atendimentoCount = 0;
+    const targetPrefix = `${ano}-${String(mes + 1).padStart(2, '0')}`;
 
-    const diaEl = document.querySelector(`.day[data-date="${dataFormatada}"]`);
-    if (diaEl && !diaEl.classList.contains('weekend')) {
-        selecionarDia(dataFormatada, diaEl);
-    } else {
-        dataSelecionada = null;
-        const container = document.getElementById('appointmentsContainer');
-        if (container) container.innerHTML = criarEmptyState();
-        esconderBolinhasDisponibilidade();
-        
-        const hint = document.getElementById('floatingDateHint');
-        if(hint) hint.classList.remove('visible');
+    if (agendamentos) {
+        Object.keys(agendamentos).forEach(dateKey => {
+            if (dateKey.startsWith(targetPrefix)) {
+                ['manha', 'tarde'].forEach(turno => {
+                    if (agendamentos[dateKey][turno] && Array.isArray(agendamentos[dateKey][turno])) {
+                        agendamentos[dateKey][turno].forEach(ag => {
+                            if (ag && ag.nome) { // Se existe agendamento válido
+                                occupiedCount++;
+                                // Lógica de Abstenção: Falta + Justificou (conforme regra de negócio)
+                                if (ag.status === 'Faltou' || ag.status === 'Justificou') {
+                                    abstencaoCount++;
+                                }
+                                // Lógica de Atendimento: Compareceu
+                                if (ag.status === 'Compareceu') {
+                                    atendimentoCount++;
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        });
     }
+
+    const percentage = capacityTotal > 0 ? ((occupiedCount / capacityTotal) * 100).toFixed(1) : 0;
+    const abstencaoPercent = occupiedCount > 0 ? ((abstencaoCount / occupiedCount) * 100).toFixed(1) : 0;
+    const atendimentoPercent = occupiedCount > 0 ? ((atendimentoCount / occupiedCount) * 100).toFixed(1) : 0;
+
+    return { 
+        percentage, 
+        occupiedCount, 
+        capacityTotal,
+        abstencaoCount,
+        abstencaoPercent,
+        atendimentoCount,
+        atendimentoPercent
+    };
 }
 
 function exibirAgendamentos(data) {
@@ -710,6 +709,9 @@ function exibirAgendamentos(data) {
     const dataObj = new Date(data + 'T12:00:00');
     let dataFmt = dataObj.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
     dataFmt = dataFmt.charAt(0).toUpperCase() + dataFmt.slice(1);
+
+    // [ARCOSAFE-LOGIC] Cálculo de Métricas (Ao Renderizar)
+    const metrics = calcularResumoMensal(data);
 
     const bloqueio = diasBloqueados[data];
 
@@ -721,29 +723,9 @@ function exibirAgendamentos(data) {
     }
 
     const agendamentosDia = agendamentos[data] || { manha: [], tarde: [] };
+    const totalHoje = (agendamentosDia.manha?.length || 0) + (agendamentosDia.tarde?.length || 0);
 
-    let statsDiarios = { compareceu: 0, faltou: 0, justificou: 0 };
-    (agendamentosDia.manha || []).forEach(ag => {
-        if (ag.status === 'Compareceu') statsDiarios.compareceu++;
-        else if (ag.status === 'Faltou') statsDiarios.faltou++;
-        else if (ag.status === 'Justificou') statsDiarios.justificou++;
-    });
-     (agendamentosDia.tarde || []).forEach(ag => {
-        if (ag.status === 'Compareceu') statsDiarios.compareceu++;
-        else if (ag.status === 'Faltou') statsDiarios.faltou++;
-        else if (ag.status === 'Justificou') statsDiarios.justificou++;
-    });
-
-    let statsHTML = '';
-    if (statsDiarios.compareceu > 0 || statsDiarios.faltou > 0 || statsDiarios.justificou > 0) {
-        statsHTML = `
-            <p><strong>Compareceram:</strong> ${statsDiarios.compareceu}</p>
-            <p><strong>Faltaram:</strong> ${statsDiarios.faltou}</p>
-            <p><strong>Justificaram:</strong> ${statsDiarios.justificou}</p>
-        `;
-    }
-
-    // [ARCOSAFE-FIX] Bloco de estatísticas (Resumo de Ocupação) RESTAURADO
+    // [ARCOSAFE-UX] Construção do Dashboard Grid Expandido (4 Colunas)
     container.innerHTML = `
         <div class="appointment-header">
             <h2 class="appointment-title">${dataFmt}</h2>
@@ -765,15 +747,55 @@ function exibirAgendamentos(data) {
         </div>
         <div class="glass-card" style="border-top-left-radius: 0; border-top-right-radius: 0; border-top: none;">
             <div class="card-content">
-                <div class="stats">
-                    <h4>Resumo de Ocupação:</h4>
-                    <p>Manhã: ${agendamentosDia.manha?.length || 0} de ${VAGAS_POR_TURNO} preenchidas</p>
-                    <p>Tarde: ${agendamentosDia.tarde?.length || 0} de ${VAGAS_POR_TURNO} preenchidas</p>
-                    ${statsHTML}
+                
+                <div class="dashboard-stats-grid">
+                    <div class="stats-card-mini">
+                        <h4>
+                            <span>Hoje</span>
+                            <i class="bi bi-calendar-event"></i>
+                        </h4>
+                        <div class="stats-value-big val-neutral">${totalHoje}</div>
+                        <div class="stats-meta">Pacientes Agendados</div>
+                    </div>
+                    
+                    <div class="stats-card-mini">
+                        <h4>
+                            <span>Ocupação Mensal</span>
+                            <i class="bi bi-graph-up"></i>
+                        </h4>
+                        <div class="stats-value-big val-primary">${metrics.percentage}%</div>
+                        <div class="stats-meta">${metrics.occupiedCount} / ${metrics.capacityTotal} Vagas</div>
+                    </div>
+
+                    <div class="stats-card-mini">
+                        <h4>
+                            <span>Abstenções (Mês)</span>
+                            <i class="bi bi-x-circle" style="color: var(--color-danger);"></i>
+                        </h4>
+                        <div class="stats-value-big val-danger">${metrics.abstencaoCount}</div>
+                        <div class="stats-meta">${metrics.abstencaoPercent}% dos Agendados</div>
+                    </div>
+
+                    <div class="stats-card-mini">
+                        <h4>
+                            <span>Atendimentos (Mês)</span>
+                            <i class="bi bi-check-circle" style="color: var(--color-success);"></i>
+                        </h4>
+                        <div class="stats-value-big val-success">${metrics.atendimentoCount}</div>
+                        <div class="stats-meta">${metrics.atendimentoPercent}% dos Agendados</div>
+                    </div>
                 </div>
+                
                 <div class="tabs">
                     <button class="tab-btn manha ${turnoAtivo === 'manha' ? 'active' : ''}" onclick="mostrarTurno('manha')">Manhã</button>
                     <button class="tab-btn tarde ${turnoAtivo === 'tarde' ? 'active' : ''}" onclick="mostrarTurno('tarde')">Tarde</button>
+                </div>
+
+                <div id="turnoIndicator" class="turno-indicator ${turnoAtivo}">
+                    ${turnoAtivo === 'manha' 
+                        ? '<i class="bi bi-brightness-high-fill"></i> MANHÃ (08:00 - 12:00)' 
+                        : '<i class="bi bi-moon-stars-fill"></i> TARDE (13:00 - 17:00)'
+                    }
                 </div>
                 <div id="turno-manha" class="turno-content ${turnoAtivo === 'manha' ? 'active' : ''}">
                     ${bloqueio?.manha ? criarBlockedTurnoState('Manhã', bloqueio.motivo, bloqueio.isHoliday) : gerarVagasTurno(agendamentosDia.manha, 'manha', data)}
@@ -918,7 +940,7 @@ function gerarVagasTurno(agendamentosTurno, turno, data) {
                          <div class="form-group-checkbox-single">
                              <input type="checkbox" name="primeiraConsulta" id="primeiraConsulta_${uniqueIdPrefix}" ${dadosPreenchimento.primeiraConsulta ? 'checked' : ''}>
                              <label for="primeiraConsulta_${uniqueIdPrefix}">Primeira Consulta</label>
-                          </div>
+                         </div>
                         <div class="form-row">
                             <div class="form-group numero autocomplete-container">
                                 <label>Número:</label>
@@ -1152,7 +1174,7 @@ function buscarAgendamentosGlobais() {
             <div class="search-results-header">
                 <h4>${resultados.length} agendamento(s) encontrado(s)</h4>
                 <button class="btn-icon btn-clear-search" onclick="limparBuscaGlobal()" aria-label="Limpar busca" title="Limpar Busca">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/></svg>
+                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L7.293 8z"/></svg>
                 </button>
             </div>
             ${resultados.map(res => {
@@ -1179,7 +1201,7 @@ function buscarAgendamentosGlobais() {
             <div class="search-results-header">
                 <h4>Nenhum agendamento encontrado</h4>
                 <button class="btn-icon btn-clear-search" onclick="limparBuscaGlobal()" aria-label="Limpar busca" title="Limpar Busca">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/></svg>
+                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L7.293 8z"/></svg>
                 </button>
             </div>
             <p class="search-feedback">Nenhum agendamento encontrado para este paciente.</p>
@@ -1655,7 +1677,7 @@ function agendarPaciente(event, data, turno, vaga) {
         const duplicado = agendamentosDia.find(ag => {
             const encontrado = ag.numero === numeroPaciente;
             if (slotEmEdicao && slotEmEdicao.data === data && slotEmEdicao.turno === turno && slotEmEdicao.vaga === vaga) {
-                    return false; 
+                   return false; 
             }
             return encontrado; 
         });
@@ -1786,7 +1808,7 @@ function verificarDuplicidadeAoDigitar(inputElement, data, turno, vaga) {
 
             const encontrado = valorAgendamento === valorVerificacao;
             if (slotEmEdicao && slotEmEdicao.data === data && slotEmEdicao.turno === turno && slotEmEdicao.vaga === vaga) {
-                    return false;
+                   return false;
             }
             return encontrado; 
         });
@@ -1849,14 +1871,33 @@ function criarBlockedTurnoState(turno, motivo, isHoliday) {
 
 function mostrarTurno(turno) {
     turnoAtivo = turno;
+    
+    // 1. Atualiza as Abas (Tabs)
     const activeTab = document.querySelector('.tab-btn.active');
     if (activeTab) activeTab.classList.remove('active');
     const newTab = document.querySelector(`.tab-btn.${turno}`);
     if (newTab) newTab.classList.add('active');
+
+    // 2. Atualiza o Conteúdo dos Cards
     const activeContent = document.querySelector('.turno-content.active');
     if (activeContent) activeContent.classList.remove('active');
     const newContent = document.getElementById(`turno-${turno}`);
     if (newContent) newContent.classList.add('active');
+
+    // --- NOVO: Atualiza o Indicador Visual (Hint) ---
+    const indicator = document.getElementById('turnoIndicator');
+    if (indicator) {
+        // Remove classes antigas e adiciona a nova
+        indicator.classList.remove('manha', 'tarde');
+        indicator.classList.add(turno);
+        
+        // Atualiza Texto e Ícone
+        if (turno === 'manha') {
+            indicator.innerHTML = '<i class="bi bi-brightness-high-fill"></i> MANHÃ (08:00 - 12:00)';
+        } else {
+            indicator.innerHTML = '<i class="bi bi-moon-stars-fill"></i> TARDE (13:00 - 17:00)';
+        }
+    }
 }
 
 function abrirModalConfirmacao(mensagem, acao) {
@@ -2375,31 +2416,33 @@ function salvarHorarioBackup() {
         const backupTimeDisplay = document.getElementById('backupTimeDisplay');
         if (backupTimeDisplay) backupTimeDisplay.textContent = novoHorario;
         mostrarNotificacao(`Horário de backup salvo para ${novoHorario}. Próximo backup agendado!`, 'success');
+        
+        // [ARCOSAFE-FIX] Verifica necessidade imediatamente
+        verificarNecessidadeBackup();
     }
 }
 
 function verificarNecessidadeBackup() {
-    if (modalBackupAberto) return; 
-    
-    // [ARCOSAFE-FIX] Verifica se o backup já foi feito NESTA sessão de configuração.
-    // Ignora dias da semana e datas anteriores.
-    if (sessionStorage.getItem('backupRealizadoSessao') === 'true') return;
-
-    // [ARCOSAFE-FIX] Verifica persistência (se já fez hoje, mesmo fechando o navegador)
-    const ultimoBackup = localStorage.getItem('ultimoBackupRealizado');
-    const hoje = new Date().toLocaleDateString('pt-BR');
-    if (ultimoBackup === hoje) return;
+    if (modalBackupAberto) return;
 
     const horarioSalvo = localStorage.getItem('backupTime') || '16:00';
-    const [hora, minuto] = horarioSalvo.split(':').map(Number);
+    const [horaAlvo, minutoAlvo] = horarioSalvo.split(':').map(Number);
     const agora = new Date();
-    
-    // [ARCOSAFE-DEBUG] Visualizar o que o sistema está pensando
-    console.log(`[Backup Check] Agora: ${agora.getHours()}:${agora.getMinutes()} | Programado: ${hora}:${minuto}`);
+    const horaAtual = agora.getHours();
+    const minutoAtual = agora.getMinutes();
 
-    if (agora.getHours() > hora || (agora.getHours() === hora && agora.getMinutes() >= minuto)) {
-        abrirModalBackup();
-    }
+    // Verifica se o horário alvo foi atingido
+    const horarioAtingido = horaAtual > horaAlvo || (horaAtual === horaAlvo && minutoAtual >= minutoAlvo);
+    if (!horarioAtingido) return;
+
+    // Chave única: data + horário configurado
+    const hoje = agora.toLocaleDateString('pt-BR');
+    const chaveBackup = `${hoje}_${horarioSalvo}`;
+    const ultimoBackupChave = localStorage.getItem('ultimoBackupChave');
+
+    // Só dispara se ainda não fez backup para ESTE horário específico hoje
+    if (ultimoBackupChave === chaveBackup) return;
+    abrirModalBackup();
 }
 
 function abrirModalBackup() {
@@ -2411,10 +2454,15 @@ function abrirModalBackup() {
 }
 
 function fecharModalBackup() {
-    // [ARCOSAFE-FIX] Opção 3: Trava. Só fecha se backup estiver confirmado na SESSÃO.
-    if (sessionStorage.getItem('backupRealizadoSessao') !== 'true') {
-        // Backup ainda não realizado nesta sessão. Recusa o fechamento.
-        return;
+    // [ARCOSAFE-FIX] Validação por chave composta
+    const horarioSalvo = localStorage.getItem('backupTime') || '16:00';
+    const hoje = new Date().toLocaleDateString('pt-BR');
+    const chaveBackup = `${hoje}_${horarioSalvo}`;
+    const ultimoBackupChave = localStorage.getItem('ultimoBackupChave');
+
+    // Se a chave não estiver gravada (backup não feito), não deixa fechar (TRAVA RÍGIDA)
+    if (ultimoBackupChave !== chaveBackup) {
+         return; 
     }
 
     const modal = document.getElementById('backupModal');
@@ -2729,11 +2777,14 @@ function fazerBackup() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     
-    // [ARCOSAFE-FIX] Registra que o backup foi feito na memória (localStorage diário)
-    localStorage.setItem('ultimoBackupRealizado', new Date().toLocaleDateString('pt-BR'));
+    // [ARCOSAFE-FIX] Grava a chave composta (DATA_HORARIO) no localStorage
+    const horarioSalvo = localStorage.getItem('backupTime') || '16:00';
+    const dataHoje = new Date().toLocaleDateString('pt-BR');
+    const chaveBackup = `${dataHoje}_${horarioSalvo}`;
+    localStorage.setItem('ultimoBackupChave', chaveBackup);
     
-    // [ARCOSAFE-FIX] Registra que o ciclo de loop desta sessão foi cumprido
-    sessionStorage.setItem('backupRealizadoSessao', 'true');
+    // Fecha o modal se estiver aberto
+    fecharModalBackup();
     
     mostrarNotificacao('Backup realizado com sucesso!', 'success');
 }
