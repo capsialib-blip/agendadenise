@@ -32,13 +32,15 @@ const meses = [
 ];
 const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
 
+/* script.js */
+
 // Lista de profissionais para assinatura (Autocomplete da Declaração)
 const PROFISSIONAIS_LISTA = [
     { nome: "ALESSANDRA OLIVEIRA MONTALVAO DA CRUZ", funcao: "ASSISTENTE ADMINISTRATIVO" },
     { nome: "ANDRESSA RIBEIRO LEAL", funcao: "ENFERMEIRO" },
     { nome: "CAROLINE OLIVEIRA LEDO", funcao: "ASSISTENTE SOCIAL" },
     { nome: "DENISE CORREA DOS SANTOS", funcao: "MEDICO" },
-    { nome: "DJENTILAME FAMINE SANTOS SANTA RITA", funcao: "PSICOLOGO" },
+    { nome: "DJENTILÂME FAMINÉ SANTA RITA", funcao: "PSICOLOGO CLINICO" },
     { nome: "ELAINE CRISTINA DA SILVA DOS SANTOS", funcao: "GERENTE DE SERVICOS DE SAUDE" },
     { nome: "ERICK FROES ALMEIDA", funcao: "COORDENADOR TÉCNICO" },
     { nome: "GABRIELA BARRETO SANTANA", funcao: "ARTESÃO" },
@@ -58,7 +60,6 @@ const PROFISSIONAIS_LISTA = [
     { nome: "TALITA LUANA DOS SANTOS SILVA", funcao: "TERAPEUTA OCUPACIONAL" },
     { nome: "VINICIUS CORREIA CAVALCANTI DANTAS", funcao: "PSICOLOGO CLINICO" },
     { nome: "VINICIUS PEDREIRA ALMEIDA SANTOS", funcao: "MEDICO PSIQUIATRA" }
-    { nome: "DJENTILÂME FAMINÉ SANTA RITA", funcao: "PSICOLOGO" }
 ];
 
 let mesAtual = new Date().getMonth();
@@ -2903,4 +2904,5 @@ function goToToday() {
         if(hint) hint.classList.remove('visible');
     }
 }
+
 
