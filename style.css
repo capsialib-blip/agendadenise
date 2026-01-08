@@ -22,7 +22,8 @@
     --color-warning: #F9A825;         /* Yellow 800 */
 
     /* Cores Neutras e de Fundo */
-    --color-bg-main: #FAFAFA;         /* Grey 50 - Quase branco para leveza */
+    /* [ARCOSAFE-UX] Atualizado para #f7f9fc conforme solicitado */
+    --color-bg-main: #f7f9fc;         
     --color-bg-card: #ffffff;
     --color-border: #B0BEC5;          /* Blue Grey 200 */
     --color-bg-neutral: #F5F5F5;      /* Grey 100 */
@@ -294,6 +295,10 @@ main { max-width: 1600px; margin: 0 auto; padding: 1.5rem; }
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
     overflow: hidden;
+    /* [ARCOSAFE-UX] Garante que o card ocupe 100% da altura do grid */
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 .management-section { margin-bottom: 1.5rem; }
 .card-header {
@@ -310,8 +315,30 @@ main { max-width: 1600px; margin: 0 auto; padding: 1.5rem; }
 }
 #vagasSearchSection .header-icon { background-color: var(--color-danger); } /* Ícone específico */
 .card-title { font-size: 1.125rem; font-weight: 500; color: var(--text-primary); }
-.card-content { padding: 1.5rem; }
+.card-content { padding: 1.5rem; flex-grow: 1; }
 .main-layout { display: grid; grid-template-columns: 320px 1fr; gap: 1.5rem; }
+
+/* [ARCOSAFE-UX] GRID SUPERIOR: Gerenciamento + Backup (Lado a Lado) */
+.top-row-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 50% / 50% */
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    align-items: stretch; /* Garante que os cards tenham a mesma altura */
+}
+
+/* Remove margem inferior de itens dentro do grid para controle pelo gap */
+.top-row-grid > .management-section {
+    margin-bottom: 0;
+}
+
+/* Responsividade do Grid Superior */
+@media (max-width: 1024px) {
+    .top-row-grid {
+        grid-template-columns: 1fr; /* Empilha verticalmente em telas menores */
+    }
+}
+
 
 /* --- LAYOUT DO CALENDÁRIO --- */
 .calendar-wrapper { padding: 1rem; }
@@ -463,6 +490,66 @@ main { max-width: 1600px; margin: 0 auto; padding: 1.5rem; }
 /* [ARCOSAFE-UX] Correção para Paleta 2 */
 .vaga-bolinha.ocupada.tarde { background-color: var(--color-afternoon); border-color: var(--color-afternoon); }
 
+/* --- [NOVO] DASHBOARD GRID (ESTATÍSTICAS) REFORMULADO --- */
+/* Sistema de 4 colunas em linha para o dashboard expandido */
+.dashboard-stats-grid {
+    display: grid;
+    /* Adaptação responsiva: Mínimo 220px por card, preenchendo o espaço */
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    align-items: stretch;
+}
+
+/* Estilo unificado para os cards de estatística */
+.stats-card-mini {
+    background-color: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    transition: var(--transition);
+}
+.stats-card-mini:hover {
+    box-shadow: var(--shadow-sm);
+    border-color: var(--color-primary-light);
+}
+
+/* Títulos dos cards */
+.stats-card-mini h4 {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Valores numéricos grandes */
+.stats-value-big {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin: 0.25rem 0;
+}
+
+/* Cores semânticas para os valores */
+.val-primary { color: var(--color-primary); }
+.val-success { color: var(--color-success); }
+.val-danger { color: var(--color-danger); }
+.val-neutral { color: var(--text-primary); }
+
+/* Metadados/Subtextos */
+.stats-meta {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: auto; /* Empurra para o rodapé do card */
+}
+
 /* --- SEÇÃO DE AGENDAMENTOS (DIREITA) --- */
 .empty-state { text-align: center; padding: 4rem 2rem; opacity: 0.7; }
 .empty-icon { color: var(--color-border); margin-bottom: 1.5rem; }
@@ -570,6 +657,8 @@ main { max-width: 1600px; margin: 0 auto; padding: 1.5rem; }
     background-color: white; border: 1px solid var(--color-border);
     border-radius: var(--radius-md); transition: var(--transition);
     display: flex; flex-direction: column;
+/* --- ADICIONE ESTA LINHA --- */
+    overflow: hidden; /* Garante que o cabeçalho respeite o arredondamento */
 }
 .vaga-card:hover { box-shadow: var(--shadow-sm); }
 .vaga-card.editing {
@@ -934,9 +1023,9 @@ textarea.form-input {
     margin-top: 1.5rem;
     padding-top: 1.5rem;
     border-top: 1px solid var(--color-border);
-    border-bottom: 1px solid var(--color-border);
-    padding-bottom: 1.5rem;
-    margin-bottom: 1.5rem;
+    /* [ARCOSAFE-UX] Removido border-bottom e margin-bottom para terminar "um pouco abaixo" */
+    padding-bottom: 0.5rem; /* Reduzido padding inferior */
+    margin-bottom: 0; /* Removida margem inferior */
 }
 .search-section label {
     display: block;
@@ -1759,6 +1848,11 @@ p.search-feedback {
 
 /* --- RESPONSIVIDADE --- */
 @media (max-width: 1024px) {
+    /* [ARCOSAFE-UX] Em telas menores, o grid do topo volta a empilhar */
+    .top-row-grid {
+        grid-template-columns: 1fr;
+    }
+
     .main-layout { grid-template-columns: 1fr; }
     .calendar-wrapper { padding: 0.5rem; }
     .vagas-grid {
@@ -2080,7 +2174,7 @@ p.search-feedback {
         table-layout: fixed;
     }
     .report-table th, .report-table td {
-        border: none; /* Remover bordas padrão da célula */
+        border: none; /* Remover borda padrão da célula */
         border-bottom: 1px solid #333; /* Adicionar linha inferior para a linha */
         border-right: 1px solid #333; /* Adicionar linha direita para a coluna */
         padding: 5px;
@@ -2276,4 +2370,60 @@ p.search-feedback {
         transform: translateX(50%) translateY(0);
     }
 }
+
+/* [ARCOSAFE-UX] GRID SUPERIOR: Gerenciamento + Backup (Lado a Lado) */
+.top-row-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 50% / 50% */
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    align-items: stretch;
+}
+
+/* Remove margem inferior de itens dentro do grid para controle pelo gap */
+.top-row-grid > .management-section {
+    margin-bottom: 0;
+}
+
+/* Responsividade do Grid Superior */
+@media (max-width: 1024px) {
+    .top-row-grid {
+        grid-template-columns: 1fr; /* Empilha verticalmente em telas menores */
+    }
+}
+
+/* --- INDICADOR VISUAL DE TURNO (HINT) --- */
+.turno-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.5rem; /* Espaço antes dos cards */
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease-in-out;
+    border: 1px solid transparent;
+}
+
+/* Estilo para Manhã */
+.turno-indicator.manha {
+    background-color: var(--color-primary-light); /* Ciano Claro */
+    color: var(--color-primary); /* Ciano Escuro */
+    border-color: var(--color-primary);
+}
+
+/* Estilo para Tarde */
+.turno-indicator.tarde {
+    background-color: var(--color-afternoon-light); /* Roxo Claro */
+    color: var(--color-afternoon); /* Roxo Escuro */
+    border-color: var(--color-afternoon);
+}
+
+/* Ícone dentro do indicador */
+.turno-indicator i {
+    font-size: 1.1rem;
 }
