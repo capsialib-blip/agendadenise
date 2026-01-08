@@ -86,7 +86,7 @@ let vagasResultadosAtuais = [];
 // 2. LÓGICA DE LOGIN E INICIALIZAÇÃO
 // ============================================
 
-function inicializarLogin() {
+ inicializarLogin() {
     if (sessionStorage.getItem('usuarioLogado') === 'true') {
         document.body.classList.add('logged-in');
         inicializarApp();
@@ -2372,15 +2372,27 @@ function executarLimpezaTotal() {
     if (!passwordInput || !errorMessage) return;
 
     if (passwordInput.value === 'apocalipse') {
-        // [ARCOSAFE-FIX] Remove chave correta
+        
+        // --- [CORREÇÃO ARCOSAFE] APAGAR DA NUVEM (FIREBASE) ---
+        // Sem isso, os dados voltam ao recarregar a página.
+        if (typeof database !== 'undefined' && database) {
+            database.ref('agendamentos').remove();
+            database.ref('pacientes').remove();
+            database.ref('dias_bloqueados').remove();
+            database.ref('feriados_desbloqueados').remove();
+        }
+        // -----------------------------------------------------
+
+        // Apaga a memória local (Navegador)
         localStorage.removeItem('agenda_completa_final');
         localStorage.removeItem('pacientes_dados');
         localStorage.removeItem('dias_bloqueados');
         localStorage.removeItem('feriados_desbloqueados');
+        
         sessionStorage.setItem('limpezaSucesso', 'true');
         location.reload();
     } else {
-        if (tentativaSenha === 1) {
+        if (typeof tentativaSenha !== 'undefined' && tentativaSenha === 1) {
             errorMessage.textContent = 'Senha incorreta! O robô de limpeza agora já está preparando o polidor.';
             tentativaSenha++;
         } else {
@@ -2904,6 +2916,7 @@ function goToToday() {
         if(hint) hint.classList.remove('visible');
     }
 }
+
 
 
 
