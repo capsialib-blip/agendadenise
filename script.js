@@ -1,7 +1,7 @@
-/* script.js - VERSÃO GOLDEN MASTER CORRIGIDA */
+/* script.js */
 'use strict';
 
-console.log("Script iniciado..."); // Log para confirmar carregamento
+console.log("Script iniciado: Versão Golden Master (Listeners Robustos)");
 
 // [ARCOSAFE-FIX] Configuração do Firebase
 const firebaseConfig = {
@@ -136,7 +136,7 @@ function tentarLogin() {
 }
 
 function inicializarApp() {
-    console.log('Inicializando app...');
+    console.log('Inicializando app com Listeners Robustos...');
 
     const agendamentosSalvos = localStorage.getItem('agenda_completa_final');
     const pacientesSalvos = localStorage.getItem('pacientes_dados');
@@ -162,46 +162,48 @@ function inicializarApp() {
     }
 
     if (database) {
+        // [ARCOSAFE-FIX] LISTENER DE AGENDAMENTOS (Trata NULL corretamente)
         database.ref('agendamentos').on('value', (snapshot) => {
             const data = snapshot.val();
-            if (data) {
-                agendamentos = data;
-                localStorage.setItem('agenda_completa_final', JSON.stringify(agendamentos));
-                atualizarCalendario();
-                if (dataSelecionada) exibirAgendamentos(dataSelecionada);
-                atualizarResumoMensal();
-                atualizarResumoSemanal(new Date());
-                verificarDadosCarregados();
-            }
+            // Se data for null (apagado), assume objeto vazio {}
+            agendamentos = data || {}; 
+            localStorage.setItem('agenda_completa_final', JSON.stringify(agendamentos));
+            
+            atualizarCalendario();
+            if (dataSelecionada) exibirAgendamentos(dataSelecionada);
+            atualizarResumoMensal();
+            atualizarResumoSemanal(new Date());
+            verificarDadosCarregados();
         });
 
+        // [ARCOSAFE-FIX] LISTENER DE DIAS BLOQUEADOS (Trata NULL corretamente)
         database.ref('dias_bloqueados').on('value', (snapshot) => {
             const data = snapshot.val();
-            if (data) {
-                diasBloqueados = data;
-                localStorage.setItem('dias_bloqueados', JSON.stringify(diasBloqueados));
-                atualizarCalendario();
-                if (dataSelecionada) exibirAgendamentos(dataSelecionada);
-            }
+            // Se data for null, assume objeto vazio {}
+            diasBloqueados = data || {};
+            localStorage.setItem('dias_bloqueados', JSON.stringify(diasBloqueados));
+            
+            atualizarCalendario();
+            if (dataSelecionada) exibirAgendamentos(dataSelecionada);
         });
 
+        // [ARCOSAFE-FIX] LISTENER DE PACIENTES (Trata NULL corretamente)
         database.ref('pacientes').on('value', (snapshot) => {
             const data = snapshot.val();
-            if (data) {
-                pacientesGlobais = data;
-                pacientes = [...pacientesGlobais];
-                localStorage.setItem('pacientes_dados', JSON.stringify(pacientesGlobais));
-                verificarDadosCarregados();
-            }
+            // Se data for null, assume array vazio []
+            pacientesGlobais = data || [];
+            pacientes = [...pacientesGlobais];
+            localStorage.setItem('pacientes_dados', JSON.stringify(pacientesGlobais));
+            verificarDadosCarregados();
         });
 
+        // [ARCOSAFE-FIX] LISTENER DE FERIADOS (Trata NULL corretamente)
         database.ref('feriados_desbloqueados').on('value', (snapshot) => {
             const data = snapshot.val();
-            if (data) {
-                feriadosDesbloqueados = data;
-                localStorage.setItem('feriados_desbloqueados', JSON.stringify(feriadosDesbloqueados));
-                atualizarCalendario();
-            }
+            // Se data for null, assume objeto vazio {}
+            feriadosDesbloqueados = data || {};
+            localStorage.setItem('feriados_desbloqueados', JSON.stringify(feriadosDesbloqueados));
+            atualizarCalendario();
         });
     }
 
