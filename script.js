@@ -32,8 +32,6 @@ const meses = [
 ];
 const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
 
-/* script.js */
-
 // Lista de profissionais para assinatura (Autocomplete da Declaração)
 const PROFISSIONAIS_LISTA = [
     { nome: "ALESSANDRA OLIVEIRA MONTALVAO DA CRUZ", funcao: "ASSISTENTE ADMINISTRATIVO" },
@@ -86,7 +84,7 @@ let vagasResultadosAtuais = [];
 // 2. LÓGICA DE LOGIN E INICIALIZAÇÃO
 // ============================================
 
- inicializarLogin() {
+function inicializarLogin() {
     if (sessionStorage.getItem('usuarioLogado') === 'true') {
         document.body.classList.add('logged-in');
         inicializarApp();
@@ -114,7 +112,7 @@ function configurarEventListenersLogin() {
     }
 }
 
- tentarLogin() {
+function tentarLogin() {
     const usuarioInput = document.getElementById('loginUsuario');
     const senhaInput = document.getElementById('loginSenha');
     const errorMessage = document.getElementById('loginErrorMessage');
@@ -135,7 +133,7 @@ function configurarEventListenersLogin() {
     }
 }
 
- inicializarApp() {
+function inicializarApp() {
     console.log('Inicializando sistema...');
 
     const agendamentosSalvos = localStorage.getItem('agenda_completa_final');
@@ -228,7 +226,7 @@ function configurarEventListenersLogin() {
 // 3. CONFIGURAÇÃO DE EVENT LISTENERS DA AGENDA
 // ============================================
 
- configurarEventListenersApp() {
+function configurarEventListenersApp() {
     const btnHoje = document.getElementById('btnHoje');
     if (btnHoje) btnHoje.addEventListener('click', goToToday);
 
@@ -365,7 +363,7 @@ function configurarEventListenersLogin() {
     });
 }
 
- configurarVagasEventListeners() {
+function configurarVagasEventListeners() {
     const btnProcurarVagas = document.getElementById('btnProcurarVagas');
     if (btnProcurarVagas) btnProcurarVagas.addEventListener('click', procurarVagas);
 
@@ -403,7 +401,7 @@ function configurarEventListenersLogin() {
 // 4. FUNÇÕES DO SISTEMA (CALENDÁRIO, VAGAS, ETC.)
 // ============================================
 
- verificarDadosCarregados() {
+function verificarDadosCarregados() {
     const indicator = document.getElementById('dataLoadedIndicator');
     const indicatorText = document.getElementById('indicatorText');
     if (indicator && indicatorText) {
@@ -422,7 +420,7 @@ function configurarEventListenersLogin() {
     }
 }
 
- salvarAgendamentos() {
+function salvarAgendamentos() {
     try {
         if (database) {
             database.ref('agendamentos').set(agendamentos);
@@ -435,7 +433,7 @@ function configurarEventListenersLogin() {
     }
 }
 
- salvarBloqueios() {
+function salvarBloqueios() {
     try {
         if (database) {
             database.ref('dias_bloqueados').set(diasBloqueados);
@@ -448,7 +446,7 @@ function configurarEventListenersLogin() {
     }
 }
 
- salvarFeriadosDesbloqueados() {
+function salvarFeriadosDesbloqueados() {
     try {
         if (database) {
             database.ref('feriados_desbloqueados').set(feriadosDesbloqueados);
@@ -461,7 +459,7 @@ function configurarEventListenersLogin() {
     }
 }
 
- salvarPacientesNoLocalStorage() {
+function salvarPacientesNoLocalStorage() {
     try {
         if (database) {
             database.ref('pacientes').set(pacientesGlobais);
@@ -476,14 +474,14 @@ function configurarEventListenersLogin() {
 
 // --- NAVEGAÇÃO DO CALENDÁRIO ---
 
- voltarMes() {
+function voltarMes() {
     if (mesAtual === 0) { mesAtual = 11; anoAtual--; } else { mesAtual--; }
     atualizarCalendario();
     atualizarResumoMensal();
     atualizarResumoSemanal(new Date(anoAtual, mesAtual, 1));
 }
 
- avancarMes() {
+function avancarMes() {
     if (mesAtual === 11) { mesAtual = 0; anoAtual++; } else { mesAtual++; }
     atualizarCalendario();
     atualizarResumoMensal();
@@ -491,8 +489,8 @@ function configurarEventListenersLogin() {
 }
 
 // --- LÓGICA DE FERIADOS ---
- getFeriados(ano) {
-     calcularPascoa(ano) {
+function getFeriados(ano) {
+    function calcularPascoa(ano) {
         const a = ano % 19;
         const b = Math.floor(ano / 100);
         const c = ano % 100;
@@ -551,7 +549,7 @@ function configurarEventListenersLogin() {
 
 // --- RENDERIZAÇÃO DO CALENDÁRIO E AGENDAMENTOS ---
 
- atualizarCalendario() {
+function atualizarCalendario() {
     const container = document.getElementById('calendarContainer');
     const mesAnoEl = document.getElementById('mesAno');
     
@@ -644,7 +642,7 @@ function configurarEventListenersLogin() {
 }
 
 // [ARCOSAFE-LOGIC] Função Expandida para Calcular Métricas Mensais Completas
- calcularResumoMensal(dataReferencia) {
+function calcularResumoMensal(dataReferencia) {
     const ano = new Date(dataReferencia).getFullYear();
     const mes = new Date(dataReferencia).getMonth();
     const totalVagasPorDia = 16;
@@ -704,7 +702,7 @@ function configurarEventListenersLogin() {
     };
 }
 
- exibirAgendamentos(data) {
+function exibirAgendamentos(data) {
     const container = document.getElementById('appointmentsContainer');
     if (!container) return; 
 
@@ -833,7 +831,7 @@ function configurarEventListenersLogin() {
     }, 0);
 }
 
- gerarVagasTurno(agendamentosTurno, turno, data) {
+function gerarVagasTurno(agendamentosTurno, turno, data) {
     let html = '<div class="vagas-grid">';
     agendamentosTurno = agendamentosTurno || [];
 
@@ -1040,7 +1038,7 @@ function configurarEventListenersLogin() {
 
 // --- Funções de Notificação e Importação ---
 
- mostrarNotificacao(mensagem, tipo = 'info') {
+function mostrarNotificacao(mensagem, tipo = 'info') {
     const container = document.getElementById('floating-notifications');
     if (!container) return; 
 
@@ -1056,7 +1054,7 @@ function configurarEventListenersLogin() {
     }, 5000);
 }
 
- parseHtmlToPacientes(htmlContent) {
+function parseHtmlToPacientes(htmlContent) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlContent, 'text/html');
     const rows = doc.querySelectorAll('tr');
@@ -1080,7 +1078,7 @@ function configurarEventListenersLogin() {
     return novosPacientes;
 }
 
- mergePacientes(existentes, novos) {
+function mergePacientes(existentes, novos) {
     let adicionados = 0;
     let atualizados = 0;
     const mapaExistentes = new Map(existentes.map(p => [p.numero, p]));
@@ -1102,12 +1100,12 @@ function configurarEventListenersLogin() {
     };
 }
 
- handleHtmlFile(event) {
+function handleHtmlFile(event) {
     const file = event.target.files[0];
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (e) {
+    reader.onload = (e) => {
         try {
             const content = e.target.result;
             const novosPacientes = parseHtmlToPacientes(content);
@@ -1679,7 +1677,7 @@ function agendarPaciente(event, data, turno, vaga) {
         const duplicado = agendamentosDia.find(ag => {
             const encontrado = ag.numero === numeroPaciente;
             if (slotEmEdicao && slotEmEdicao.data === data && slotEmEdicao.turno === turno && slotEmEdicao.vaga === vaga) {
-                   return false; 
+                    return false; 
             }
             return encontrado; 
         });
@@ -1810,7 +1808,7 @@ function verificarDuplicidadeAoDigitar(inputElement, data, turno, vaga) {
 
             const encontrado = valorAgendamento === valorVerificacao;
             if (slotEmEdicao && slotEmEdicao.data === data && slotEmEdicao.turno === turno && slotEmEdicao.vaga === vaga) {
-                   return false;
+                    return false;
             }
             return encontrado; 
         });
@@ -2415,6 +2413,7 @@ function executarLimpezaTotal() {
         passwordInput.focus();
     }
 }
+
 function configurarHorarioBackup() {
     const saveBtn = document.getElementById('saveBackupTimeBtn');
     if (saveBtn) saveBtn.addEventListener('click', salvarHorarioBackup);
@@ -2487,7 +2486,7 @@ function fecharModalBackup() {
 
     // Se a chave não estiver gravada (backup não feito), não deixa fechar (TRAVA RÍGIDA)
     if (ultimoBackupChave !== chaveBackup) {
-         return; 
+            return; 
     }
 
     const modal = document.getElementById('backupModal');
@@ -2927,9 +2926,3 @@ function goToToday() {
         if(hint) hint.classList.remove('visible');
     }
 }
-
-
-
-
-
-
