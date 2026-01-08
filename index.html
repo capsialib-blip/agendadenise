@@ -59,80 +59,97 @@
     </header>
 
     <main>
-        <section class="management-section">
-            <div class="glass-card">
-                <div class="card-header">
-                    <div class="header-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-gear" viewBox="0 0 16 16">
-                            <path d="M11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0M8 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m.256 7a4.5 4.5 0 0 1-.229-1.004H3c.001-.246.154-.986.832-1.664C4.484 10.68 5.711 10 8 10q.39 0 .74.025c.226-.341.496-.65.804-.918Q8.844 9.002 8 9c-5 0-6 3-6 4s1 1 1 1zm3.63-4.54c.18-.613 1.048-.613 1.229 0l.043.148a.64.64 0 0 0 .921.382l.136-.074c.561-.306 1.175.308.87.869l-.075.136a.64.64 0 0 0 .382.92l.149.045c.612.18.612 1.048 0 1.229l-.15.043a.64.64 0 0 0-.38.921l.074.136c.305.561-.309 1.175-.87.87l-.136.075a.64.64 0 0 0-.92.382l-.045.149c-.18.612-1.048.612-1.229 0l-.043-.15a.64.64 0 0 0-.921-.38l-.136.074c-.561.305-1.175-.309-.87-.87l.075-.136a.64.64 0 0 0-.382-.92l-.148-.045c-.613-.18-.613-1.048 0-1.229l.148-.043a.64.64 0 0 0 .382-.921l-.074-.136c-.306-.561.308-1.175.869-.87l.136.075a.64.64 0 0 0 .92-.382zM14 12.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0"/>
-                        </svg>
-                    </div>
-                    <h2 class="card-title">Gerenciamento de Dados</h2>
-                </div>
-                <div class="card-content">
-                    <div class="action-grid">
-                        <button class="btn btn-import" id="btnImportar" data-tooltip="Carregar Planilha (.html)">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-upload" viewBox="0 0 16 16">
-                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
-                                <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L4.854 4.854a.5.5 0 1 1-.708-.708z"/>
-                            </svg>
-                            <span>Importar</span>
-                        </button>
-                        <button class="btn btn-backup" id="btnBackup" data-tooltip="Salvar Dados Atuais (.json)">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
-                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
-                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L4.854 8.146a.5.5 0 1 0-.708.708z"/>
-                            </svg>
-                            <span>Backup</span>
-                        </button>
-                        <button class="btn btn-restore" id="btnRestaurar" data-tooltip="Carregar Backup (.json)">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-clockwise" viewBox="0 0 16 16">
-                                <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/>
-                                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/>
-                            </svg>
-                            <span>Restaurar</span>
-                        </button>
-                        <button class="btn btn-clear" id="btnLimparDados" data-tooltip="Excluir Todos os Dados" aria-label="Excluir Todos os Dados">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
-                                <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/>
-                            </svg>
-                        </button>
-                    </div>
+        <div class="top-row-grid">
 
-                    <input type="file" id="restoreFile" accept=".json" class="hidden">
-                    <input type="file" id="htmlFile" accept=".htm,.html" class="hidden">
-
-                    <div class="search-section">
-                        <label for="globalSearchInput">Buscar Agendamentos por Paciente:</label>
-                        <div class="search-bar autocomplete-container">
-                            <input type="text" id="globalSearchInput" class="form-input" placeholder="Digite nome ou número do prontuário...">
-                            <button class="btn btn-search" id="globalSearchButton" aria-label="Buscar agendamentos">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
-                                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+            <section class="management-section">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <div class="header-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-gear" viewBox="0 0 16 16">
+                                <path d="M11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0M8 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m.256 7a4.5 4.5 0 0 1-.229-1.004H3c.001-.246.154-.986.832-1.664C4.484 10.68 5.711 10 8 10q.39 0 .74.025c.226-.341.496-.65.804-.918Q8.844 9.002 8 9c-5 0-6 3-6 4s1 1 1 1zm3.63-4.54c.18-.613 1.048-.613 1.229 0l.043.148a.64.64 0 0 0 .921.382l.136-.074c.561-.306 1.175.308.87.869l-.075.136a.64.64 0 0 0 .382.92l.149.045c.612.18.612 1.048 0 1.229l-.15.043a.64.64 0 0 0-.38.921l.074.136c.305.561-.309 1.175-.87.87l-.136.075a.64.64 0 0 0-.92.382l-.045.149c-.18.612-1.048.612-1.229 0l-.043-.15a.64.64 0 0 0-.921-.38l-.136.074c-.561.305-1.175-.309-.87-.87l.075-.136a.64.64 0 0 0-.382-.92l-.148-.045c-.613-.18-.613-1.048 0-1.229l.148-.043a.64.64 0 0 0 .382-.921l-.074-.136c-.306-.561.308-1.175.869-.87l.136.075a.64.64 0 0 0 .92-.382zM14 12.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0"/>
+                            </svg>
+                        </div>
+                        <h2 class="card-title">Gerenciamento de Dados</h2>
+                    </div>
+                    <div class="card-content">
+                        <div class="action-grid">
+                            <button class="btn btn-import" id="btnImportar" data-tooltip="Carregar Planilha (.html)">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-upload" viewBox="0 0 16 16">
+                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
+                                    <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L4.854 4.854a.5.5 0 1 1-.708-.708z"/>
+                                </svg>
+                                <span>Importar</span>
+                            </button>
+                            <button class="btn btn-backup" id="btnBackup" data-tooltip="Salvar Dados Atuais (.json)">
+                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
+                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
+                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L4.854 8.146a.5.5 0 1 0-.708.708z"/>
+                                </svg>
+                                <span>Backup</span>
+                            </button>
+                            <button class="btn btn-restore" id="btnRestaurar" data-tooltip="Carregar Backup (.json)">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-clockwise" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/>
+                                    <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/>
+                                </svg>
+                                <span>Restaurar</span>
+                            </button>
+                            <button class="btn btn-clear" id="btnLimparDados" data-tooltip="Excluir Todos os Dados" aria-label="Excluir Todos os Dados">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
+                                    <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/>
                                 </svg>
                             </button>
-                            <div class="sugestoes-lista" id="globalSugestoesLista"></div>
                         </div>
-                        <div id="searchResultsContainer"></div>
-                    </div>
 
-                    <div class="backup-settings-section">
-                      <h4>Configurar Horário de Backup</h4>
-                      <p>Defina o horário para o lembrete de backup obrigatório. Horário atual: <span id="backupTimeDisplay" style="color: var(--color-primary); font-weight: bold;">16:00</span></p>
-                      <div class="backup-settings-form">
-                        <input type="time" id="backupTimeInput" class="form-input" value="16:00">
-                        <button class="btn btn-primary" id="saveBackupTimeBtn" style="background-color: #28a745; border-color: #28a745;">Definir Horário</button> </div>
-                    </div>
+                        <input type="file" id="restoreFile" accept=".json" class="hidden">
+                        <input type="file" id="htmlFile" accept=".htm,.html" class="hidden">
 
+                        <div class="search-section">
+                            <label for="globalSearchInput">Buscar Agendamentos por Paciente:</label>
+                            <div class="search-bar autocomplete-container">
+                                <input type="text" id="globalSearchInput" class="form-input" placeholder="Digite nome ou número do prontuário...">
+                                <button class="btn btn-search" id="globalSearchButton" aria-label="Buscar agendamentos">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                                        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                                    </svg>
+                                </button>
+                                <div class="sugestoes-lista" id="globalSugestoesLista"></div>
+                            </div>
+                            <div id="searchResultsContainer"></div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </section>
+            </section>
+
+            <section class="management-section">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <div class="header-icon">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clock-history" viewBox="0 0 16 16">
+                                <path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022zm2.004.45a7 7 0 0 0-.985-.299l.219-.976c.383.086.76.2 1.126.342zm1.37.71a7 7 0 0 0-.439-.27l.493-.87a8 8 0 0 1 .979.654l-.615.789a7 7 0 0 0-.418-.302zm1.834 1.79a7 7 0 0 0-.653-.796l.724-.69c.27.285.52.59.747.91l-.818.576zm.744 1.352a7 7 0 0 0-.214-.468l.893-.45a8 8 0 0 1 .456 1.039l-.974.26a7 7 0 0 0-.161-.381zm-.45 1.79c.12-.317.216-.645.283-.98l.98.192c-.09.42-.217.824-.377 1.206l-.886-.418zm-.403 1.927a7 7 0 0 0-.01-.015l-.123-.057.48-.874.156.072a8 8 0 0 1 .843 1.258l-.907.477a7 7 0 0 0-.439-.861zm-.607 1.626a7 7 0 0 0-.056-.058l-.162-.15.362-.932.203.188c.328.305.626.643.886 1.006l-.853.53a7 7 0 0 0-.38-.584zm-.75 1.488a7 7 0 0 0-.045-.04l-.234-.186.208-.978.293.234c.324.26.678.483 1.053.664l-.668.744a7 7 0 0 0-.607-.438zM9.5 8.5V3h-1v5h-4v1h5Z"/>
+                            </svg>
+                        </div>
+                        <h2 class="card-title">Configurar Backup</h2>
+                    </div>
+                    <div class="card-content">
+                        <div class="backup-settings-section" style="padding-top: 0;">
+                          <h4 class="hidden">Configurar Horário de Backup</h4> 
+                          <p>Defina o horário para o lembrete de backup obrigatório. Horário atual: <span id="backupTimeDisplay" style="color: var(--color-primary); font-weight: bold;">16:00</span></p>
+                          <div class="backup-settings-form">
+                            <input type="time" id="backupTimeInput" class="form-input" value="16:00">
+                            <button class="btn btn-primary" id="saveBackupTimeBtn" style="background-color: #28a745; border-color: #28a745;">Definir Horário</button> </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
 
         <section id="vagasSearchSection" class="management-section">
             <div class="glass-card">
                 <div class="card-header">
                     <div class="header-icon">
-                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search-heart" viewBox="0 0 16 16">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search-heart" viewBox="0 0 16 16">
                             <path d="M6.5 4.482c1.664-1.673 5.825 1.254 0 5.018-5.825-3.764-1.664-6.69 0-5.018"/>
                             <path d="M13 6.5a6.47 6.47 0 0 1-1.258 3.844q.06.044.115.098l3.85 3.85a1 1 0 0 1-1.414 1.415l-3.85-3.85a1 1 0 0 1-.1-.115h.002A6.5 6.5 0 1 1 13 6.5M6.5 12a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11"/>
                         </svg>
@@ -451,7 +468,7 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" id="btnCancelClearData">Cancelar</button>
-                <button class="btn btn-danger" id="btnConfirmarClearData">Confirmar Exclusão</button>
+                <button class="btn btn-danger" id="btnConfirmClearData">Confirmar Exclusão</button>
             </div>
         </div>
     </div>
@@ -459,6 +476,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-    <script src="config.js"></script> <script src="script.js"></script>
+    <script src="pacientes-default.js"></script>
+    <script src="script.js"></script>
   </body>
 </html>
