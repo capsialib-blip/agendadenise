@@ -2371,11 +2371,10 @@ function executarLimpezaTotal() {
 
     if (passwordInput.value === 'apocalipse') {
         
-        // --- [CORREÇÃO ARCOSAFE] DESLIGAR LISTENERS E APAGAR ---
+        // --- [CORREÇÃO ARCOSAFE] WAIT-FOR-CLEANUP ASYNC PATTERN ---
         if (typeof database !== 'undefined' && database) {
             
             // 1. DESLIGAR LISTENERS (Corta a conexão antes de apagar)
-            // Isso impede que o app reaja a mudanças enquanto deletamos
             try {
                 database.ref('agendamentos').off();
                 database.ref('pacientes').off();
@@ -2385,22 +2384,38 @@ function executarLimpezaTotal() {
                 console.warn("Listeners já estavam desligados ou erro ao desligar:", e);
             }
 
-            // 2. ORDEM DE EXCLUSÃO NA NUVEM
-            database.ref('agendamentos').remove();
-            database.ref('pacientes').remove();
-            database.ref('dias_bloqueados').remove();
-            database.ref('feriados_desbloqueados').remove();
-        }
-        // -----------------------------------------------------
+            // 2. LIMPEZA DE MEMÓRIA (Evita rewrite acidental antes do reload)
+            agendamentos = {};
+            pacientesGlobais = [];
+            pacientes = [];
+            diasBloqueados = {};
+            feriadosDesbloqueados = {};
 
-        // 3. APAGAR LOCALMENTE
-        localStorage.removeItem('agenda_completa_final');
-        localStorage.removeItem('pacientes_dados');
-        localStorage.removeItem('dias_bloqueados');
-        localStorage.removeItem('feriados_desbloqueados');
-        
-        sessionStorage.setItem('limpezaSucesso', 'true');
-        location.reload();
+            // 3. EXECUÇÃO NA NUVEM COM PROMISE.ALL (Espera confirmação)
+            Promise.all([
+                database.ref('agendamentos').remove(),
+                database.ref('pacientes').remove(),
+                database.ref('dias_bloqueados').remove(),
+                database.ref('feriados_desbloqueados').remove()
+            ]).then(() => {
+                // 4. LIMPEZA FINAL APÓS SUCESSO NO SERVIDOR
+                localStorage.clear(); 
+                sessionStorage.setItem('limpezaSucesso', 'true');
+                location.reload();
+            }).catch(err => {
+                console.error("Erro ao limpar nuvem:", err);
+                // Mesmo com erro na nuvem, força reload para tentar sincronizar estado limpo se possível
+                alert("Erro ao limpar dados na nuvem. Verifique a conexão.");
+                localStorage.clear();
+                location.reload();
+            });
+
+        } else {
+            // Caso database não esteja conectado
+            localStorage.clear();
+            sessionStorage.setItem('limpezaSucesso', 'true');
+            location.reload();
+        }
     } else {
         if (typeof tentativaSenha !== 'undefined' && tentativaSenha === 1) {
             errorMessage.textContent = 'Senha incorreta! O robô de limpeza agora já está preparando o polidor.';
@@ -2886,7 +2901,7 @@ function selecionarDia(data, elemento) {
     exibirAgendamentos(data);
     
     atualizarBolinhasDisponibilidade(data);
-    atualizarResumoSemanal(new Date(data + 'T12:00:00'));
+    atualizarResumoMensal(new Date(data + 'T12:00:00'));
 
     // --- Lógica do Hint Lateral ---
     const hint = document.getElementById('floatingDateHint');
