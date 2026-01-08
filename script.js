@@ -114,7 +114,7 @@ function configurarEventListenersLogin() {
     }
 }
 
-function tentarLogin() {
+ tentarLogin() {
     const usuarioInput = document.getElementById('loginUsuario');
     const senhaInput = document.getElementById('loginSenha');
     const errorMessage = document.getElementById('loginErrorMessage');
@@ -135,7 +135,7 @@ function tentarLogin() {
     }
 }
 
-function inicializarApp() {
+ inicializarApp() {
     console.log('Inicializando sistema...');
 
     const agendamentosSalvos = localStorage.getItem('agenda_completa_final');
@@ -228,7 +228,7 @@ function inicializarApp() {
 // 3. CONFIGURAÇÃO DE EVENT LISTENERS DA AGENDA
 // ============================================
 
-function configurarEventListenersApp() {
+ configurarEventListenersApp() {
     const btnHoje = document.getElementById('btnHoje');
     if (btnHoje) btnHoje.addEventListener('click', goToToday);
 
@@ -365,7 +365,7 @@ function configurarEventListenersApp() {
     });
 }
 
-function configurarVagasEventListeners() {
+ configurarVagasEventListeners() {
     const btnProcurarVagas = document.getElementById('btnProcurarVagas');
     if (btnProcurarVagas) btnProcurarVagas.addEventListener('click', procurarVagas);
 
@@ -403,7 +403,7 @@ function configurarVagasEventListeners() {
 // 4. FUNÇÕES DO SISTEMA (CALENDÁRIO, VAGAS, ETC.)
 // ============================================
 
-function verificarDadosCarregados() {
+ verificarDadosCarregados() {
     const indicator = document.getElementById('dataLoadedIndicator');
     const indicatorText = document.getElementById('indicatorText');
     if (indicator && indicatorText) {
@@ -422,7 +422,7 @@ function verificarDadosCarregados() {
     }
 }
 
-function salvarAgendamentos() {
+ salvarAgendamentos() {
     try {
         if (database) {
             database.ref('agendamentos').set(agendamentos);
@@ -435,7 +435,7 @@ function salvarAgendamentos() {
     }
 }
 
-function salvarBloqueios() {
+ salvarBloqueios() {
     try {
         if (database) {
             database.ref('dias_bloqueados').set(diasBloqueados);
@@ -448,7 +448,7 @@ function salvarBloqueios() {
     }
 }
 
-function salvarFeriadosDesbloqueados() {
+ salvarFeriadosDesbloqueados() {
     try {
         if (database) {
             database.ref('feriados_desbloqueados').set(feriadosDesbloqueados);
@@ -461,7 +461,7 @@ function salvarFeriadosDesbloqueados() {
     }
 }
 
-function salvarPacientesNoLocalStorage() {
+ salvarPacientesNoLocalStorage() {
     try {
         if (database) {
             database.ref('pacientes').set(pacientesGlobais);
@@ -476,14 +476,14 @@ function salvarPacientesNoLocalStorage() {
 
 // --- NAVEGAÇÃO DO CALENDÁRIO ---
 
-function voltarMes() {
+ voltarMes() {
     if (mesAtual === 0) { mesAtual = 11; anoAtual--; } else { mesAtual--; }
     atualizarCalendario();
     atualizarResumoMensal();
     atualizarResumoSemanal(new Date(anoAtual, mesAtual, 1));
 }
 
-function avancarMes() {
+ avancarMes() {
     if (mesAtual === 11) { mesAtual = 0; anoAtual++; } else { mesAtual++; }
     atualizarCalendario();
     atualizarResumoMensal();
@@ -491,8 +491,8 @@ function avancarMes() {
 }
 
 // --- LÓGICA DE FERIADOS ---
-function getFeriados(ano) {
-    function calcularPascoa(ano) {
+ getFeriados(ano) {
+     calcularPascoa(ano) {
         const a = ano % 19;
         const b = Math.floor(ano / 100);
         const c = ano % 100;
@@ -551,7 +551,7 @@ function getFeriados(ano) {
 
 // --- RENDERIZAÇÃO DO CALENDÁRIO E AGENDAMENTOS ---
 
-function atualizarCalendario() {
+ atualizarCalendario() {
     const container = document.getElementById('calendarContainer');
     const mesAnoEl = document.getElementById('mesAno');
     
@@ -644,7 +644,7 @@ function atualizarCalendario() {
 }
 
 // [ARCOSAFE-LOGIC] Função Expandida para Calcular Métricas Mensais Completas
-function calcularResumoMensal(dataReferencia) {
+ calcularResumoMensal(dataReferencia) {
     const ano = new Date(dataReferencia).getFullYear();
     const mes = new Date(dataReferencia).getMonth();
     const totalVagasPorDia = 16;
@@ -704,7 +704,7 @@ function calcularResumoMensal(dataReferencia) {
     };
 }
 
-function exibirAgendamentos(data) {
+ exibirAgendamentos(data) {
     const container = document.getElementById('appointmentsContainer');
     if (!container) return; 
 
@@ -833,7 +833,7 @@ function exibirAgendamentos(data) {
     }, 0);
 }
 
-function gerarVagasTurno(agendamentosTurno, turno, data) {
+ gerarVagasTurno(agendamentosTurno, turno, data) {
     let html = '<div class="vagas-grid">';
     agendamentosTurno = agendamentosTurno || [];
 
@@ -1040,7 +1040,7 @@ function gerarVagasTurno(agendamentosTurno, turno, data) {
 
 // --- Funções de Notificação e Importação ---
 
-function mostrarNotificacao(mensagem, tipo = 'info') {
+ mostrarNotificacao(mensagem, tipo = 'info') {
     const container = document.getElementById('floating-notifications');
     if (!container) return; 
 
@@ -1056,7 +1056,7 @@ function mostrarNotificacao(mensagem, tipo = 'info') {
     }, 5000);
 }
 
-function parseHtmlToPacientes(htmlContent) {
+ parseHtmlToPacientes(htmlContent) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlContent, 'text/html');
     const rows = doc.querySelectorAll('tr');
@@ -1080,7 +1080,7 @@ function parseHtmlToPacientes(htmlContent) {
     return novosPacientes;
 }
 
-function mergePacientes(existentes, novos) {
+ mergePacientes(existentes, novos) {
     let adicionados = 0;
     let atualizados = 0;
     const mapaExistentes = new Map(existentes.map(p => [p.numero, p]));
@@ -1102,12 +1102,12 @@ function mergePacientes(existentes, novos) {
     };
 }
 
-function handleHtmlFile(event) {
+ handleHtmlFile(event) {
     const file = event.target.files[0];
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = (e) {
         try {
             const content = e.target.result;
             const novosPacientes = parseHtmlToPacientes(content);
@@ -2904,5 +2904,6 @@ function goToToday() {
         if(hint) hint.classList.remove('visible');
     }
 }
+
 
 
