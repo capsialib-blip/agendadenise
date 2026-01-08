@@ -1,5 +1,7 @@
-/* script.js */
+/* script.js - VERSÃO GOLDEN MASTER CORRIGIDA */
 'use strict';
+
+console.log("Script iniciado..."); // Log para confirmar carregamento
 
 // [ARCOSAFE-FIX] Configuração do Firebase
 const firebaseConfig = {
@@ -134,7 +136,7 @@ function tentarLogin() {
 }
 
 function inicializarApp() {
-    console.log('Inicializando sistema...');
+    console.log('Inicializando app...');
 
     const agendamentosSalvos = localStorage.getItem('agenda_completa_final');
     const pacientesSalvos = localStorage.getItem('pacientes_dados');
@@ -2871,6 +2873,7 @@ function executarRestauracao(data) {
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
+    console.log("DOM carregado - Inicializando App");
     // Verifica se há mensagens de sucesso na sessão (após reload)
     if (sessionStorage.getItem('limpezaSucesso')) {
         mostrarNotificacao("Todos os dados foram apagados com sucesso.", 'success');
