@@ -164,6 +164,7 @@ function inicializarApp() {
 }
 
 function atualizarUI() {
+    // ESTA FUNÇÃO CHAMA atualizarCalendario - AGORA ELA EXISTIRÁ ABAIXO
     atualizarCalendario();
     atualizarResumoMensal();
     atualizarResumoSemanal(new Date());
@@ -517,7 +518,6 @@ function gerarVagasTurno(agendamentosTurno, turno, data) {
 function agendarPaciente(event, data, turno, vaga) {
     event.preventDefault();
     const form = event.target;
-    // Proteção básica para não quebrar se o HTML não tiver o campo
     const solicitacoes = Array.from(form.querySelectorAll('input[name="solicitacao"]:checked')).map(cb => cb.value);
     const numeroPaciente = form.querySelector('[name="numero"]').value.trim();
 
