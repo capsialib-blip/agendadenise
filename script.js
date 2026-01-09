@@ -1,7 +1,7 @@
-/* script.js - VERSÃO GOLDEN MASTER (FIX CRITICAL FORM CRASH) */
+/* script.js - VERSÃO FINAL (VISUAL ORIGINAL RESTAURADO) */
 'use strict';
 
-console.log("Sistema Iniciado: Versão Blindada v20.2");
+console.log("Sistema Iniciado: Visual Restaurado + Lógica Blindada v20.3");
 
 // --- 1. CONFIGURAÇÃO FIREBASE ---
 const firebaseConfig = {
@@ -77,7 +77,6 @@ let vagasResultadosAtuais = [];
 // --- 3. INICIALIZAÇÃO ---
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Verifica mensagens de sucesso pós-reload
     if (sessionStorage.getItem('limpezaSucesso')) {
         mostrarNotificacao("Todos os dados foram apagados com sucesso.", 'success');
         sessionStorage.removeItem('limpezaSucesso');
@@ -86,7 +85,6 @@ document.addEventListener('DOMContentLoaded', () => {
         mostrarNotificacao("Dados restaurados com sucesso.", 'success');
         sessionStorage.removeItem('restauracaoSucesso');
     }
-    
     inicializarLogin();
 });
 
@@ -128,7 +126,6 @@ function tentarLogin() {
 }
 
 function inicializarApp() {
-    // Carrega cache local
     try {
         agendamentos = JSON.parse(localStorage.getItem('agenda_completa_final')) || {};
         pacientesGlobais = JSON.parse(localStorage.getItem('pacientes_dados')) || [];
@@ -137,7 +134,6 @@ function inicializarApp() {
         pacientes = [...pacientesGlobais];
     } catch(e) {}
 
-    // Conecta Firebase
     if (database) {
         database.ref('agendamentos').on('value', (s) => {
             agendamentos = s.val() || {};
@@ -372,14 +368,12 @@ function gerarVagasTurno(lista = [], turno, data) {
             `;
         } else {
             const d = editing ? ag : {};
-            // ADICIONADOS: input hidden para 'distrito' e 'cid' para evitar perda de dados e erros
+            // REVERTIDO PARA ESTRUTURA ORIGINAL (SEM INPUTS HIDDEN) PARA PRESERVAR LAYOUT
             html += `
                 <div id="${cardId}" class="vaga-card ${editing ? 'editing' : ''}">
                     <div class="vaga-header ${turno}"><div>Vaga ${i} - ${editing ? 'Editando' : 'Disponível'}</div></div>
                     <div class="vaga-content">
                         <form class="vaga-form" onsubmit="agendarPaciente(event, '${data}', '${turno}', ${i})">
-                            <input type="hidden" name="distrito" value="${d.distrito||''}">
-                            <input type="hidden" name="cid" value="${d.cid||''}">
                             <div class="form-row">
                                 <div class="form-group autocomplete-container"><label>Nº:</label><input name="numero" class="form-input" required value="${d.numero||''}" onblur="verificarDuplicidadeAoDigitar(this,'${data}','${turno}',${i})"><div class="sugestoes-lista"></div></div>
                                 <div class="form-group autocomplete-container"><label>Nome:</label><input name="nome" class="form-input" required value="${d.nome||''}" onblur="verificarDuplicidadeAoDigitar(this,'${data}','${turno}',${i})"><div class="sugestoes-lista"></div></div>
@@ -625,7 +619,7 @@ function salvarPacientesNoLocalStorage() {
     localStorage.setItem('pacientes_dados', JSON.stringify(pacientesGlobais));
 }
 
-// --- CORE FIX: AGENDAMENTO BLINDADO ---
+// --- CORE FIX: AGENDAMENTO INTELIGENTE (SEM INPUTS ESCONDIDOS) ---
 function agendarPaciente(e, d, t, v) {
     e.preventDefault();
     const f = e.target;
@@ -634,22 +628,22 @@ function agendarPaciente(e, d, t, v) {
     const exists = [...(agendamentos[d]?.manha||[]), ...(agendamentos[d]?.tarde||[])].some(a => a.numero === num && (!slotEmEdicao || slotEmEdicao.vaga !== v));
     if(exists) { alert('Paciente já agendado hoje!'); return; }
 
-    // BLINDAGEM CONTRA ERROS JS EM CAMPOS INEXISTENTES
+    // BLINDAGEM + RECUPERAÇÃO DE DADOS DA MEMÓRIA
+    // Busca o paciente completo na memória para não depender de campos no form
+    const pacienteData = pacientesGlobais.find(p => p.numero === num) || {};
+
     const novo = {
         vaga: v, 
         numero: f.numero.value, 
         nome: f.nome.value, 
         cns: f.cns.value,
-        // Usamos f.campo ? f.campo.value : '' para garantir que não crash se o input hidden falhar
-        distrito: f.distrito ? f.distrito.value : '', 
-        tecRef: f.tecRef ? f.tecRef.value : '', 
-        cid: f.cid ? f.cid.value : '',
+        // DADOS RECUPERADOS DA MEMÓRIA (Corrigido para não quebrar layout com hidden inputs)
+        distrito: pacienteData.distrito || '', 
+        tecRef: f.tecRef ? f.tecRef.value : (pacienteData.tecRef || ''), 
+        cid: pacienteData.cid || '',
         agendadoPor: f.agendadoPor ? f.agendadoPor.value : '', 
         observacao: f.observacao ? f.observacao.value : '',
         status: 'Aguardando',
-        // Checkboxes: só tenta ler se existirem
-        primeiraConsulta: f.primeiraConsulta ? f.primeiraConsulta.checked : false,
-        solicitacoes: f.querySelectorAll ? Array.from(f.querySelectorAll('input[name="solicitacao"]:checked')).map(cb => cb.value) : []
     };
     
     if(!agendamentos[d]) agendamentos[d] = { manha: [], tarde: [] };
@@ -681,7 +675,6 @@ function executarCancelamento(d, t, v) {
     fecharModalConfirmacao();
 }
 
-// Autocomplete Corrigido para Preencher Inputs Ocultos
 function configurarAutopreenchimento(form) {
     const inputs = form.querySelectorAll('input[name="numero"], input[name="nome"], input[name="cns"]');
     inputs.forEach(inp => {
@@ -704,10 +697,8 @@ window.preencherForm = function(el, num) {
         form.numero.value = p.numero; 
         form.nome.value = p.nome; 
         form.cns.value = p.cns;
-        // Só preenche se o campo existir no form (agora existem como hidden)
-        if(form.distrito) form.distrito.value = p.distrito || ''; 
+        // Se o campo tecRef existir no form, preenche. Distrito/CID agora são pegos no Agendar
         if(form.tecRef) form.tecRef.value = p.tecRef || ''; 
-        if(form.cid) form.cid.value = p.cid || '';
     }
     el.parentElement.style.display = 'none';
 };
