@@ -1,5 +1,5 @@
 /* style.css */
-/* --- ARCOSAFE ZERO-REGRESSION: APPLE SYSTEM UI EDITION v1.0 --- */
+/* --- ARCOSAFE ZERO-REGRESSION: APPLE SYSTEM UI EDITION v1.1 (Fix: Labels Single Line) --- */
 
 /* --- RESET BÁSICO E VARIÁVEIS DE COR (Estilo iOS/macOS) --- */
 * {
@@ -392,77 +392,104 @@ main { max-width: 1600px; margin: 0 auto; padding: 2rem; }
 }
 
 
-/* --- LAYOUT DO CALENDÁRIO (Estilo Apple Calendar) --- */
+/* --- LAYOUT DO CALENDÁRIO (Variação: macOS Desktop Grid) --- */
 .calendar-wrapper { padding: 1rem; }
+
 .calendar-navigation {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.5rem;
-    padding: 0 0.25rem;
+    margin-bottom: 1rem;
+    padding: 0 0.5rem;
 }
-.nav-buttons { display: flex; gap: 0.25rem; }
-.nav-btn {
-    width: 2.2rem; height: 2.2rem; border: none; background-color: transparent;
-    border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    cursor: pointer; color: var(--color-primary); user-select: none;
-    transition: background-color 0.2s;
-}
-.nav-btn:hover { background-color: var(--color-primary-light); }
-.month-title { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); user-select: none; text-transform: capitalize; }
 
+/* Título do Mês mais destacado */
+.month-title { 
+    font-size: 1.2rem; 
+    font-weight: 600; 
+    color: var(--text-primary); 
+    text-transform: capitalize;
+}
+
+/* GRID COMO TABELA (Estilo Quadrado) */
 .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 8px; /* Mais espaço entre dias */
+    gap: 1px; /* Cria as linhas da grade */
+    background-color: var(--color-border); /* Cor das linhas */
+    border: 1px solid var(--color-border); /* Borda externa */
+    border-radius: var(--radius-md);
+    overflow: hidden; /* Para arredondar os cantos da grade */
 }
+
 .weekday {
+    background-color: var(--color-bg-neutral); /* Cabeçalho cinza */
     text-align: center;
     font-weight: 600;
     color: var(--text-secondary);
-    font-size: 0.7rem;
-    padding-bottom: 0.75rem;
-    user-select: none;
+    font-size: 0.75rem;
+    padding: 0.5rem 0;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
+
 .day {
-    aspect-ratio: 1;
+    aspect-ratio: 1; /* Mantém quadrado */
+    background-color: white; /* Fundo branco em cada dia */
     display: flex;
-    align-items: center;
+    align-items: center; /* Número no topo ou centro? Centro fica mais limpo */
     justify-content: center;
-    border-radius: 50%;
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
-    font-weight: 400;
-    font-size: 0.95rem;
-    border: 2px solid transparent;
-    user-select: none;
+    font-size: 0.9rem;
     position: relative;
+    transition: background-color 0.2s ease;
+    border-radius: 0; /* REMOVE O CÍRCULO */
 }
-.day.workday:hover {
-    background-color: var(--color-bg-neutral);
+
+/* Hover suave no quadrado */
+.day:hover:not(.empty) {
+    background-color: #F2F2F7;
 }
+
+/* Fim de semana levemente cinza */
 .day.weekend {
-    color: #C7C7CC; /* iOS Gray 4 */
+    background-color: #FAFAFA;
+    color: #C7C7CC;
+}
+
+/* HOJE: Texto Azul, negrito (Estilo Mac) */
+.day.today {
+    color: var(--color-primary);
+    font-weight: 800;
+    background-color: #F0F8FF;
+}
+
+/* SELECIONADO: Quadrado azul preenchido */
+.day.selected {
+    background-color: var(--color-primary) !important;
+    color: white !important;
+}
+
+/* Bloqueios (Preenchem o quadrado todo) */
+.day.blocked-day {
+    background-color: #FFF0F0;
+    color: var(--color-danger);
     cursor: not-allowed;
 }
-/* Estilo "Hoje" - Apenas texto colorido no Apple Calendar, mas aqui manteremos o círculo para clareza */
-.day.today {
-    background-color: var(--color-bg-neutral);
-    color: var(--color-primary);
-    font-weight: 700;
+
+/* Bolinha de agendamento (ajustada para o quadrado) */
+.day.day-has-appointments::after {
+    content: '';
+    position: absolute;
+    bottom: 4px; /* Bem no rodapé do quadrado */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background-color: var(--text-secondary);
 }
-/* Estilo Selecionado - Círculo Preenchido (Estilo iOS) */
-.day.selected {
-    background-color: var(--color-primary-light);
-    color: var(--color-primary);
-    font-weight: 700;
-}
-.day.today.selected {
-    background-color: var(--color-primary);
-    color: white;
-    box-shadow: 0 2px 6px rgba(0, 122, 255, 0.4);
+.day.selected.day-has-appointments::after {
+    background-color: white;
 }
 
 /* Feriados */
@@ -876,13 +903,30 @@ textarea.form-input { resize: vertical; min-height: 80px; line-height: 1.5; }
 .sugestao-item:hover { background-color: var(--color-primary-light); color: var(--color-primary); }
 .sugestao-item small { color: var(--text-secondary); display: block; margin-top: 2px; }
 
-/* Grade de Checkbox */
+/* Grade de Checkbox - CORRIGIDO PARA LINHA ÚNICA */
 .solicitacoes-group { margin-bottom: 1.5rem; background: var(--color-bg-neutral); padding: 1rem; border-radius: var(--radius-md); }
 .solicitacoes-group > label { margin-bottom: 0.75rem; display: block; }
-.checkbox-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; padding: 0.25rem; }
-.checkbox-item { display: flex; align-items: center; gap: 0.6rem; }
-.checkbox-item input[type="checkbox"] { width: 1.1rem; height: 1.1rem; accent-color: var(--color-primary); cursor: pointer; }
-.checkbox-item label { font-size: 0.9rem; color: var(--text-primary); font-weight: 400; margin-bottom: 0; cursor: pointer; }
+.checkbox-grid { 
+    display: grid; 
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 0.5rem; /* Gap reduzido para dar espaço ao texto */ 
+    padding: 0.25rem; 
+}
+.checkbox-item { 
+    display: flex; 
+    align-items: center; 
+    gap: 0.4rem; /* Aproxima o box do texto */
+}
+.checkbox-item input[type="checkbox"] { width: 1.1rem; height: 1.1rem; accent-color: var(--color-primary); cursor: pointer; flex-shrink: 0; }
+.checkbox-item label { 
+    font-size: 0.75rem; /* FONTE MENOR (Caption Size) para caber */
+    color: var(--text-primary); 
+    font-weight: 400; 
+    margin-bottom: 0; 
+    cursor: pointer;
+    white-space: nowrap; /* FORÇA LINHA ÚNICA */
+    overflow: hidden; 
+}
 
 /* Botões do Formulário */
 .form-actions-wrapper {
