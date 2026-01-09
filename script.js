@@ -380,7 +380,7 @@ function configurarVagasEventListeners() {
         startDateInput.addEventListener('keydown', (event) => {
             if (event.key === 'Tab' && !event.shiftKey) {
                 event.preventDefault(); 
-                endDateInput.focus();   
+                endDateInput.focus();    
             }
         });
 
@@ -1677,7 +1677,7 @@ function agendarPaciente(event, data, turno, vaga) {
         const duplicado = agendamentosDia.find(ag => {
             const encontrado = ag.numero === numeroPaciente;
             if (slotEmEdicao && slotEmEdicao.data === data && slotEmEdicao.turno === turno && slotEmEdicao.vaga === vaga) {
-                   return false; 
+                    return false; 
             }
             return encontrado; 
         });
@@ -1808,7 +1808,7 @@ function verificarDuplicidadeAoDigitar(inputElement, data, turno, vaga) {
 
             const encontrado = valorAgendamento === valorVerificacao;
             if (slotEmEdicao && slotEmEdicao.data === data && slotEmEdicao.turno === turno && slotEmEdicao.vaga === vaga) {
-                   return false;
+                    return false;
             }
             return encontrado; 
         });
@@ -1975,6 +1975,54 @@ function configurarAutopreenchimento(form) {
         const sugestoesLista = container.querySelector('.sugestoes-lista');
         if (!sugestoesLista) return;
 
+        // [ARCOSAFE-LOGIC] BUSCA CRUZADA (CROSS-LOOKUP) E AUTO-FILL
+        // Dispara quando o usuário altera o valor e sai do campo (change)
+        input.addEventListener('change', () => {
+            const termo = input.value.trim();
+            if (termo.length < 2) return;
+
+            let match = null;
+
+            // Cenário B: Preencheu Número -> Busca pelo Número
+            if (input.name === 'numero') {
+                match = pacientesGlobais.find(p => p.numero === termo);
+            }
+            // Cenário C: Preencheu CNS -> Busca pelo CNS
+            else if (input.name === 'cns') {
+                match = pacientesGlobais.find(p => p.cns === termo);
+            }
+            // Cenário A: Preencheu Nome -> Busca pelo Nome
+            else if (input.name === 'nome') {
+                const matches = pacientesGlobais.filter(p => p.nome.toLowerCase() === termo.toLowerCase());
+                // Só preenche se encontrar correspondência única para evitar erros
+                if (matches.length === 1) {
+                    match = matches[0];
+                }
+            }
+
+            if (match) {
+                const nomeInput = form.querySelector('input[name="nome"]');
+                const numeroInput = form.querySelector('input[name="numero"]');
+                const cnsInput = form.querySelector('input[name="cns"]');
+                const distritoInput = form.querySelector('input[name="distrito"]');
+                const tecRefInput = form.querySelector('input[name="tecRef"]');
+                const cidInput = form.querySelector('input[name="cid"]');
+
+                // Preenche os outros campos se não forem o que disparou o evento
+                if (nomeInput && input.name !== 'nome') nomeInput.value = match.nome;
+                if (numeroInput && input.name !== 'numero') numeroInput.value = match.numero;
+                if (cnsInput && input.name !== 'cns') cnsInput.value = match.cns;
+                
+                // Preenche campos secundários
+                if (distritoInput) distritoInput.value = match.distrito || '';
+                if (tecRefInput) tecRefInput.value = match.tecRef || '';
+                if (cidInput) cidInput.value = match.cid || '';
+                
+                mostrarNotificacao('Dados do paciente carregados automaticamente.', 'info');
+            }
+        });
+
+        // Lógica Original de Autocomplete (Sugestões Visuais)
         input.addEventListener('input', () => {
             const termo = input.value.toLowerCase();
             const campo = input.name;
