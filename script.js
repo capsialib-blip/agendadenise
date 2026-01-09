@@ -1,7 +1,7 @@
-/* script.js - VERSÃO FINAL (CALENDÁRIO RESTAURADO + CARDS CORRIGIDOS) */
+/* script.js - VERSÃO FINAL (FUNCIONALIDADE RESTAURADA BASEADA NO SCRIPT.TXT) */
 'use strict';
 
-console.log("Sistema Iniciado: Calendário + Cards Visuais (Anexo 1) + Correções");
+console.log("Sistema Iniciado: Funcionalidade de Botões e Exclusão Restaurada");
 
 // [ARCOSAFE] Configuração do Firebase
 const firebaseConfig = {
@@ -17,8 +17,9 @@ let database;
 try {
     firebase.initializeApp(firebaseConfig);
     database = firebase.database();
+    console.log("Firebase inicializado com sucesso.");
 } catch (e) {
-    console.error("Erro Firebase:", e);
+    console.error("Erro ao inicializar Firebase.", e);
 }
 
 // ============================================
@@ -124,35 +125,52 @@ function tentarLogin() {
 }
 
 function inicializarApp() {
+    console.log('Inicializando sistema...');
+    
+    // Recuperação de dados locais
     try {
         agendamentos = JSON.parse(localStorage.getItem('agenda_completa_final')) || {};
         pacientesGlobais = JSON.parse(localStorage.getItem('pacientes_dados')) || [];
         diasBloqueados = JSON.parse(localStorage.getItem('dias_bloqueados')) || {};
         feriadosDesbloqueados = JSON.parse(localStorage.getItem('feriados_desbloqueados')) || {};
         pacientes = [...pacientesGlobais];
-    } catch(e) {}
+    } catch(e) {
+        agendamentos = {};
+        pacientesGlobais = [];
+        diasBloqueados = {};
+        feriadosDesbloqueados = {};
+    }
 
+    // Sincronização Firebase
     if (database) {
         database.ref('agendamentos').on('value', (s) => {
-            agendamentos = s.val() || {};
-            localStorage.setItem('agenda_completa_final', JSON.stringify(agendamentos));
-            atualizarUI();
+            if (s.val()) {
+                agendamentos = s.val();
+                localStorage.setItem('agenda_completa_final', JSON.stringify(agendamentos));
+                atualizarUI();
+            }
         });
         database.ref('dias_bloqueados').on('value', (s) => {
-            diasBloqueados = s.val() || {};
-            localStorage.setItem('dias_bloqueados', JSON.stringify(diasBloqueados));
-            atualizarUI();
+            if (s.val()) {
+                diasBloqueados = s.val();
+                localStorage.setItem('dias_bloqueados', JSON.stringify(diasBloqueados));
+                atualizarUI();
+            }
         });
         database.ref('pacientes').on('value', (s) => {
-            pacientesGlobais = s.val() || [];
-            pacientes = [...pacientesGlobais];
-            localStorage.setItem('pacientes_dados', JSON.stringify(pacientesGlobais));
-            verificarDadosCarregados();
+            if (s.val()) {
+                pacientesGlobais = s.val();
+                pacientes = [...pacientesGlobais];
+                localStorage.setItem('pacientes_dados', JSON.stringify(pacientesGlobais));
+                verificarDadosCarregados();
+            }
         });
         database.ref('feriados_desbloqueados').on('value', (s) => {
-            feriadosDesbloqueados = s.val() || {};
-            localStorage.setItem('feriados_desbloqueados', JSON.stringify(feriadosDesbloqueados));
-            atualizarUI();
+            if (s.val()) {
+                feriadosDesbloqueados = s.val();
+                localStorage.setItem('feriados_desbloqueados', JSON.stringify(feriadosDesbloqueados));
+                atualizarUI();
+            }
         });
     }
 
@@ -161,10 +179,12 @@ function inicializarApp() {
     configurarEventListenersApp();
     atualizarUI();
     verificarNecessidadeBackup();
+    configurarBuscaGlobalAutocomplete();
+    configurarVagasEventListeners();
+    configurarAutocompleteAssinatura();
 }
 
 function atualizarUI() {
-    // ESTA FUNÇÃO CHAMA atualizarCalendario - AGORA ELA EXISTIRÁ ABAIXO
     atualizarCalendario();
     atualizarResumoMensal();
     atualizarResumoSemanal(new Date());
@@ -173,7 +193,7 @@ function atualizarUI() {
 }
 
 // ============================================
-// 3. CALENDÁRIO (RESTAURADO)
+// 3. CALENDÁRIO E DATA
 // ============================================
 
 function voltarMes() {
@@ -272,7 +292,7 @@ function atualizarCalendario() {
 }
 
 // ============================================
-// 4. RENDERIZAÇÃO DE CARDS (VISUAL "ANEXO 1")
+// 4. RENDERIZAÇÃO DOS CARDS
 // ============================================
 
 function calcularResumoMensal(data) {
@@ -515,6 +535,8 @@ function gerarVagasTurno(agendamentosTurno, turno, data) {
     return html + '</div>';
 }
 
+// --- FUNÇÕES DE AÇÃO DOS BOTÕES (RESTAURADAS) ---
+
 function agendarPaciente(event, data, turno, vaga) {
     event.preventDefault();
     const form = event.target;
@@ -563,7 +585,50 @@ function agendarPaciente(event, data, turno, vaga) {
     mostrarNotificacao('Agendamento salvo com sucesso!', 'success');
 }
 
-// --- FUNÇÕES COMPLEMENTARES ---
+function iniciarEdicao(data, turno, vaga) { slotEmEdicao = { data, turno, vaga }; exibirAgendamentos(data); }
+function cancelarEdicao() { slotEmEdicao = null; exibirAgendamentos(dataSelecionada); }
+function limparFormulario(btn) { 
+    const f = btn.closest('form'); 
+    if(f) { f.reset(); f.querySelector('[name="numero"]')?.focus(); } 
+}
+
+// CORREÇÃO CRÍTICA: A função marcarStatus estava com parâmetros incorretos na versão anterior
+function marcarStatus(data, turno, vaga, novoStatus) {
+    const agendamento = agendamentos[data]?.[turno]?.find(a => a.vaga === vaga);
+    if (!agendamento) return;
+    if (novoStatus === 'Justificou') { abrirModalJustificativa(data, turno, vaga); return; }
+    
+    agendamento.status = (agendamento.status === novoStatus) ? 'Aguardando' : novoStatus;
+    if (agendamento.status !== 'Justificou') delete agendamento.justificativa;
+    
+    salvarAgendamentos();
+    exibirAgendamentos(data);
+    atualizarResumoMensal();
+}
+
+// CORREÇÃO CRÍTICA: A exclusão estava falhando silenciosamente
+function executarCancelamento(data, turno, vaga) {
+    if (!agendamentos[data]?.[turno]) return;
+    const index = agendamentos[data][turno].findIndex(a => a.vaga === vaga);
+    
+    if (index !== -1) {
+        agendamentos[data][turno].splice(index, 1);
+        
+        // Limpa objetos vazios para evitar sujeira no DB
+        if (agendamentos[data][turno].length === 0) delete agendamentos[data][turno];
+        if (Object.keys(agendamentos[data]).length === 0) delete agendamentos[data];
+
+        salvarAgendamentos();
+        
+        // Atualiza a UI imediatamente
+        selecionarDia(data, document.querySelector(`.day[data-date="${data}"]`));
+        atualizarCalendario();
+        atualizarResumoMensal();
+        atualizarResumoSemanal(new Date(data + 'T12:00:00'));
+        mostrarNotificacao('Cancelado com sucesso.', 'info');
+    }
+    fecharModalConfirmacao();
+}
 
 function mostrarTurno(turno) {
     turnoAtivo = turno;
@@ -578,32 +643,7 @@ function mostrarTurno(turno) {
     }
 }
 
-function iniciarEdicao(data, turno, vaga) { slotEmEdicao = { data, turno, vaga }; exibirAgendamentos(data); }
-function cancelarEdicao() { slotEmEdicao = null; exibirAgendamentos(dataSelecionada); }
-function limparFormulario(btn) { 
-    const f = btn.closest('form'); 
-    if(f) { f.reset(); f.querySelector('[name="numero"]')?.focus(); } 
-}
-function marcarStatus(d, t, v, s) {
-    const ag = agendamentos[d]?.[t]?.find(a => a.vaga === v);
-    if (!ag) return;
-    if (s === 'Justificou') { abrirModalJustificativa(d, t, v); return; }
-    ag.status = (ag.status === s) ? 'Aguardando' : s;
-    if (ag.status !== 'Justificou') delete ag.justificativa;
-    salvarAgendamentos(); exibirAgendamentos(d);
-}
-
-function executarCancelamento(d, t, v) {
-    if (!agendamentos[d]?.[t]) return;
-    const idx = agendamentos[d][t].findIndex(a=>a.vaga===v);
-    if(idx !== -1) {
-        agendamentos[d][t].splice(idx,1);
-        if (agendamentos[d][t].length === 0) delete agendamentos[d][t];
-        if (Object.keys(agendamentos[d]).length === 0) delete agendamentos[d];
-        salvarAgendamentos(); selecionarDia(d, document.querySelector(`.day[data-date="${d}"]`)); mostrarNotificacao('Cancelado com sucesso.', 'info');
-    }
-    fecharModalConfirmacao();
-}
+// --- OUTRAS FUNÇÕES ---
 
 function configurarAutopreenchimento(form) {
     const inputs = form.querySelectorAll('input[name="numero"], input[name="nome"], input[name="cns"], input[name="tecRef"]');
