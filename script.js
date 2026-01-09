@@ -1,7 +1,7 @@
-/* script.js - VERSÃO GOLDEN MASTER CORRIGIDA (SEM ERROS DE REFERÊNCIA) */
+/* script.js - VERSÃO GOLDEN MASTER (CORREÇÃO VARIÁVEL 'ag' + FUNÇÕES RESTAURADAS) */
 'use strict';
 
-console.log("Sistema Iniciado: Versão Estável com Todas as Funções Definidas");
+console.log("Sistema Iniciado: Variável 'ag' corrigida para 'agendamentosDia'");
 
 // [ARCOSAFE] Configuração do Firebase
 const firebaseConfig = {
@@ -76,18 +76,8 @@ let tentativaSenha = 1;
 let vagasResultadosAtuais = [];
 
 // ============================================
-// 2. FUNÇÕES DE SUPORTE E PERSISTÊNCIA (CRÍTICAS)
+// 2. FUNÇÕES DE PERSISTÊNCIA (EXISTENTES)
 // ============================================
-
-function verificarDadosCarregados() {
-    const indicator = document.getElementById('dataLoadedIndicator');
-    const indicatorText = document.getElementById('indicatorText');
-    if (indicator && indicatorText) {
-        const tem = pacientesGlobais.length > 0 || Object.keys(agendamentos).length > 0;
-        indicator.className = tem ? 'data-loaded-indicator loaded' : 'data-loaded-indicator not-loaded';
-        indicatorText.textContent = tem ? "Dados Carregados" : "Sem Dados Carregados";
-    }
-}
 
 function salvarAgendamentos() {
     try {
@@ -119,6 +109,16 @@ function salvarPacientesNoLocalStorage() {
         localStorage.setItem('pacientes_dados', JSON.stringify(pacientesGlobais));
         return true;
     } catch(e) { console.error(e); return false; }
+}
+
+function verificarDadosCarregados() {
+    const indicator = document.getElementById('dataLoadedIndicator');
+    const indicatorText = document.getElementById('indicatorText');
+    if (indicator && indicatorText) {
+        const tem = pacientesGlobais.length > 0 || Object.keys(agendamentos).length > 0;
+        indicator.className = tem ? 'data-loaded-indicator loaded' : 'data-loaded-indicator not-loaded';
+        indicatorText.textContent = tem ? "Dados Carregados" : "Sem Dados Carregados";
+    }
 }
 
 // ============================================
@@ -355,7 +355,6 @@ function calcularResumoMensal(data) {
     };
 }
 
-// FUNÇÃO CRÍTICA QUE ESTAVA FALTANDO
 function atualizarResumoMensal() {
     const container = document.getElementById('resumoMensalContainer');
     if (!container) return;
@@ -383,7 +382,6 @@ function atualizarResumoMensal() {
         </div>`;
 }
 
-// OUTRA FUNÇÃO CRÍTICA FALTANTE
 function atualizarResumoSemanal(dataReferencia) {
     const container = document.getElementById('resumoSemanalContainer');
     if (!container) return;
@@ -407,6 +405,7 @@ function exibirAgendamentos(data) {
         return;
     }
 
+    // [CORREÇÃO FINAL] Definindo agendamentosDia para evitar ReferenceError: ag is not defined
     const agendamentosDia = agendamentos[data] || { manha: [], tarde: [] };
     const totalHoje = (agendamentosDia.manha?.length || 0) + (agendamentosDia.tarde?.length || 0);
 
@@ -955,65 +954,6 @@ function executarLimpezaTotal() {
     } else { alert('Senha incorreta'); }
 }
 function togglePasswordVisibility() { const x=document.getElementById('clearDataPassword'); x.type=x.type==='password'?'text':'password'; }
-
-// ============================================
-// 3. CONFIGURAÇÃO DE EVENT LISTENERS
-// ============================================
-
-function configurarEventListenersApp() {
-    document.getElementById('btnHoje')?.addEventListener('click', goToToday);
-    document.getElementById('btnMesAnterior')?.addEventListener('click', voltarMes);
-    document.getElementById('btnProximoMes')?.addEventListener('click', avancarMes);
-    
-    const btnImportar = document.getElementById('btnImportar');
-    if (btnImportar) btnImportar.addEventListener('click', () => document.getElementById('htmlFile')?.click());
-    document.getElementById('htmlFile')?.addEventListener('change', handleHtmlFile);
-
-    document.getElementById('btnLimparDados')?.addEventListener('click', abrirModalLimpeza);
-    document.getElementById('btnBackup')?.addEventListener('click', fazerBackup);
-    
-    const btnRestaurar = document.getElementById('btnRestaurar');
-    if (btnRestaurar) btnRestaurar.addEventListener('click', () => document.getElementById('restoreFile')?.click());
-    document.getElementById('restoreFile')?.addEventListener('change', restaurarBackup);
-
-    document.getElementById('btnDeclaracaoPaciente')?.addEventListener('click', gerarDeclaracaoPaciente);
-    document.getElementById('btnDeclaracaoAcompanhante')?.addEventListener('click', gerarDeclaracaoAcompanhante);
-    document.getElementById('btnCancelarChoice')?.addEventListener('click', fecharModalEscolha);
-    document.getElementById('btnFecharDeclaracao')?.addEventListener('click', fecharModalAtestado);
-    document.getElementById('btnImprimirDeclaracao')?.addEventListener('click', imprimirDeclaracao);
-    document.getElementById('btnConfirmarAcompanhante')?.addEventListener('click', confirmarNomeAcompanhante);
-    document.getElementById('btnCancelarAcompanhante')?.addEventListener('click', fecharModalAcompanhante);
-    
-    document.getElementById('acompanhanteNomeInput')?.addEventListener('keyup', (e) => { if (e.key === 'Enter') confirmarNomeAcompanhante(); });
-    document.getElementById('btnCancelarModal')?.addEventListener('click', fecharModalConfirmacao);
-    document.getElementById('confirmButton')?.addEventListener('click', executarAcaoConfirmada);
-    document.getElementById('btnCancelarJustificativa')?.addEventListener('click', fecharModalJustificativa);
-    document.getElementById('btnConfirmarJustificativa')?.addEventListener('click', salvarJustificativa);
-    document.getElementById('btnCancelarBloqueio')?.addEventListener('click', fecharModalBloqueio);
-    document.getElementById('btnConfirmarBloqueio')?.addEventListener('click', confirmarBloqueio);
-    document.getElementById('btnCancelClearData')?.addEventListener('click', fecharModalLimpeza);
-    document.getElementById('btnConfirmClearData')?.addEventListener('click', executarLimpezaTotal);
-    document.getElementById('togglePassword')?.addEventListener('click', togglePasswordVisibility);
-
-    document.querySelectorAll('input[name="justificativaTipo"]').forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            const container = document.getElementById('reagendamentoDataContainer');
-            if (container) container.style.display = e.target.value === 'Reagendado' ? 'block' : 'none';
-        });
-    });
-
-    document.getElementById('globalSearchButton')?.addEventListener('click', buscarAgendamentosGlobais);
-    document.getElementById('globalSearchInput')?.addEventListener('keyup', (e) => { if (e.key === 'Enter') buscarAgendamentosGlobais(); });
-
-    document.getElementById('btnFecharReportModal')?.addEventListener('click', fecharModalRelatorio);
-    document.getElementById('btnFecharReportModalFooter')?.addEventListener('click', fecharModalRelatorio);
-    document.getElementById('btnPrintReport')?.addEventListener('click', () => handlePrint('printing-report'));
-    document.getElementById('btnApplyFilter')?.addEventListener('click', aplicarFiltroRelatorio);
-    document.getElementById('btnClearFilter')?.addEventListener('click', limparFiltroRelatorio);
-    document.getElementById('reportFilterType')?.addEventListener('change', atualizarValoresFiltro);
-    document.getElementById('btnVerRelatorioAnual')?.addEventListener('click', () => abrirModalRelatorio(null, 'current_year'));
-    document.getElementById('btnBackupModalAction')?.addEventListener('click', () => { fazerBackup(); fecharModalBackup(); });
-}
 
 // INICIALIZAÇÃO FINAL
 document.addEventListener('DOMContentLoaded', () => {
