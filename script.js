@@ -1,7 +1,7 @@
-/* script.js - VERSÃO RESTAURADA (VISUAL IDÊNTICO AO ANEXO 1) */
+/* script.js - VERSÃO FINAL (CORREÇÃO DE ACENTUAÇÃO E VISUAL) */
 'use strict';
 
-console.log("Sistema Iniciado: Visual Restaurado (Pixel-Perfect) + Login Corrigido");
+console.log("Sistema Iniciado: Correção de Encoding (ISO-8859-1) Aplicada");
 
 // [ARCOSAFE] Configuração do Firebase
 const firebaseConfig = {
@@ -76,7 +76,7 @@ let tentativaSenha = 1;
 let vagasResultadosAtuais = [];
 
 // ============================================
-// 2. LOGIN E INICIALIZAÇÃO (FUNCIONAL)
+// 2. LOGIN E INICIALIZAÇÃO
 // ============================================
 
 function inicializarLogin() {
@@ -92,7 +92,6 @@ function configurarEventListenersLogin() {
     const loginButton = document.getElementById('loginButton');
     const loginSenhaInput = document.getElementById('loginSenha');
     if (loginButton) {
-        // Clone para remover listeners antigos e evitar duplicação
         const novoLoginButton = loginButton.cloneNode(true);
         loginButton.parentNode.replaceChild(novoLoginButton, loginButton);
         novoLoginButton.addEventListener('click', tentarLogin);
@@ -173,7 +172,7 @@ function atualizarUI() {
 }
 
 // ============================================
-// 3. RENDERIZAÇÃO (VISUAL RESTAURADO)
+// 3. RENDERIZAÇÃO
 // ============================================
 
 function exibirAgendamentos(data) {
@@ -196,7 +195,6 @@ function exibirAgendamentos(data) {
     const agendamentosDia = agendamentos[data] || { manha: [], tarde: [] };
     const totalHoje = (agendamentosDia.manha?.length || 0) + (agendamentosDia.tarde?.length || 0);
 
-    // [VISUAL] Estrutura do Header e Tabs (Mantida do original)
     container.innerHTML = `
         <div class="appointment-header">
             <h2 class="appointment-title">${dataFmt}</h2>
@@ -221,10 +219,10 @@ function exibirAgendamentos(data) {
                     ${turnoAtivo === 'manha' ? '<i class="bi bi-brightness-high-fill"></i> MANHÃ (08:00 - 12:00)' : '<i class="bi bi-moon-stars-fill"></i> TARDE (13:00 - 17:00)'}
                 </div>
                 <div id="turno-manha" class="turno-content ${turnoAtivo === 'manha' ? 'active' : ''}">
-                    ${bloqueio?.manha ? criarBlockedTurnoState('Manhã', bloqueio.motivo, bloqueio.isHoliday) : gerarVagasTurno(agendamentosDia.manha, 'manha', data)}
+                    ${bloqueio?.manha ? criarBlockedTurnoState('Manhã', bloqueio.motivo, bloqueio.isHoliday) : gerarVagasTurno(ag.manha, 'manha', data)}
                 </div>
                 <div id="turno-tarde" class="turno-content ${turnoAtivo === 'tarde' ? 'active' : ''}">
-                    ${bloqueio?.tarde ? criarBlockedTurnoState('Tarde', bloqueio.motivo, bloqueio.isHoliday) : gerarVagasTurno(agendamentosDia.tarde, 'tarde', data)}
+                    ${bloqueio?.tarde ? criarBlockedTurnoState('Tarde', bloqueio.motivo, bloqueio.isHoliday) : gerarVagasTurno(ag.tarde, 'tarde', data)}
                 </div>
             </div>
         </div>
@@ -244,7 +242,6 @@ function exibirAgendamentos(data) {
     }, 0);
 }
 
-// [VISUAL CRÍTICO] RESTAURAÇÃO EXATA DO SCRIPT.TXT
 function gerarVagasTurno(agendamentosTurno, turno, data) {
     let html = '<div class="vagas-grid">';
     agendamentosTurno = agendamentosTurno || [];
@@ -271,7 +268,6 @@ function gerarVagasTurno(agendamentosTurno, turno, data) {
         `;
 
         if (agendamento && !estaEditando) {
-            // [VISUAL] Card Ocupado - Estrutura Original
             const justificativaHTML = (agendamento.status === 'Justificou' && agendamento.justificativa) ? 
                 `<div class="justificativa-display"><p><strong>Justificativa:</strong> ${agendamento.justificativa.tipo === 'Reagendado' ? `Reagendado para ${new Date(agendamento.justificativa.detalhe + 'T12:00:00').toLocaleDateString('pt-BR')}` : 'Entrará em contato com o TR.'}</p></div>` : '';
             
@@ -301,11 +297,10 @@ function gerarVagasTurno(agendamentosTurno, turno, data) {
                     <div class="agendamento-acoes">
                         <button class="btn btn-edit" onclick="iniciarEdicao('${data}', '${turno}', ${i})"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16"><path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/><path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/></svg> <span>Editar</span></button>
                         <button class="btn btn-secondary btn-sm" onclick="iniciarProcessoDeclaracao('${data}', '${turno}', ${i})">Imprimir Declaração</button>
-                        <button class="btn btn-danger btn-cancel-appointment" onclick="abrirModalConfirmacao('Cancelar?', () => executarCancelamento('${data}', '${turno}', ${i}))">Cancelar</button>
+                        <button class="btn btn-danger btn-cancel-appointment" onclick="abrirModalConfirmacao('Cancelar?', () => executarCancelamento('${data}','${turno}',${i}))">Cancelar</button>
                     </div>
                 </div>`;
         } else {
-            // [VISUAL] Card Disponível/Formulário - ESTRUTURA RESTAURADA COM DISTRITO, CID E SOLICITAÇÕES
             const solicitacoesSalvas = dadosPreenchimento.solicitacoes || [];
             html += `
                 <form class="vaga-form" onsubmit="agendarPaciente(event, '${data}', '${turno}', ${i})">
@@ -387,11 +382,10 @@ function gerarVagasTurno(agendamentosTurno, turno, data) {
     return html + '</div>';
 }
 
-// --- LÓGICA DE AGENDAMENTO (COM PROTEÇÃO) ---
 function agendarPaciente(event, data, turno, vaga) {
     event.preventDefault();
     const form = event.target;
-    // Proteção básica para não quebrar se o HTML não tiver o campo (embora agora tenha)
+    // Proteção básica para não quebrar se o HTML não tiver o campo
     const solicitacoes = Array.from(form.querySelectorAll('input[name="solicitacao"]:checked')).map(cb => cb.value);
     const numeroPaciente = form.querySelector('[name="numero"]').value.trim();
 
@@ -541,17 +535,14 @@ function verificarDuplicidadeAoDigitar(inputElement, data, turno, vaga) {
     }
 }
 
-// --- MODAIS, IMPRESSÃO E HELPERS ---
-
-function criarBlockedState(data, dataFmt, motivo, tipo, isHoliday) {
-    const icon = isHoliday ? 'bi-calendar-x-fill' : 'bi-lock-fill';
-    return `<div class="appointment-header"><h2 class="appointment-title">${dataFmt}</h2><div class="header-actions"><button id="btnLockDay" class="btn-icon btn-lock"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-unlock-fill" viewBox="0 0 16 16"><path d="M11 1a2 2 0 0 0-2 2v4a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h5V3a3 3 0 0 1 6 0v4a.5.5 0 0 1-1 0V3a2 2 0 0 0-2-2"/></svg></button></div></div><div class="glass-card" style="border-top-left-radius:0;border-top-right-radius:0;border-top:none;"><div class="card-content"><div class="blocked-state"><i class="bi ${icon} blocked-icon"></i><h3>Agenda Bloqueada</h3><p>Motivo: <strong>${motivo||'Não especificado'}</strong></p></div></div></div>`;
-}
-function criarBlockedTurnoState(turno, motivo, isHoliday) {
-    const icon = isHoliday ? 'bi-calendar-x' : 'bi-lock-fill';
-    return `<div class="blocked-state turno"><i class="bi ${icon} blocked-icon"></i><h4>Turno da ${turno} Bloqueado</h4><p>Motivo: <strong>${motivo||'Não especificado'}</strong></p></div>`;
+function mostrarNotificacao(msg, tipo='info') {
+    const c = document.getElementById('floating-notifications');
+    if(!c) return;
+    const n = document.createElement('div'); n.className = `floating-notification ${tipo}`; n.textContent = msg;
+    c.appendChild(n); setTimeout(()=>n.remove(), 5000);
 }
 
+// Declarações, Modais e Impressão
 function iniciarProcessoDeclaracao(d,t,v) { atestadoEmGeracao = { ...agendamentos[d][t].find(a=>a.vaga===v), data:d, turno:t }; document.getElementById('choiceModal').style.display='flex'; }
 function fecharModalEscolha() { document.getElementById('choiceModal').style.display='none'; atestadoEmGeracao=null; }
 function gerarDeclaracaoPaciente() { if(!atestadoEmGeracao)return; montarHTMLDeclaracao(atestadoEmGeracao.nome); fecharModalEscolha(); document.getElementById('declaracaoModal').style.display='flex'; }
@@ -638,7 +629,9 @@ function handleHtmlFile(e) {
              }
         });
         salvarPacientesNoLocalStorage(); mostrarNotificacao('Pacientes importados.', 'success');
-    }; r.readAsText(e.target.files[0]);
+    }; 
+    // [ARCOSAFE-FIX] Força leitura ANSI para corrigir erro de acentos ()
+    r.readAsText(e.target.files[0], 'ISO-8859-1');
 }
 function buscarAgendamentosGlobais() {
     const val = document.getElementById('globalSearchInput').value.toLowerCase();
