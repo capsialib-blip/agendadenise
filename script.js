@@ -1,7 +1,7 @@
-/* script.js - VERSÃO FINAL (CORREÇÃO DE ACENTUAÇÃO E VISUAL) */
+/* script.js - VERSÃO FINAL (CALENDÁRIO RESTAURADO + CARDS CORRIGIDOS) */
 'use strict';
 
-console.log("Sistema Iniciado: Correção de Encoding (ISO-8859-1) Aplicada");
+console.log("Sistema Iniciado: Calendário + Cards Visuais (Anexo 1) + Correções");
 
 // [ARCOSAFE] Configuração do Firebase
 const firebaseConfig = {
@@ -172,8 +172,140 @@ function atualizarUI() {
 }
 
 // ============================================
-// 3. RENDERIZAÇÃO
+// 3. CALENDÁRIO (RESTAURADO)
 // ============================================
+
+function voltarMes() {
+    if (mesAtual === 0) { mesAtual = 11; anoAtual--; } else { mesAtual--; }
+    atualizarCalendario();
+    atualizarResumoMensal();
+    atualizarResumoSemanal(new Date(anoAtual, mesAtual, 1));
+}
+
+function avancarMes() {
+    if (mesAtual === 11) { mesAtual = 0; anoAtual++; } else { mesAtual++; }
+    atualizarCalendario();
+    atualizarResumoMensal();
+    atualizarResumoSemanal(new Date(anoAtual, mesAtual, 1));
+}
+
+function getFeriados(ano) {
+    function calcularPascoa(a) {
+        const c=Math.floor, d=a%19, e=c(a/100), f=a%100, g=c(e/4), h=e%4, i=c((e+8)/25), j=c((e-i+1)/3), k=(19*d+e-g-j+15)%30, l=c(f/4), m=f%4, n=(32+2*h+2*l-k-m)%7, o=c((d+11*k+22*n)/451), p=c((k+n-7*o+114)/31), q=(k+n-7*o+114)%31+1;
+        return new Date(a,p-1,q);
+    }
+    const pascoa = calcularPascoa(ano);
+    const umDia = 86400000;
+    const map = new Map();
+    const fixos = [
+        {m:1,d:1,n:"Confraternização Universal"},{m:4,d:21,n:"Tiradentes"},{m:5,d:1,n:"Dia do Trabalho"},
+        {m:9,d:7,n:"Independência do Brasil"},{m:10,d:12,n:"Nossa Senhora Aparecida"},{m:11,d:2,n:"Finados"},
+        {m:11,d:15,n:"Proclamação da República"},{m:12,d:25,n:"Natal"}
+    ];
+    fixos.forEach(f => map.set(`${ano}-${String(f.m).padStart(2,'0')}-${String(f.d).padStart(2,'0')}`, f.n));
+    const moveis = [
+        {d:new Date(pascoa.getTime()-47*umDia), n:"Carnaval"},
+        {d:new Date(pascoa.getTime()-2*umDia), n:"Sexta-feira Santa"},
+        {d:new Date(pascoa.getTime()+60*umDia), n:"Corpus Christi"}
+    ];
+    moveis.forEach(f => map.set(f.d.toISOString().split('T')[0], f.n));
+    return map;
+}
+
+function atualizarCalendario() {
+    const container = document.getElementById('calendarContainer');
+    const mesAnoEl = document.getElementById('mesAno');
+    if (!container || !mesAnoEl) return;
+
+    mesAnoEl.textContent = `${meses[mesAtual]} ${anoAtual}`;
+    container.innerHTML = '';
+    const feriadosDoAno = getFeriados(anoAtual);
+    const grid = document.createElement('div');
+    grid.className = 'calendar-grid';
+
+    ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].forEach(d => {
+        const el = document.createElement('div'); el.className = 'weekday'; el.textContent = d; grid.appendChild(el);
+    });
+
+    const primeiroDia = new Date(anoAtual, mesAtual, 1).getDay();
+    const diasNoMes = new Date(anoAtual, mesAtual + 1, 0).getDate();
+    const hoje = new Date().toISOString().split('T')[0];
+
+    for (let i = 0; i < primeiroDia; i++) grid.appendChild(document.createElement('div'));
+
+    for (let dia = 1; dia <= diasNoMes; dia++) {
+        const dStr = `${anoAtual}-${String(mesAtual+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
+        const diaSemana = new Date(dStr + "T00:00:00").getDay();
+        const el = document.createElement('div');
+        el.className = 'day'; el.textContent = dia; el.setAttribute('data-date', dStr);
+
+        const feriado = feriadosDoAno.get(dStr);
+        if (feriado && !feriadosDesbloqueados[dStr]) {
+            el.classList.add('day-holiday'); el.title = feriado;
+            if (!diasBloqueados[dStr] || !diasBloqueados[dStr].manual) {
+                diasBloqueados[dStr] = { diaInteiro: true, motivo: feriado, isHoliday: true };
+            }
+        }
+        
+        const bloq = diasBloqueados[dStr];
+        let isBlocked = false;
+        if (bloq) {
+            if (bloq.diaInteiro || (bloq.manha && bloq.tarde)) { el.classList.add('blocked-day'); isBlocked = true; }
+            else { if (bloq.manha) el.classList.add('blocked-morning'); if (bloq.tarde) el.classList.add('blocked-afternoon'); }
+        }
+
+        if (diaSemana === 0 || diaSemana === 6) {
+            el.classList.add('weekend');
+        } else {
+            el.classList.add('workday');
+            el.onclick = (e) => { e.preventDefault(); e.stopPropagation(); selecionarDia(dStr, el); };
+            const temAgendamentos = agendamentos[dStr] && ((agendamentos[dStr].manha?.length) || (agendamentos[dStr].tarde?.length));
+            if (temAgendamentos && !isBlocked) el.classList.add('day-has-appointments');
+        }
+
+        if (dStr === hoje) el.classList.add('today');
+        if (dStr === dataSelecionada) el.classList.add('selected');
+        grid.appendChild(el);
+    }
+    container.appendChild(grid);
+}
+
+// ============================================
+// 4. RENDERIZAÇÃO DE CARDS (VISUAL "ANEXO 1")
+// ============================================
+
+function calcularResumoMensal(data) {
+    const ano = new Date(data).getFullYear();
+    const mes = new Date(data).getMonth();
+    const daysInMonth = new Date(ano, mes + 1, 0).getDate();
+    let businessDays = 0;
+    for (let i = 1; i <= daysInMonth; i++) {
+        const d = new Date(ano, mes, i).getDay();
+        if (d !== 0 && d !== 6) businessDays++;
+    }
+    const capTotal = businessDays * 16;
+    let occ = 0, abs = 0, att = 0;
+    const prefix = `${ano}-${String(mes + 1).padStart(2, '0')}`;
+    
+    Object.keys(agendamentos).forEach(k => {
+        if (k.startsWith(prefix)) {
+            ['manha', 'tarde'].forEach(t => {
+                if (agendamentos[k][t]) agendamentos[k][t].forEach(a => {
+                    occ++;
+                    if (a.status === 'Faltou' || a.status === 'Justificou') abs++;
+                    if (a.status === 'Compareceu') att++;
+                });
+            });
+        }
+    });
+
+    return {
+        percentage: capTotal ? ((occ/capTotal)*100).toFixed(1) : 0,
+        occupiedCount: occ, capacityTotal: capTotal,
+        abstencaoCount: abs, abstencaoPercent: occ ? ((abs/occ)*100).toFixed(1) : 0,
+        atendimentoCount: att, atendimentoPercent: occ ? ((att/occ)*100).toFixed(1) : 0
+    };
+}
 
 function exibirAgendamentos(data) {
     const container = document.getElementById('appointmentsContainer');
@@ -219,10 +351,10 @@ function exibirAgendamentos(data) {
                     ${turnoAtivo === 'manha' ? '<i class="bi bi-brightness-high-fill"></i> MANHÃ (08:00 - 12:00)' : '<i class="bi bi-moon-stars-fill"></i> TARDE (13:00 - 17:00)'}
                 </div>
                 <div id="turno-manha" class="turno-content ${turnoAtivo === 'manha' ? 'active' : ''}">
-                    ${bloqueio?.manha ? criarBlockedTurnoState('Manhã', bloqueio.motivo, bloqueio.isHoliday) : gerarVagasTurno(ag.manha, 'manha', data)}
+                    ${bloqueio?.manha ? criarBlockedTurnoState('Manhã', bloqueio.motivo, bloqueio.isHoliday) : gerarVagasTurno(agendamentosDia.manha, 'manha', data)}
                 </div>
                 <div id="turno-tarde" class="turno-content ${turnoAtivo === 'tarde' ? 'active' : ''}">
-                    ${bloqueio?.tarde ? criarBlockedTurnoState('Tarde', bloqueio.motivo, bloqueio.isHoliday) : gerarVagasTurno(ag.tarde, 'tarde', data)}
+                    ${bloqueio?.tarde ? criarBlockedTurnoState('Tarde', bloqueio.motivo, bloqueio.isHoliday) : gerarVagasTurno(agendamentosDia.tarde, 'tarde', data)}
                 </div>
             </div>
         </div>
@@ -297,7 +429,7 @@ function gerarVagasTurno(agendamentosTurno, turno, data) {
                     <div class="agendamento-acoes">
                         <button class="btn btn-edit" onclick="iniciarEdicao('${data}', '${turno}', ${i})"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16"><path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/><path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/></svg> <span>Editar</span></button>
                         <button class="btn btn-secondary btn-sm" onclick="iniciarProcessoDeclaracao('${data}', '${turno}', ${i})">Imprimir Declaração</button>
-                        <button class="btn btn-danger btn-cancel-appointment" onclick="abrirModalConfirmacao('Cancelar?', () => executarCancelamento('${data}','${turno}',${i}))">Cancelar</button>
+                        <button class="btn btn-danger btn-cancel-appointment" onclick="abrirModalConfirmacao('Cancelar?', () => executarCancelamento('${data}', '${turno}', ${i}))">Cancelar</button>
                     </div>
                 </div>`;
         } else {
@@ -535,14 +667,17 @@ function verificarDuplicidadeAoDigitar(inputElement, data, turno, vaga) {
     }
 }
 
-function mostrarNotificacao(msg, tipo='info') {
-    const c = document.getElementById('floating-notifications');
-    if(!c) return;
-    const n = document.createElement('div'); n.className = `floating-notification ${tipo}`; n.textContent = msg;
-    c.appendChild(n); setTimeout(()=>n.remove(), 5000);
+// --- MODAIS, IMPRESSÃO E HELPERS ---
+
+function criarBlockedState(data, dataFmt, motivo, tipo, isHoliday) {
+    const icon = isHoliday ? 'bi-calendar-x-fill' : 'bi-lock-fill';
+    return `<div class="appointment-header"><h2 class="appointment-title">${dataFmt}</h2><div class="header-actions"><button id="btnLockDay" class="btn-icon btn-lock"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-unlock-fill" viewBox="0 0 16 16"><path d="M11 1a2 2 0 0 0-2 2v4a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h5V3a3 3 0 0 1 6 0v4a.5.5 0 0 1-1 0V3a2 2 0 0 0-2-2"/></svg></button></div></div><div class="glass-card" style="border-top-left-radius:0;border-top-right-radius:0;border-top:none;"><div class="card-content"><div class="blocked-state"><i class="bi ${icon} blocked-icon"></i><h3>Agenda Bloqueada</h3><p>Motivo: <strong>${motivo||'Não especificado'}</strong></p></div></div></div>`;
+}
+function criarBlockedTurnoState(turno, motivo, isHoliday) {
+    const icon = isHoliday ? 'bi-calendar-x' : 'bi-lock-fill';
+    return `<div class="blocked-state turno"><i class="bi ${icon} blocked-icon"></i><h4>Turno da ${turno} Bloqueado</h4><p>Motivo: <strong>${motivo||'Não especificado'}</strong></p></div>`;
 }
 
-// Declarações, Modais e Impressão
 function iniciarProcessoDeclaracao(d,t,v) { atestadoEmGeracao = { ...agendamentos[d][t].find(a=>a.vaga===v), data:d, turno:t }; document.getElementById('choiceModal').style.display='flex'; }
 function fecharModalEscolha() { document.getElementById('choiceModal').style.display='none'; atestadoEmGeracao=null; }
 function gerarDeclaracaoPaciente() { if(!atestadoEmGeracao)return; montarHTMLDeclaracao(atestadoEmGeracao.nome); fecharModalEscolha(); document.getElementById('declaracaoModal').style.display='flex'; }
@@ -630,7 +765,7 @@ function handleHtmlFile(e) {
         });
         salvarPacientesNoLocalStorage(); mostrarNotificacao('Pacientes importados.', 'success');
     }; 
-    // [ARCOSAFE-FIX] Força leitura ANSI para corrigir erro de acentos ()
+    // [ARCOSAFE-FIX] Força leitura ANSI para corrigir erro de acentos
     r.readAsText(e.target.files[0], 'ISO-8859-1');
 }
 function buscarAgendamentosGlobais() {
@@ -724,6 +859,65 @@ function executarLimpezaTotal() {
     } else { alert('Senha incorreta'); }
 }
 function togglePasswordVisibility() { const x=document.getElementById('clearDataPassword'); x.type=x.type==='password'?'text':'password'; }
+
+// ============================================
+// 3. CONFIGURAÇÃO DE EVENT LISTENERS
+// ============================================
+
+function configurarEventListenersApp() {
+    document.getElementById('btnHoje')?.addEventListener('click', goToToday);
+    document.getElementById('btnMesAnterior')?.addEventListener('click', voltarMes);
+    document.getElementById('btnProximoMes')?.addEventListener('click', avancarMes);
+    
+    const btnImportar = document.getElementById('btnImportar');
+    if (btnImportar) btnImportar.addEventListener('click', () => document.getElementById('htmlFile')?.click());
+    document.getElementById('htmlFile')?.addEventListener('change', handleHtmlFile);
+
+    document.getElementById('btnLimparDados')?.addEventListener('click', abrirModalLimpeza);
+    document.getElementById('btnBackup')?.addEventListener('click', fazerBackup);
+    
+    const btnRestaurar = document.getElementById('btnRestaurar');
+    if (btnRestaurar) btnRestaurar.addEventListener('click', () => document.getElementById('restoreFile')?.click());
+    document.getElementById('restoreFile')?.addEventListener('change', restaurarBackup);
+
+    document.getElementById('btnDeclaracaoPaciente')?.addEventListener('click', gerarDeclaracaoPaciente);
+    document.getElementById('btnDeclaracaoAcompanhante')?.addEventListener('click', gerarDeclaracaoAcompanhante);
+    document.getElementById('btnCancelarChoice')?.addEventListener('click', fecharModalEscolha);
+    document.getElementById('btnFecharDeclaracao')?.addEventListener('click', fecharModalAtestado);
+    document.getElementById('btnImprimirDeclaracao')?.addEventListener('click', imprimirDeclaracao);
+    document.getElementById('btnConfirmarAcompanhante')?.addEventListener('click', confirmarNomeAcompanhante);
+    document.getElementById('btnCancelarAcompanhante')?.addEventListener('click', fecharModalAcompanhante);
+    
+    document.getElementById('acompanhanteNomeInput')?.addEventListener('keyup', (e) => { if (e.key === 'Enter') confirmarNomeAcompanhante(); });
+    document.getElementById('btnCancelarModal')?.addEventListener('click', fecharModalConfirmacao);
+    document.getElementById('confirmButton')?.addEventListener('click', executarAcaoConfirmada);
+    document.getElementById('btnCancelarJustificativa')?.addEventListener('click', fecharModalJustificativa);
+    document.getElementById('btnConfirmarJustificativa')?.addEventListener('click', salvarJustificativa);
+    document.getElementById('btnCancelarBloqueio')?.addEventListener('click', fecharModalBloqueio);
+    document.getElementById('btnConfirmarBloqueio')?.addEventListener('click', confirmarBloqueio);
+    document.getElementById('btnCancelClearData')?.addEventListener('click', fecharModalLimpeza);
+    document.getElementById('btnConfirmClearData')?.addEventListener('click', executarLimpezaTotal);
+    document.getElementById('togglePassword')?.addEventListener('click', togglePasswordVisibility);
+
+    document.querySelectorAll('input[name="justificativaTipo"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            const container = document.getElementById('reagendamentoDataContainer');
+            if (container) container.style.display = e.target.value === 'Reagendado' ? 'block' : 'none';
+        });
+    });
+
+    document.getElementById('globalSearchButton')?.addEventListener('click', buscarAgendamentosGlobais);
+    document.getElementById('globalSearchInput')?.addEventListener('keyup', (e) => { if (e.key === 'Enter') buscarAgendamentosGlobais(); });
+
+    document.getElementById('btnFecharReportModal')?.addEventListener('click', fecharModalRelatorio);
+    document.getElementById('btnFecharReportModalFooter')?.addEventListener('click', fecharModalRelatorio);
+    document.getElementById('btnPrintReport')?.addEventListener('click', () => handlePrint('printing-report'));
+    document.getElementById('btnApplyFilter')?.addEventListener('click', aplicarFiltroRelatorio);
+    document.getElementById('btnClearFilter')?.addEventListener('click', limparFiltroRelatorio);
+    document.getElementById('reportFilterType')?.addEventListener('change', atualizarValoresFiltro);
+    document.getElementById('btnVerRelatorioAnual')?.addEventListener('click', () => abrirModalRelatorio(null, 'current_year'));
+    document.getElementById('btnBackupModalAction')?.addEventListener('click', () => { fazerBackup(); fecharModalBackup(); });
+}
 
 // INICIALIZAÇÃO FINAL
 document.addEventListener('DOMContentLoaded', () => {
