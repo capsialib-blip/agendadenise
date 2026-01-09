@@ -1,7 +1,7 @@
-/* script.js - VERSÃO FINAL ABSOLUTA (FULL) */
+/* script.js - VERSÃO GOLDEN MASTER (FIX CRITICAL FORM CRASH) */
 'use strict';
 
-console.log("Sistema Iniciado: Versão Completa Restaurada");
+console.log("Sistema Iniciado: Versão Blindada v20.2");
 
 // --- 1. CONFIGURAÇÃO FIREBASE ---
 const firebaseConfig = {
@@ -315,6 +315,7 @@ function exibirAgendamentos(data) {
                 ${bloq?.tarde ? criarBlockedTurnoState('Tarde', bloq.motivo) : gerarVagasTurno(ag.tarde, 'tarde', data)}
             </div>
         </div></div>
+        <datalist id="listaProfissionais"></datalist>
     `;
 
     container.innerHTML = html;
@@ -324,7 +325,14 @@ function exibirAgendamentos(data) {
     
     setTimeout(() => {
         document.querySelectorAll('.vaga-form').forEach(configurarAutopreenchimento);
+        popularSelectProfissionais();
     }, 50);
+}
+
+function popularSelectProfissionais() {
+    const dl = document.getElementById('listaProfissionais');
+    if (!dl) return;
+    dl.innerHTML = PROFISSIONAIS_LISTA.map(p => `<option value="${p.nome}">${p.funcao}</option>`).join('');
 }
 
 function gerarVagasTurno(lista = [], turno, data) {
@@ -364,22 +372,25 @@ function gerarVagasTurno(lista = [], turno, data) {
             `;
         } else {
             const d = editing ? ag : {};
+            // ADICIONADOS: input hidden para 'distrito' e 'cid' para evitar perda de dados e erros
             html += `
                 <div id="${cardId}" class="vaga-card ${editing ? 'editing' : ''}">
                     <div class="vaga-header ${turno}"><div>Vaga ${i} - ${editing ? 'Editando' : 'Disponível'}</div></div>
                     <div class="vaga-content">
                         <form class="vaga-form" onsubmit="agendarPaciente(event, '${data}', '${turno}', ${i})">
+                            <input type="hidden" name="distrito" value="${d.distrito||''}">
+                            <input type="hidden" name="cid" value="${d.cid||''}">
                             <div class="form-row">
                                 <div class="form-group autocomplete-container"><label>Nº:</label><input name="numero" class="form-input" required value="${d.numero||''}" onblur="verificarDuplicidadeAoDigitar(this,'${data}','${turno}',${i})"><div class="sugestoes-lista"></div></div>
                                 <div class="form-group autocomplete-container"><label>Nome:</label><input name="nome" class="form-input" required value="${d.nome||''}" onblur="verificarDuplicidadeAoDigitar(this,'${data}','${turno}',${i})"><div class="sugestoes-lista"></div></div>
                             </div>
                             <div class="form-row">
                                 <div class="form-group autocomplete-container"><label>CNS:</label><input name="cns" class="form-input" required value="${d.cns||''}" onblur="verificarDuplicidadeAoDigitar(this,'${data}','${turno}',${i})"><div class="sugestoes-lista"></div></div>
-                                <div class="form-group"><label>Téc. Ref:</label><input name="tecRef" class="form-input" value="${d.tecRef||''}"></div>
+                                <div class="form-group"><label>Téc. Ref:</label><input name="tecRef" class="form-input" list="listaProfissionais" value="${d.tecRef||''}"></div>
                             </div>
                             <div class="form-group full-width"><label>Observação:</label><textarea name="observacao" class="form-input" rows="2">${d.observacao||''}</textarea></div>
                             <div class="form-actions-wrapper">
-                                <div class="form-group"><label>Agendado por:</label><input name="agendadoPor" class="form-input" required value="${d.agendadoPor||''}"></div>
+                                <div class="form-group"><label>Agendado por:</label><input name="agendadoPor" class="form-input" required list="listaProfissionais" value="${d.agendadoPor||''}"></div>
                                 <div class="form-buttons">
                                     ${editing ? `<button type="button" class="btn btn-secondary" onclick="cancelarEdicao()">Cancelar</button>` : `<button type="button" class="btn btn-secondary" onclick="limparFormulario(this)">Limpar</button>`}
                                     <button type="submit" class="btn btn-success">${editing ? 'Salvar' : 'Agendar'}</button>
@@ -599,7 +610,22 @@ function confirmarBloqueio() {
     salvarBloqueios(); atualizarUI(); fecharModalBloqueio();
 }
 
-// Agendamento e Edição
+function salvarBloqueios() {
+    if (database) database.ref('dias_bloqueados').set(diasBloqueados);
+    localStorage.setItem('dias_bloqueados', JSON.stringify(diasBloqueados));
+}
+
+function salvarAgendamentos() {
+    if (database) database.ref('agendamentos').set(agendamentos);
+    localStorage.setItem('agenda_completa_final', JSON.stringify(agendamentos));
+}
+
+function salvarPacientesNoLocalStorage() {
+    if (database) database.ref('pacientes').set(pacientesGlobais);
+    localStorage.setItem('pacientes_dados', JSON.stringify(pacientesGlobais));
+}
+
+// --- CORE FIX: AGENDAMENTO BLINDADO ---
 function agendarPaciente(e, d, t, v) {
     e.preventDefault();
     const f = e.target;
@@ -608,13 +634,22 @@ function agendarPaciente(e, d, t, v) {
     const exists = [...(agendamentos[d]?.manha||[]), ...(agendamentos[d]?.tarde||[])].some(a => a.numero === num && (!slotEmEdicao || slotEmEdicao.vaga !== v));
     if(exists) { alert('Paciente já agendado hoje!'); return; }
 
+    // BLINDAGEM CONTRA ERROS JS EM CAMPOS INEXISTENTES
     const novo = {
-        vaga: v, numero: f.numero.value, nome: f.nome.value, cns: f.cns.value,
-        distrito: f.distrito.value, tecRef: f.tecRef.value, cid: f.cid.value,
-        agendadoPor: f.agendadoPor.value, observacao: f.observacao.value,
+        vaga: v, 
+        numero: f.numero.value, 
+        nome: f.nome.value, 
+        cns: f.cns.value,
+        // Usamos f.campo ? f.campo.value : '' para garantir que não crash se o input hidden falhar
+        distrito: f.distrito ? f.distrito.value : '', 
+        tecRef: f.tecRef ? f.tecRef.value : '', 
+        cid: f.cid ? f.cid.value : '',
+        agendadoPor: f.agendadoPor ? f.agendadoPor.value : '', 
+        observacao: f.observacao ? f.observacao.value : '',
         status: 'Aguardando',
-        primeiraConsulta: f.primeiraConsulta.checked,
-        solicitacoes: Array.from(f.querySelectorAll('input[name="solicitacao"]:checked')).map(cb => cb.value)
+        // Checkboxes: só tenta ler se existirem
+        primeiraConsulta: f.primeiraConsulta ? f.primeiraConsulta.checked : false,
+        solicitacoes: f.querySelectorAll ? Array.from(f.querySelectorAll('input[name="solicitacao"]:checked')).map(cb => cb.value) : []
     };
     
     if(!agendamentos[d]) agendamentos[d] = { manha: [], tarde: [] };
@@ -646,7 +681,7 @@ function executarCancelamento(d, t, v) {
     fecharModalConfirmacao();
 }
 
-// Autocomplete
+// Autocomplete Corrigido para Preencher Inputs Ocultos
 function configurarAutopreenchimento(form) {
     const inputs = form.querySelectorAll('input[name="numero"], input[name="nome"], input[name="cns"]');
     inputs.forEach(inp => {
@@ -661,12 +696,18 @@ function configurarAutopreenchimento(form) {
         });
     });
 }
+
 window.preencherForm = function(el, num) {
     const p = pacientesGlobais.find(x => x.numero === num);
     const form = el.closest('form');
     if(p && form) {
-        form.numero.value = p.numero; form.nome.value = p.nome; form.cns.value = p.cns;
-        form.distrito.value = p.distrito; form.tecRef.value = p.tecRef; form.cid.value = p.cid;
+        form.numero.value = p.numero; 
+        form.nome.value = p.nome; 
+        form.cns.value = p.cns;
+        // Só preenche se o campo existir no form (agora existem como hidden)
+        if(form.distrito) form.distrito.value = p.distrito || ''; 
+        if(form.tecRef) form.tecRef.value = p.tecRef || ''; 
+        if(form.cid) form.cid.value = p.cid || '';
     }
     el.parentElement.style.display = 'none';
 };
@@ -692,6 +733,7 @@ function montarHTMLDeclaracao(p, a=null) {
 }
 function fecharModalAtestado() { document.getElementById('declaracaoModal').style.display='none'; }
 function imprimirDeclaracao() { window.print(); }
+function imprimirAgendaDiaria() { window.print(); }
 
 function abrirModalConfirmacao(msg, act) { 
     document.getElementById('confirmMessage').textContent = msg; 
@@ -790,7 +832,6 @@ function imprimirVagas() { window.print(); }
 
 // Relatórios
 function atualizarResumoSemanal(d) {
-    // Implementação simplificada para o gráfico
     const c = document.getElementById('resumoSemanalContainer');
     if(c) c.innerHTML = '<p>Resumo Semanal Atualizado</p>'; 
 }
