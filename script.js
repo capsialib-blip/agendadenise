@@ -1,7 +1,7 @@
-/* script.js - VERSÃO GOLDEN MASTER (CORREÇÃO VARIÁVEL 'ag' + FUNÇÕES RESTAURADAS) */
+/* script.js - VERSÃO FINAL ESTÁVEL (CORREÇÃO DE BOTÕES E ACENTOS) */
 'use strict';
 
-console.log("Sistema Iniciado: Variável 'ag' corrigida para 'agendamentosDia'");
+console.log("Sistema Iniciado: Versão v20.3 - Eventos e Encoding Corrigidos");
 
 // [ARCOSAFE] Configuração do Firebase
 const firebaseConfig = {
@@ -76,7 +76,7 @@ let tentativaSenha = 1;
 let vagasResultadosAtuais = [];
 
 // ============================================
-// 2. FUNÇÕES DE PERSISTÊNCIA (EXISTENTES)
+// 2. FUNÇÕES DE SUPORTE
 // ============================================
 
 function salvarAgendamentos() {
@@ -319,7 +319,7 @@ function atualizarCalendario() {
 }
 
 // ============================================
-// 5. RENDERIZAÇÃO DOS CARDS E AÇÕES
+// 5. RENDERIZAÇÃO DOS CARDS
 // ============================================
 
 function calcularResumoMensal(data) {
@@ -405,7 +405,7 @@ function exibirAgendamentos(data) {
         return;
     }
 
-    // [CORREÇÃO FINAL] Definindo agendamentosDia para evitar ReferenceError: ag is not defined
+    // [CORREÇÃO: NOME DA VARIÁVEL]
     const agendamentosDia = agendamentos[data] || { manha: [], tarde: [] };
     const totalHoje = (agendamentosDia.manha?.length || 0) + (agendamentosDia.tarde?.length || 0);
 
@@ -511,7 +511,7 @@ function gerarVagasTurno(agendamentosTurno, turno, data) {
                     <div class="agendamento-acoes">
                         <button class="btn btn-edit" onclick="iniciarEdicao('${data}', '${turno}', ${i})"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16"><path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/><path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/></svg> <span>Editar</span></button>
                         <button class="btn btn-secondary btn-sm" onclick="iniciarProcessoDeclaracao('${data}', '${turno}', ${i})">Imprimir Declaração</button>
-                        <button class="btn btn-danger btn-cancel-appointment" onclick="abrirModalConfirmacao('Cancelar?', () => executarCancelamento('${data}', '${turno}', ${i}))">Cancelar</button>
+                        <button class="btn btn-danger btn-cancel-appointment" onclick="solicitarCancelamento('${data}', '${turno}', ${i})">Cancelar</button>
                     </div>
                 </div>`;
         } else {
@@ -666,6 +666,13 @@ function marcarStatus(data, turno, vaga, novoStatus) {
     atualizarResumoMensal();
 }
 
+// [NOVO] Função Wrapper para Cancelamento (Resolve problema de 'onclick' com arrow function)
+function solicitarCancelamento(data, turno, vaga) {
+    abrirModalConfirmacao('Tem certeza que deseja cancelar este agendamento?', function() {
+        executarCancelamento(data, turno, vaga);
+    });
+}
+
 function executarCancelamento(data, turno, vaga) {
     if (!agendamentos[data]?.[turno]) return;
     const index = agendamentos[data][turno].findIndex(a => a.vaga === vaga);
@@ -682,7 +689,7 @@ function executarCancelamento(data, turno, vaga) {
         atualizarResumoSemanal(new Date(data + 'T12:00:00'));
         mostrarNotificacao('Cancelado com sucesso.', 'info');
     }
-    fecharModalConfirmacao();
+    // fecharModalConfirmacao é chamado pelo callback do modal
 }
 
 function mostrarTurno(turno) {
@@ -860,8 +867,8 @@ function handleHtmlFile(e) {
         });
         salvarPacientesNoLocalStorage(); mostrarNotificacao('Pacientes importados.', 'success');
     }; 
-    // [ARCOSAFE-FIX] Força leitura ANSI para corrigir erro de acentos
-    r.readAsText(e.target.files[0], 'ISO-8859-1');
+    // [ARCOSAFE-FIX] CORREÇÃO PARA ACENTOS (WINDOWS-1252)
+    r.readAsText(e.target.files[0], 'windows-1252');
 }
 function buscarAgendamentosGlobais() {
     const val = document.getElementById('globalSearchInput').value.toLowerCase();
