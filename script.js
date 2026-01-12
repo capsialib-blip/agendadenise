@@ -316,7 +316,7 @@ function configurarEventListenersApp() {
     if (btnCancelClearData) btnCancelClearData.addEventListener('click', fecharModalLimpeza);
 
     const btnConfirmClearData = document.getElementById('btnConfirmClearData');
-    if (btnConfirmClearData) btnConfirmClearData.addEventListener('click', executarLimpezaTotal);
+    if (btnConfirmarClearData) btnConfirmClearData.addEventListener('click', executarLimpezaTotal);
 
     // [ARCOSAFE-FIX] CORREÇÃO CRÍTICA DE REGRESSÃO
     // Interceptação da tecla ENTER no campo de senha de exclusão para evitar reload da página
@@ -658,7 +658,6 @@ function atualizarCalendario() {
         container.innerHTML = '<p style="text-align: center; color: var(--color-danger); padding: 1rem;">Erro ao carregar o calendário. Tente recarregar a página.</p>';
     }
 }
-
 // [ARCOSAFE-LOGIC] Função Expandida para Calcular Métricas Mensais Completas
 function calcularResumoMensal(dataReferencia) {
     const ano = new Date(dataReferencia).getFullYear();
@@ -974,7 +973,7 @@ function gerarVagasTurno(agendamentosTurno, turno, data) {
                         <div class="form-row">
                             <div class="form-group autocomplete-container">
                                 <label>CNS:</label>
-                                <input type="text" name="cns" required class="form-input" maxlength="15" pattern="[0-9]{15}" title="O CNS deve contar com 15 dígitos." value="${dadosPreenchimento.cns || ''}" onblur="verificarDuplicidadeAoDigitar(this, '${data}', '${turno}', ${i})">
+                                <input type="text" name="cns" required class="form-input" maxlength="17" pattern="[0-9]{1,17}" title="O CNS deve conter até 17 dígitos." value="${dadosPreenchimento.cns || ''}" onblur="verificarDuplicidadeAoDigitar(this, '${data}', '${turno}', ${i})">
                                 <div class="sugestoes-lista"></div>
                             </div>
                             <div class="form-group">
@@ -1053,7 +1052,6 @@ function gerarVagasTurno(agendamentosTurno, turno, data) {
     }
     return html + '</div>';
 }
-
 // --- Funções de Notificação e Importação ---
 
 function mostrarNotificacao(mensagem, tipo = 'info') {
@@ -1675,7 +1673,6 @@ function configurarAutocompleteAssinatura() {
         }
     });
 }
-
 // --- Funções de Agendamento e Edição ---
 
 function agendarPaciente(event, data, turno, vaga) {
@@ -2549,7 +2546,7 @@ function fecharModalBackup() {
 
     // Se a chave não estiver gravada (backup não feito), não deixa fechar (TRAVA RÍGIDA)
     if (ultimoBackupChave !== chaveBackup) {
-         return; 
+          return; 
     }
 
     const modal = document.getElementById('backupModal');
