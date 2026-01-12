@@ -973,7 +973,7 @@ function gerarVagasTurno(agendamentosTurno, turno, data) {
                         <div class="form-row">
                             <div class="form-group autocomplete-container">
                                 <label>CNS:</label>
-                                <input type="text" name="cns" required class="form-input" maxlength="17" pattern="[0-9]{1,17}" title="O CNS deve conter até 17 dígitos." value="${dadosPreenchimento.cns || ''}" onblur="verificarDuplicidadeAoDigitar(this, '${data}', '${turno}', ${i})">
+                                <input type="text" name="cns" required class="form-input" maxlength="18" pattern="[0-9]{1,18}" title="O CNS deve conter até 18 dígitos." value="${dadosPreenchimento.cns || ''}" onblur="verificarDuplicidadeAoDigitar(this, '${data}', '${turno}', ${i})">
                                 <div class="sugestoes-lista"></div>
                             </div>
                             <div class="form-group">
@@ -2986,3 +2986,4 @@ function goToToday() {
         if(hint) hint.classList.remove('visible');
     }
 }
+
