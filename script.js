@@ -316,7 +316,7 @@ function configurarEventListenersApp() {
     if (btnCancelClearData) btnCancelClearData.addEventListener('click', fecharModalLimpeza);
 
     const btnConfirmClearData = document.getElementById('btnConfirmClearData');
-    if (btnConfirmarClearData) btnConfirmClearData.addEventListener('click', executarLimpezaTotal);
+    if (btnConfirmClearData) btnConfirmClearData.addEventListener('click', executarLimpezaTotal);
 
     // [ARCOSAFE-FIX] CORREÇÃO CRÍTICA DE REGRESSÃO
     // Interceptação da tecla ENTER no campo de senha de exclusão para evitar reload da página
@@ -658,6 +658,7 @@ function atualizarCalendario() {
         container.innerHTML = '<p style="text-align: center; color: var(--color-danger); padding: 1rem;">Erro ao carregar o calendário. Tente recarregar a página.</p>';
     }
 }
+
 // [ARCOSAFE-LOGIC] Função Expandida para Calcular Métricas Mensais Completas
 function calcularResumoMensal(dataReferencia) {
     const ano = new Date(dataReferencia).getFullYear();
@@ -1052,6 +1053,7 @@ function gerarVagasTurno(agendamentosTurno, turno, data) {
     }
     return html + '</div>';
 }
+
 // --- Funções de Notificação e Importação ---
 
 function mostrarNotificacao(mensagem, tipo = 'info') {
@@ -1673,314 +1675,7 @@ function configurarAutocompleteAssinatura() {
         }
     });
 }
-// --- Funções de Agendamento e Edição ---
 
-function agendarPaciente(event, data, turno, vaga) {
-    event.preventDefault();
-    const form = event.target; 
-    const solicitacoes = Array.from(form.querySelectorAll('input[name="solicitacao"]:checked')).map(cb => cb.value);
-    const numeroPaciente = form.querySelector('[name="numero"]').value.trim();
-
-    const erroAntigo = form.querySelector('.form-error-message');
-    if (erroAntigo) erroAntigo.remove();
-
-    if (agendamentos[data]) {
-        const agendamentosDia = [
-            ...(agendamentos[data].manha || []),
-            ...(agendamentos[data].tarde || [])
-        ];
-        const duplicado = agendamentosDia.find(ag => {
-            const encontrado = ag.numero === numeroPaciente;
-            if (slotEmEdicao && slotEmEdicao.data === data && slotEmEdicao.turno === turno && slotEmEdicao.vaga === vaga) {
-                    return false; 
-            }
-            return encontrado; 
-        });
-
-        if (duplicado) {
-            const erroEl = document.createElement('p');
-            erroEl.className = 'form-error-message';
-            erroEl.textContent = 'ERRO: Paciente já agendado para este dia.';
-            const actionsWrapper = form.querySelector('.form-actions-wrapper');
-            if (actionsWrapper) form.insertBefore(erroEl, actionsWrapper);
-            return; 
-        }
-    }
-
-    const novoAgendamento = {
-        vaga: vaga,
-        numero: numeroPaciente, 
-        nome: form.querySelector('[name="nome"]').value.trim(),
-        cns: form.querySelector('[name="cns"]').value.trim(),
-        distrito: form.querySelector('[name="distrito"]').value.trim(),
-        tecRef: form.querySelector('[name="tecRef"]').value.trim(),
-        cid: form.querySelector('[name="cid"]').value.trim().toUpperCase(),
-        agendadoPor: form.querySelector('[name="agendadoPor"]').value.trim(),
-        observacao: form.querySelector('[name="observacao"]').value.trim(),
-        primeiraConsulta: form.querySelector('[name="primeiraConsulta"]').checked,
-        solicitacoes: solicitacoes,
-        status: 'Aguardando',
-    };
-
-    if (!agendamentos[data]) agendamentos[data] = {};
-    if (!agendamentos[data][turno]) agendamentos[data][turno] = [];
-
-    const index = agendamentos[data][turno].findIndex(a => a.vaga === vaga);
-    if (index !== -1) {
-        agendamentos[data][turno][index] = { ...agendamentos[data][turno][index], ...novoAgendamento };
-    } else {
-        agendamentos[data][turno].push(novoAgendamento);
-    }
-    
-    agendamentos[data][turno].sort((a, b) => a.vaga - b.vaga);
-    
-    salvarAgendamentos();
-    slotEmEdicao = null;
-    selecionarDia(data, document.querySelector(`.day[data-date="${data}"]`));
-    atualizarCalendario();
-    atualizarResumoMensal();
-    atualizarResumoSemanal(new Date(data + 'T12:00:00'));
-    mostrarNotificacao('Agendamento salvo com sucesso!', 'success');
-}
-
-function iniciarEdicao(data, turno, vaga) {
-    slotEmEdicao = { data, turno, vaga };
-    exibirAgendamentos(data);
-}
-
-function cancelarEdicao() {
-    const data = slotEmEdicao.data;
-    slotEmEdicao = null;
-    exibirAgendamentos(data);
-}
-
-function executarCancelamento(data, turno, vaga) {
-    if (!agendamentos[data] || !agendamentos[data][turno]) return;
-    const index = agendamentos[data][turno].findIndex(a => a.vaga === vaga);
-    if (index !== -1) {
-        agendamentos[data][turno].splice(index, 1);
-        if (agendamentos[data][turno].length === 0) delete agendamentos[data][turno];
-        if (Object.keys(agendamentos[data]).length === 0) delete agendamentos[data];
-
-        salvarAgendamentos();
-        selecionarDia(data, document.querySelector(`.day[data-date="${data}"]`));
-        atualizarCalendario();
-        atualizarResumoMensal();
-        atualizarResumoSemanal(new Date(data + 'T12:00:00'));
-        mostrarNotificacao('Agendamento cancelado com sucesso!', 'info');
-    }
-    fecharModalConfirmacao();
-}
-
-function marcarStatus(data, turno, vaga, novoStatus) {
-    const agendamento = agendamentos[data]?.[turno]?.find(a => a.vaga === vaga);
-    if (!agendamento) return;
-
-    if (novoStatus === 'Justificou') {
-        abrirModalJustificativa(data, turno, vaga);
-        return; 
-    }
-    agendamento.status = (agendamento.status === novoStatus) ? 'Aguardando' : novoStatus;
-    if (agendamento.status !== 'Justificou') delete agendamento.justificativa;
-    
-    salvarAgendamentos();
-    exibirAgendamentos(data);
-    atualizarResumoMensal();
-}
-
-function limparFormulario(button) {
-    const form = button.closest('form');
-    if (form) {
-        form.reset();
-        const erroAntigo = form.querySelector('.form-error-message');
-        if (erroAntigo) erroAntigo.remove();
-        const numeroInput = form.querySelector('[name="numero"]');
-        if (numeroInput) numeroInput.focus();
-    }
-}
-
-function verificarDuplicidadeAoDigitar(inputElement, data, turno, vaga) {
-    const form = inputElement.closest('form');
-    const valorInput = inputElement.value.trim();
-    const erroAntigo = form.querySelector('.form-error-message');
-    if (erroAntigo) erroAntigo.remove();
-    
-    if (valorInput === '') return;
-
-    const campoVerificacao = inputElement.name;
-    const valorVerificacao = valorInput.toLowerCase();
-
-    if (agendamentos[data]) {
-        const agendamentosDia = [
-            ...(agendamentos[data].manha || []),
-            ...(agendamentos[data].tarde || [])
-        ];
-        const duplicado = agendamentosDia.find(ag => {
-            let valorAgendamento = '';
-            if (campoVerificacao === 'numero') valorAgendamento = ag.numero;
-            else if (campoVerificacao === 'nome') valorAgendamento = ag.nome.toLowerCase();
-            else if (campoVerificacao === 'cns') valorAgendamento = ag.cns;
-
-            const encontrado = valorAgendamento === valorVerificacao;
-            if (slotEmEdicao && slotEmEdicao.data === data && slotEmEdicao.turno === turno && slotEmEdicao.vaga === vaga) {
-                    return false;
-            }
-            return encontrado; 
-        });
-
-        if (duplicado) {
-            const erroEl = document.createElement('p');
-            erroEl.className = 'form-error-message';
-            erroEl.textContent = 'ERRO: Paciente já agendado para este dia.';
-            const actionsWrapper = form.querySelector('.form-actions-wrapper');
-            if (actionsWrapper) form.insertBefore(erroEl, actionsWrapper);
-        }
-    }
-}
-
-function criarEmptyState() {
-    return `
-        <div class="glass-card empty-state-card">
-            <div class="card-content">
-                <div class="empty-state">
-                    <svg class="empty-icon" xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-calendar-check" viewBox="0 0 16 16"><path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/></svg>
-                    <h3>Selecione uma Data</h3>
-                    <p>Clique num dia útil no calendário para visualizar e gerenciar os agendamentos.</p>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-function criarBlockedState(data, dataFmt, motivo, tipo, isHoliday) {
-    const icon = isHoliday ? 'bi-calendar-x-fill' : 'bi-lock-fill';
-    return `
-        <div class="appointment-header">
-            <h2 class="appointment-title">${dataFmt}</h2>
-            <div class="header-actions">
-                <button id="btnLockDay" class="btn-icon btn-lock" title="Desbloquear Agenda" aria-label="Desbloquear agenda do dia">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-unlock-fill" viewBox="0 0 16 16"><path d="M11 1a2 2 0 0 0-2 2v4a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h5V3a3 3 0 0 1 6 0v4a.5.5 0 0 1-1 0V3a2 2 0 0 0-2-2"/></svg>
-                </button>
-            </div>
-        </div>
-        <div class="glass-card" style="border-top-left-radius: 0; border-top-right-radius: 0; border-top: none;">
-            <div class="card-content">
-                <div class="blocked-state">
-                    <i class="bi ${icon} blocked-icon"></i>
-                    <h3>Agenda Bloqueada</h3>
-                    <p>Motivo: <strong>${motivo || 'Não especificado'}</strong></p>
-                </div>
-            </div>
-        </div>`;
-}
-
-function criarBlockedTurnoState(turno, motivo, isHoliday) {
-    const icon = isHoliday ? 'bi-calendar-x' : 'bi-lock-fill';
-    return `
-        <div class="blocked-state turno">
-            <i class="bi ${icon} blocked-icon"></i>
-            <h4>Turno da ${turno} Bloqueado</h4>
-            <p>Motivo: <strong>${motivo || 'Não especificado'}</strong></p>
-        </div>`;
-}
-
-function mostrarTurno(turno) {
-    turnoAtivo = turno;
-    
-    // 1. Atualiza as Abas (Tabs)
-    const activeTab = document.querySelector('.tab-btn.active');
-    if (activeTab) activeTab.classList.remove('active');
-    const newTab = document.querySelector(`.tab-btn.${turno}`);
-    if (newTab) newTab.classList.add('active');
-
-    // 2. Atualiza o Conteúdo dos Cards
-    const activeContent = document.querySelector('.turno-content.active');
-    if (activeContent) activeContent.classList.remove('active');
-    const newContent = document.getElementById(`turno-${turno}`);
-    if (newContent) newContent.classList.add('active');
-
-    // --- NOVO: Atualiza o Indicador Visual (Hint) ---
-    const indicator = document.getElementById('turnoIndicator');
-    if (indicator) {
-        // Remove classes antigas e adiciona a nova
-        indicator.classList.remove('manha', 'tarde');
-        indicator.classList.add(turno);
-        
-        // Atualiza Texto e Ícone
-        if (turno === 'manha') {
-            indicator.innerHTML = '<i class="bi bi-brightness-high-fill"></i> MANHÃ (08:00 - 12:00)';
-        } else {
-            indicator.innerHTML = '<i class="bi bi-moon-stars-fill"></i> TARDE (13:00 - 17:00)';
-        }
-    }
-}
-
-function abrirModalConfirmacao(mensagem, acao) {
-    const msgElement = document.getElementById('confirmMessage');
-    if (msgElement) msgElement.textContent = mensagem;
-    confirmAction = acao;
-    const modal = document.getElementById('confirmModal');
-    if (modal) modal.style.display = 'flex';
-}
-
-function fecharModalConfirmacao() {
-    const modal = document.getElementById('confirmModal');
-    if (modal) modal.style.display = 'none';
-    confirmAction = null;
-}
-
-function executarAcaoConfirmada() {
-    if (typeof confirmAction === 'function') confirmAction();
-    fecharModalConfirmacao();
-}
-
-function abrirModalJustificativa(data, turno, vaga) {
-    justificativaEmEdicao = { data, turno, vaga };
-    const form = document.getElementById('justificationForm');
-    if (form) form.reset();
-    const container = document.getElementById('reagendamentoDataContainer');
-    if (container) container.style.display = 'block'; 
-    const modal = document.getElementById('justificationModal');
-    if (modal) modal.style.display = 'flex';
-}
-
-function fecharModalJustificativa() {
-    const modal = document.getElementById('justificationModal');
-    if (modal) modal.style.display = 'none';
-    justificativaEmEdicao = null;
-}
-
-function salvarJustificativa() {
-    if (!justificativaEmEdicao) return;
-    const { data, turno, vaga } = justificativaEmEdicao;
-    const agendamento = agendamentos[data]?.[turno]?.find(a => a.vaga === vaga);
-    if (!agendamento) return;
-
-    const tipoInput = document.querySelector('input[name="justificativaTipo"]:checked');
-    if (!tipoInput) return;
-    
-    const tipo = tipoInput.value;
-    let detalhe = '';
-
-    if (tipo === 'Reagendado') {
-        const dataInput = document.getElementById('reagendamentoData');
-        if (dataInput) detalhe = dataInput.value;
-        if (!detalhe) {
-            mostrarNotificacao('Por favor, selecione a data de reagendamento.', 'warning');
-            return;
-        }
-    } else {
-        detalhe = 'Contato TR';
-    }
-
-    agendamento.status = 'Justificou';
-    agendamento.justificativa = { tipo, detalhe };
-    salvarAgendamentos();
-    fecharModalJustificativa();
-    exibirAgendamentos(data);
-    atualizarResumoMensal();
-    mostrarNotificacao('Justificativa salva com sucesso!', 'success');
-}
 function configurarAutopreenchimento(form) {
     const inputs = form.querySelectorAll('input[name="numero"], input[name="nome"], input[name="cns"], input[name="tecRef"]');
     inputs.forEach(input => {
@@ -2009,11 +1704,14 @@ function configurarAutopreenchimento(form) {
             else if (input.name === 'nome') {
                 try {
                     // [ARCOSAFE-FIX] Lógica de busca insensível a acentos/case
-                    const normalize = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-                    const termoBusca = normalize(termo);
+                    const safeNormalize = (str) => {
+                        if (typeof str !== 'string') return '';
+                        return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+                    };
+                    const termoBusca = safeNormalize(termo);
                     
                     const matches = pacientesGlobais.filter(p => {
-                        return p.nome && normalize(p.nome) === termoBusca;
+                        return p.nome && safeNormalize(p.nome) === termoBusca;
                     });
 
                     // Só preenche se encontrar correspondência única para evitar erros
@@ -2986,4 +2684,3 @@ function goToToday() {
         if(hint) hint.classList.remove('visible');
     }
 }
-
