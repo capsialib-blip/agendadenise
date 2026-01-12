@@ -315,7 +315,7 @@ function configurarEventListenersApp() {
     const btnCancelClearData = document.getElementById('btnCancelClearData');
     if (btnCancelClearData) btnCancelClearData.addEventListener('click', fecharModalLimpeza);
 
-    // [ARCOSAFE-FIX] Event Listener Async Blindado - Correção Crítica
+    // [ARCOSAFE-FIX] Event Listener Async Blindado
     const btnConfirmClearData = document.getElementById('btnConfirmClearData');
     if (btnConfirmClearData) {
         btnConfirmClearData.addEventListener('click', async (event) => {
@@ -2133,7 +2133,7 @@ function togglePasswordVisibility() {
     }
 }
 
-// [ARCOSAFE-FIX] Função convertida para ASYNC para garantir espera do Firebase
+// [ARCOSAFE-FIX] Função convertida para ASYNC para garantir espera do Firebase e limpeza robusta
 async function executarLimpezaTotal() {
     const passwordInput = document.getElementById('clearDataPassword');
     const errorMessage = document.getElementById('clearDataError');
@@ -2152,7 +2152,7 @@ async function executarLimpezaTotal() {
         }
 
         try {
-            // [ARCOSAFE-FIX] Limpeza Remota (Firebase) com AWAIT
+            // [ARCOSAFE-FIX] Passo 1: Limpeza Remota (Firebase) com AWAIT
             if (database) {
                 const promises = [
                     database.ref('agendamentos').remove(),
@@ -2164,11 +2164,30 @@ async function executarLimpezaTotal() {
                 await Promise.all(promises);
             }
 
-            // [ARCOSAFE-FIX] Remove chaves do LocalStorage
+            // [ARCOSAFE-FIX] Passo 2: Reset das variáveis em memória
+            agendamentos = {};
+            pacientesGlobais = [];
+            pacientes = [];
+            diasBloqueados = {};
+            feriadosDesbloqueados = {};
+
+            // [ARCOSAFE-FIX] Passo 3: Forçar salvamento dos dados VAZIOS
+            // Isso garante que estamos usando as MESMAS chaves que o sistema usa para salvar
+            salvarAgendamentos();
+            salvarPacientesNoLocalStorage();
+            salvarBloqueios();
+            salvarFeriadosDesbloqueados();
+
+            // [ARCOSAFE-FIX] Passo 4: Remoção explícita de chaves (Atuais e Potenciais Legadas)
             localStorage.removeItem('agenda_completa_final');
             localStorage.removeItem('pacientes_dados');
             localStorage.removeItem('dias_bloqueados');
             localStorage.removeItem('feriados_desbloqueados');
+            
+            // Segurança extra para chaves antigas que possam existir
+            localStorage.removeItem('agendamentos'); 
+            localStorage.removeItem('pacientes');
+
             sessionStorage.setItem('limpezaSucesso', 'true');
             
             // Só recarrega após sucesso garantido
