@@ -2133,7 +2133,7 @@ function togglePasswordVisibility() {
     }
 }
 
-// [ARCOSAFE-FIX] Função convertida para ASYNC para garantir espera do Firebase e limpeza robusta
+// [ARCOSAFE-FIX] Função convertida para ASYNC para garantir espera do Firebase
 async function executarLimpezaTotal() {
     const passwordInput = document.getElementById('clearDataPassword');
     const errorMessage = document.getElementById('clearDataError');
@@ -2145,6 +2145,11 @@ async function executarLimpezaTotal() {
     const senhaDigitada = passwordInput.value.trim();
 
     if (senhaDigitada === 'apocalipse') {
+        // [ARCOSAFE-ADD] Extra Confirmation Dialog
+        if (!confirm("você tem certeza que quer continuar? essa alteração não poderá ser desfeita e você perderá todos os agendamentos.")) {
+            return;
+        }
+
         // [ARCOSAFE-FIX] Bloqueia UI para evitar Race Condition e Freezing aparente
         if (confirmBtn) {
             confirmBtn.disabled = true;
