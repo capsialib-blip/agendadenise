@@ -315,23 +315,23 @@ function configurarEventListenersApp() {
     const btnCancelClearData = document.getElementById('btnCancelClearData');
     if (btnCancelClearData) btnCancelClearData.addEventListener('click', fecharModalLimpeza);
 
-    // [ARCOSAFE-FIX] Event Listener Blindado para Confirmação de Limpeza
+    // [ARCOSAFE-FIX] Event Listener Async Blindado - Correção Crítica
     const btnConfirmClearData = document.getElementById('btnConfirmClearData');
     if (btnConfirmClearData) {
-        btnConfirmClearData.addEventListener('click', (event) => {
+        btnConfirmClearData.addEventListener('click', async (event) => {
             event.preventDefault();
-            executarLimpezaTotal();
+            await executarLimpezaTotal();
         });
     }
 
-    // [ARCOSAFE-FIX] Interceptação Segura da tecla ENTER no campo de senha
+    // [ARCOSAFE-FIX] Interceptação Segura da tecla ENTER no campo de senha (Async)
     const clearDataPasswordInput = document.getElementById('clearDataPassword');
     if (clearDataPasswordInput) {
-        clearDataPasswordInput.addEventListener('keydown', (event) => {
+        clearDataPasswordInput.addEventListener('keydown', async (event) => {
             if (event.key === 'Enter') {
-                event.preventDefault(); // Impede rigorosamente o submit do form
+                event.preventDefault(); 
                 event.stopPropagation();
-                executarLimpezaTotal(); // Dispara a função controlada
+                await executarLimpezaTotal(); // Aguarda a Promise da limpeza
             }
         });
     }
