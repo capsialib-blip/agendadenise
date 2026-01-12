@@ -100,12 +100,18 @@ function configurarEventListenersLogin() {
     if (loginButton) {
         const novoLoginButton = loginButton.cloneNode(true);
         loginButton.parentNode.replaceChild(novoLoginButton, loginButton);
-        novoLoginButton.addEventListener('click', tentarLogin);
+        // [ARCOSAFE-FIX] Previne envio de form padrão
+        novoLoginButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            tentarLogin();
+        });
     }
     
     if (loginSenhaInput) {
-        loginSenhaInput.addEventListener('keyup', (event) => {
+        // [ARCOSAFE-FIX] Alterado para KEYDOWN e preventDefault para evitar reload da página
+        loginSenhaInput.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
+                event.preventDefault();
                 tentarLogin();
             }
         });
