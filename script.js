@@ -226,8 +226,6 @@ function inicializarApp() {
     // Verificação inicial imediata
     verificarNecessidadeBackup(); 
 }
-
-
 // ============================================
 // 3. CONFIGURAÇÃO DE EVENT LISTENERS DA AGENDA
 // ============================================
@@ -315,11 +313,11 @@ function configurarEventListenersApp() {
     const btnCancelClearData = document.getElementById('btnCancelClearData');
     if (btnCancelClearData) btnCancelClearData.addEventListener('click', fecharModalLimpeza);
 
+    // [ARCOSAFE-FIX] CORREÇÃO DO TYPO: removido o 'ar' extra de btnConfirmarClearData
     const btnConfirmClearData = document.getElementById('btnConfirmClearData');
     if (btnConfirmClearData) btnConfirmClearData.addEventListener('click', executarLimpezaTotal);
 
-    // [ARCOSAFE-FIX] CORREÇÃO CRÍTICA DE REGRESSÃO
-    // Interceptação da tecla ENTER no campo de senha de exclusão para evitar reload da página
+    // [ARCOSAFE-FIX] Interceptação da tecla ENTER no campo de senha de exclusão
     const clearDataPasswordInput = document.getElementById('clearDataPassword');
     if (clearDataPasswordInput) {
         clearDataPasswordInput.addEventListener('keydown', (event) => {
@@ -1052,6 +1050,7 @@ function gerarVagasTurno(agendamentosTurno, turno, data) {
     }
     return html + '</div>';
 }
+
 // --- Funções de Notificação e Importação ---
 
 function mostrarNotificacao(mensagem, tipo = 'info') {
@@ -1310,7 +1309,7 @@ function configurarBuscaGlobalAutocomplete() {
     sugestoesContainer.addEventListener('mousedown', (e) => {
         const item = e.target.closest('.sugestao-item');
         if (item) {
-            e.preventDefault(); // Previne que o input perca o foco imediatamente
+            e.preventDefault(); 
             input.value = item.dataset.value;
             sugestoesContainer.innerHTML = '';
             sugestoesContainer.style.display = 'none';
