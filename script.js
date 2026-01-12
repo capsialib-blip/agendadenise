@@ -658,7 +658,6 @@ function atualizarCalendario() {
         container.innerHTML = '<p style="text-align: center; color: var(--color-danger); padding: 1rem;">Erro ao carregar o calendário. Tente recarregar a página.</p>';
     }
 }
-
 // [ARCOSAFE-LOGIC] Função Expandida para Calcular Métricas Mensais Completas
 function calcularResumoMensal(dataReferencia) {
     const ano = new Date(dataReferencia).getFullYear();
@@ -974,7 +973,7 @@ function gerarVagasTurno(agendamentosTurno, turno, data) {
                         <div class="form-row">
                             <div class="form-group autocomplete-container">
                                 <label>CNS:</label>
-                                <input type="text" name="cns" required class="form-input" maxlength="18" pattern="[0-9]{1,18}" title="O CNS deve conter até 18 dígitos." value="${dadosPreenchimento.cns || ''}" onblur="verificarDuplicidadeAoDigitar(this, '${data}', '${turno}', ${i})">
+                                <input type="text" name="cns" required class="form-input" maxlength="17" pattern="[0-9]{1,17}" title="O CNS deve conter até 17 dígitos." value="${dadosPreenchimento.cns || ''}" onblur="verificarDuplicidadeAoDigitar(this, '${data}', '${turno}', ${i})">
                                 <div class="sugestoes-lista"></div>
                             </div>
                             <div class="form-group">
@@ -1053,7 +1052,6 @@ function gerarVagasTurno(agendamentosTurno, turno, data) {
     }
     return html + '</div>';
 }
-
 // --- Funções de Notificação e Importação ---
 
 function mostrarNotificacao(mensagem, tipo = 'info') {
@@ -1308,9 +1306,11 @@ function configurarBuscaGlobalAutocomplete() {
         }
     });
 
-    sugestoesContainer.addEventListener('click', (e) => {
+    // [ARCOSAFE-FIX] Alterado de 'click' para 'mousedown' para evitar conflito com blur
+    sugestoesContainer.addEventListener('mousedown', (e) => {
         const item = e.target.closest('.sugestao-item');
         if (item) {
+            e.preventDefault(); // Previne que o input perca o foco imediatamente
             input.value = item.dataset.value;
             sugestoesContainer.innerHTML = '';
             sugestoesContainer.style.display = 'none';
@@ -1654,7 +1654,8 @@ function configurarAutocompleteAssinatura() {
         }
     });
 
-    sugestoesLista.addEventListener('click', (e) => {
+    // [ARCOSAFE-FIX] Alterado de 'click' para 'mousedown' para evitar conflito com blur
+    sugestoesLista.addEventListener('mousedown', (e) => {
         const item = e.target.closest('.sugestao-item');
         if (item) {
             const nomeSelecionado = item.dataset.nome;
@@ -1675,7 +1676,6 @@ function configurarAutocompleteAssinatura() {
         }
     });
 }
-
 function configurarAutopreenchimento(form) {
     const inputs = form.querySelectorAll('input[name="numero"], input[name="nome"], input[name="cns"], input[name="tecRef"]');
     inputs.forEach(input => {
@@ -1700,10 +1700,9 @@ function configurarAutopreenchimento(form) {
             else if (input.name === 'cns') {
                 match = pacientesGlobais.find(p => p.cns === termo);
             }
-            // Cenário A: Preencheu Nome -> Busca pelo Nome
+            // [ARCOSAFE-FIX] Cenário A: Preencheu Nome -> Busca pelo Nome (Normalizada e Insensível)
             else if (input.name === 'nome') {
                 try {
-                    // [ARCOSAFE-FIX] Lógica de busca insensível a acentos/case
                     const safeNormalize = (str) => {
                         if (typeof str !== 'string') return '';
                         return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -1774,9 +1773,11 @@ function configurarAutopreenchimento(form) {
             }
         });
 
-        sugestoesLista.addEventListener('click', (e) => {
+        // [ARCOSAFE-FIX] Alterado de 'click' para 'mousedown' para evitar conflito com blur (Race Condition)
+        sugestoesLista.addEventListener('mousedown', (e) => {
             const item = e.target.closest('.sugestao-item');
             if (item) {
+                e.preventDefault(); // Impede que o input perca o foco antes da execução
                 const numeroPaciente = item.dataset.numero;
                 const paciente = pacientesGlobais.find(p => p.numero === numeroPaciente);
                 if (paciente) {
