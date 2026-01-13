@@ -845,6 +845,10 @@ function exibirAgendamentos(data) {
         });
     }, 0);
 }
+// ⚠️ CÓDIGO LONGO. CONTINUA NA PARTE 2...
+// ARQUIVO: script.js (PARTE 2/3)
+/* script.js (CONTINUAÇÃO) */
+
 function gerarVagasTurno(agendamentosTurno, turno, data) {
     let html = '<div class="vagas-grid">';
     agendamentosTurno = agendamentosTurno || [];
@@ -948,7 +952,8 @@ function gerarVagasTurno(agendamentosTurno, turno, data) {
             `;
         } else {
             const solicitacoesSalvas = dadosPreenchimento.solicitacoes || [];
-            // [ARCOSAFE-FIX] Estrutura HTML do Autocomplete mantida rigorosamente
+            
+            // [ARCOSAFE-FIX] Autocomplete="off" aplicado para inibir balão do navegador
             html += `
                 <form class="vaga-form" autocomplete="off" onsubmit="agendarPaciente(event, '${data}', '${turno}', ${i})">
                     <div class="form-content-wrapper">
@@ -959,35 +964,35 @@ function gerarVagasTurno(agendamentosTurno, turno, data) {
                         <div class="form-row">
                             <div class="form-group numero autocomplete-container">
                                 <label>Número:</label>
-                                <input type="text" name="numero" required class="form-input" maxlength="5" pattern="[0-9]{4,5}" title="O número deve conter de 4 a 5 dígitos." value="${dadosPreenchimento.numero || ''}" onblur="verificarDuplicidadeAoDigitar(this, '${data}', '${turno}', ${i})" autocomplete="new-password">
+                                <input type="text" name="numero" required class="form-input" maxlength="5" pattern="[0-9]{4,5}" title="O número deve conter de 4 a 5 dígitos." value="${dadosPreenchimento.numero || ''}" onblur="verificarDuplicidadeAoDigitar(this, '${data}', '${turno}', ${i})" autocomplete="off">
                                 <div class="sugestoes-lista"></div>
                             </div>
                             <div class="form-group nome autocomplete-container">
                                 <label>Nome do Paciente:</label>
-                                <input type="text" name="nome" required class="form-input" maxlength="51" value="${dadosPreenchimento.nome || ''}" onblur="verificarDuplicidadeAoDigitar(this, '${data}', '${turno}', ${i})" autocomplete="new-password">
+                                <input type="text" name="nome" required class="form-input" maxlength="51" value="${dadosPreenchimento.nome || ''}" onblur="verificarDuplicidadeAoDigitar(this, '${data}', '${turno}', ${i})" autocomplete="off">
                                 <div class="sugestoes-lista"></div>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group autocomplete-container">
                                 <label>CNS:</label>
-                                <input type="text" name="cns" required class="form-input" maxlength="17" pattern="[0-9]{1,17}" title="O CNS deve conter até 17 dígitos." value="${dadosPreenchimento.cns || ''}" onblur="verificarDuplicidadeAoDigitar(this, '${data}', '${turno}', ${i})" autocomplete="new-password">
+                                <input type="text" name="cns" required class="form-input" maxlength="17" pattern="[0-9]{1,17}" title="O CNS deve conter até 17 dígitos." value="${dadosPreenchimento.cns || ''}" onblur="verificarDuplicidadeAoDigitar(this, '${data}', '${turno}', ${i})" autocomplete="off">
                                 <div class="sugestoes-lista"></div>
                             </div>
                             <div class="form-group">
                                 <label>Distrito:</label>
-                                <input type="text" name="distrito" class="form-input" maxlength="21" value="${dadosPreenchimento.distrito || ''}" autocomplete="new-password">
+                                <input type="text" name="distrito" class="form-input" maxlength="21" value="${dadosPreenchimento.distrito || ''}" autocomplete="off">
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group autocomplete-container">
                                 <label>Téc. Ref.:</label>
-                                <input type="text" name="tecRef" class="form-input" maxlength="50" value="${dadosPreenchimento.tecRef || ''}" autocomplete="new-password">
+                                <input type="text" name="tecRef" class="form-input" maxlength="50" value="${dadosPreenchimento.tecRef || ''}" autocomplete="off">
                                 <div class="sugestoes-lista"></div>
                             </div>
                             <div class="form-group">
                                 <label>CID:</label>
-                                <input type="text" name="cid" class="form-input" maxlength="12" style="text-transform: uppercase;" value="${dadosPreenchimento.cid || ''}" autocomplete="new-password">
+                                <input type="text" name="cid" class="form-input" maxlength="12" style="text-transform: uppercase;" value="${dadosPreenchimento.cid || ''}" autocomplete="off">
                             </div>
                         </div>
 
@@ -1031,7 +1036,7 @@ function gerarVagasTurno(agendamentosTurno, turno, data) {
                     <div class="form-actions-wrapper">
                         <div class="form-group agendado-por">
                             <label>Agendado por:</label>
-                            <input type="text" name="agendadoPor" required class="form-input" maxlength="15" value="${dadosPreenchimento.agendadoPor || ''}" autocomplete="new-password">
+                            <input type="text" name="agendadoPor" required class="form-input" maxlength="15" value="${dadosPreenchimento.agendadoPor || ''}" autocomplete="off">
                         </div>
                         <div class="form-buttons">
                             ${estaEditando ? `
@@ -1251,7 +1256,11 @@ function pularParaCard(data, turno, vaga) {
         const cardElement = document.getElementById(cardId);
         if (cardElement) {
             cardElement.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-cardElement.classList.add('highlight-card');
+            // CÓDIGO CONTINUA NA PARTE 3...
+// ARQUIVO: script.js (PARTE 3/3)
+/* script.js (CONTINUAÇÃO E FINAL) */
+
+            cardElement.classList.add('highlight-card');
             setTimeout(() => cardElement.classList.remove('highlight-card'), 1500);
         }
     }, 250);
@@ -1321,7 +1330,7 @@ function configurarBuscaGlobalAutocomplete() {
     });
 }
 
-// [ARCOSAFE-FIX] CORREÇÃO DO AUTOCOMPLETE (NOME/NÚMERO/CNS)
+// [ARCOSAFE-LOGIC] Lógica de Autopreenchimento e Busca Cruzada
 function configurarAutopreenchimento(form) {
     const inputs = form.querySelectorAll('input[name="numero"], input[name="nome"], input[name="cns"], input[name="tecRef"]');
     
@@ -1345,7 +1354,6 @@ function configurarAutopreenchimento(form) {
                 match = pacientesGlobais.find(p => p.cns === termo);
             }
             else if (input.name === 'nome') {
-                // Normalização para evitar erros de acentuação na busca exata
                 const safeNormalize = (str) => str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : '';
                 const termoBusca = safeNormalize(termo);
                 match = pacientesGlobais.find(p => safeNormalize(p.nome) === termoBusca);
@@ -1356,7 +1364,7 @@ function configurarAutopreenchimento(form) {
             }
         });
 
-        // 2. Lógica de Sugestões (Dropdown) ao digitar
+        // 2. Lógica de Sugestões (Dropdown Personalizado) ao digitar
         input.addEventListener('input', () => {
             const termo = input.value.toLowerCase();
             const campo = input.name;
@@ -1384,7 +1392,7 @@ function configurarAutopreenchimento(form) {
             }
         });
 
-        // 3. Seleção da Sugestão (Mouse Down previne perda de foco antes do click)
+        // 3. Seleção da Sugestão (Mouse Down)
         sugestoesLista.addEventListener('mousedown', (e) => {
             const item = e.target.closest('.sugestao-item');
             if (item) {
@@ -1401,7 +1409,6 @@ function configurarAutopreenchimento(form) {
         });
     });
 
-    // Fecha sugestões ao clicar fora
     document.addEventListener('click', (e) => {
         if (!form.contains(e.target)) {
             form.querySelectorAll('.sugestoes-lista').forEach(lista => {
@@ -2756,4 +2763,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     inicializarLogin();
 });
-            
