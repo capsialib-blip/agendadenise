@@ -1,3 +1,4 @@
+// ARQUIVO: script.js (PARTE 1/2)
 /* script.js */
 'use strict';
 
@@ -408,7 +409,7 @@ function configurarVagasEventListeners() {
         startDateInput.addEventListener('keydown', (event) => {
             if (event.key === 'Tab' && !event.shiftKey) {
                 event.preventDefault(); 
-                endDateInput.focus();    
+                endDateInput.focus();     
             }
         });
 
@@ -865,6 +866,9 @@ function exibirAgendamentos(data) {
         });
     }, 0);
 }
+// FIM DA PARTE 1 - CONTINUA
+// ARQUIVO: script.js (PARTE 2/2)
+
 function gerarVagasTurno(agendamentosTurno, turno, data) {
     let html = '<div class="vagas-grid">';
     agendamentosTurno = agendamentosTurno || [];
@@ -2727,5 +2731,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     inicializarLogin();
 });
-
-
