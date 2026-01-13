@@ -383,7 +383,6 @@ function configurarEventListenersApp() {
             fazerBackup(); 
             // Força a atualização da chave ANTES de tentar fechar o modal
             const horarioSalvo = localStorage.getItem('backupTime') || '16:00';
-            const hoje = new Date().toLocaleDateString('pt-BR');
             const chaveBackup = `${hoje}_${horarioSalvo}`;
             localStorage.setItem('ultimoBackupChave', chaveBackup);
             
@@ -841,7 +840,7 @@ function exibirAgendamentos(data) {
     
     const btnLockDay = document.getElementById('btnLockDay');
     if (btnLockDay) btnLockDay.addEventListener('click', () => gerenciarBloqueioDia(data));
-    
+
     // [ARCOSAFE-FIX] Event Listeners para bloqueios parciais
     const btnLockManha = document.getElementById('btnLockTurno_Manha');
     if (btnLockManha) btnLockManha.addEventListener('click', () => gerenciarBloqueioDia(data));
@@ -873,8 +872,7 @@ function gerarVagasTurno(agendamentosTurno, turno, data) {
 
     for (let i = 1; i <= VAGAS_POR_TURNO; i++) {
         const agendamento = agendamentosTurno.find(a => a.vaga === i);
-// FIM PARTE 1 - CONTINUA...
-const uniqueIdPrefix = `${turno}_${i}`;
+        const uniqueIdPrefix = `${turno}_${i}`;
         const estaEditando = slotEmEdicao && slotEmEdicao.data === data && slotEmEdicao.turno === turno && slotEmEdicao.vaga === i;
         const dadosPreenchimento = estaEditando ? agendamento : {};
         const status = agendamento?.status || 'Aguardando';
@@ -2026,8 +2024,7 @@ function limparBuscaVagas() {
 }
 
 function gerenciarBloqueioDia(data) {
-// FIM PARTE 2 - CONTINUA...
-const bloqueio = diasBloqueados[data];
+    const bloqueio = diasBloqueados[data];
     if (bloqueio) {
         let mensagem = '';
         const dataFormatada = new Date(data + 'T12:00:00').toLocaleDateString('pt-BR');
@@ -2697,7 +2694,6 @@ function selecionarDia(data, elemento) {
         hint.classList.add('visible');
     }
 }
-
 function goToToday() {
     const hoje = new Date();
     mesAtual = hoje.getMonth();
@@ -2733,3 +2729,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     inicializarLogin();
 });
+
