@@ -121,23 +121,48 @@
                 </div>
             </section>
 
+            <!-- [ARCOSAFE-MOD] Seção Utilitários (Backup + Relatório) -->
             <section class="management-section">
                 <div class="glass-card">
                     <div class="card-header">
                         <div class="header-icon">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clock-history" viewBox="0 0 16 16">
-                                <path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022zm2.004.45a7 7 0 0 0-.985-.299l.219-.976c.383.086.76.2 1.126.342zm1.37.71a7 7 0 0 0-.439-.27l.493-.87a8 8 0 0 1 .979.654l-.615.789a7 7 0 0 0-.418-.302zm1.834 1.79a7 7 0 0 0-.653-.796l.724-.69c.27.285.52.59.747.91l-.818.576zm.744 1.352a7 7 0 0 0-.214-.468l.893-.45a8 8 0 0 1 .456 1.039l-.974.26a7 7 0 0 0-.161-.381zm-.45 1.79c.12-.317.216-.645.283-.98l.98.192c-.09.42-.217.824-.377 1.206l-.886-.418zm-.403 1.927a7 7 0 0 0-.01-.015l-.123-.057.48-.874.156.072a8 8 0 0 1 .843 1.258l-.907.477a7 7 0 0 0-.439-.861zm-.607 1.626a7 7 0 0 0-.056-.058l-.162-.15.362-.932.203.188c.328.305.626.643.886 1.006l-.853.53a7 7 0 0 0-.38-.584zm-.75 1.488a7 7 0 0 0-.045-.04l-.234-.186.208-.978.293.234c.324.26.678.483 1.053.664l-.668.744a7 7 0 0 0-.607-.438zM9.5 8.5V3h-1v5h-4v1h5Z"/>
+                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-hdd-stack" viewBox="0 0 16 16">
+                                <path d="M14 10a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-1a1 1 0 0 1 1-1zM2 9a2 2 0 0 0-2 2v1a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1a2 2 0 0 0-2-2z"/>
+                                <path d="M5 11.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0m-2 0a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0M14 3a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM2 2a2 2 0 0 0-2 2v1a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/>
+                                <path d="M5 4.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0m-2 0a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0"/>
                             </svg>
                         </div>
-                        <h2 class="card-title">Configurar Backup</h2>
+                        <h2 class="card-title">Utilitários do Sistema</h2>
                     </div>
                     <div class="card-content">
-                        <div class="backup-settings-section" style="padding-top: 0;">
-                          <h4 class="hidden">Configurar Horário de Backup</h4> 
-                          <p>Defina o horário para o lembrete de backup obrigatório. Horário atual: <span id="backupTimeDisplay" style="color: var(--color-primary); font-weight: bold;">16:00</span></p>
-                          <div class="backup-settings-form">
-                            <input type="time" id="backupTimeInput" class="form-input" value="16:00">
-                            <button class="btn btn-primary" id="saveBackupTimeBtn" style="background-color: #28a745; border-color: #28a745;">Definir Horário</button> </div>
+                        <div class="split-card-layout">
+                            <!-- Lado A: Backup -->
+                            <div class="split-section">
+                                <h4 class="split-title">
+                                    <i class="bi bi-clock-history"></i> Backup Automático
+                                </h4>
+                                <p class="split-desc">Horário do lembrete diário:</p>
+                                <div class="backup-settings-form">
+                                    <input type="time" id="backupTimeInput" class="form-input" value="16:00">
+                                    <button class="btn btn-primary btn-sm" id="saveBackupTimeBtn">Salvar</button>
+                                </div>
+                                <p class="split-meta">Atual: <span id="backupTimeDisplay">16:00</span></p>
+                            </div>
+
+                            <!-- Separador Visual -->
+                            <div class="split-separator"></div>
+
+                            <!-- Lado B: Relatório Mensal -->
+                            <div class="split-section">
+                                <h4 class="split-title">
+                                    <i class="bi bi-file-earmark-text"></i> Relatório Mensal
+                                </h4>
+                                <p class="split-desc">Gerar lista de pacientes:</p>
+                                <div class="backup-settings-form">
+                                    <input type="month" id="reportMonthInput" class="form-input">
+                                    <button class="btn btn-success btn-sm" id="btnGerarRelatorioMensal">Gerar</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
