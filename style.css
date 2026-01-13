@@ -1564,3 +1564,38 @@ p.search-feedback { padding: 1.5rem; text-align: center; color: var(--text-secon
     }
     .vaga-dia-header .btn-jump-day, .vaga-lista-item.ocupada .btn-jump-patient { display: none !important; }
 }
+/* ARQUIVO: style.css (ADICIONAR AO FINAL) */
+
+/* --- CARD DE STATUS DA BASE DE DADOS (Artefato Visual) --- */
+.stats-card-mini.db-status {
+    border-left: 5px solid var(--color-border);
+    transition: all 0.3s ease;
+}
+
+/* Estado: Base Carregada (Verde) */
+.stats-card-mini.db-status.active {
+    border-left-color: var(--color-success);
+    background-color: #f0fdf4; /* Verde muito suave */
+}
+.stats-card-mini.db-status.active h4 i {
+    color: var(--color-success);
+}
+.stats-card-mini.db-status.active .stats-value-big {
+    color: var(--color-success);
+}
+
+/* Estado: Base Vazia (Vermelho) */
+.stats-card-mini.db-status.empty {
+    border-left-color: var(--color-danger);
+    background-color: #fef2f2; /* Vermelho muito suave */
+}
+.stats-card-mini.db-status.empty h4 i {
+    color: var(--color-danger);
+}
+.stats-card-mini.db-status.empty .stats-value-big {
+    color: var(--color-danger);
+}
+.stats-card-mini.db-status.empty .stats-meta {
+    color: var(--color-danger);
+    font-weight: 700;
+}
