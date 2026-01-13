@@ -1,5 +1,5 @@
 /* style.css */
-/* --- ARCOSAFE ZERO-REGRESSION: APPLE SYSTEM UI EDITION v1.4 (Month Input Width Fix) --- */
+/* --- ARCOSAFE ZERO-REGRESSION: APPLE SYSTEM UI EDITION v1.5 (Full Visibility Fix) --- */
 
 /* --- RESET BÁSICO E VARIÁVEIS DE COR (Estilo iOS/macOS) --- */
 * {
@@ -1368,10 +1368,23 @@ p.search-feedback { padding: 1.5rem; text-align: center; color: var(--text-secon
     margin: 0.5rem 0;
 }
 
-/* Ajuste específico para o input de mês */
+/* CORREÇÃO ESPECÍFICA PARA O INPUT DE MÊS */
 #reportMonthInput {
-    min-width: 250px; /* Largura expandida para garantir visibilidade total */
-    flex-grow: 1;
+    max-width: none !important; /* Remove o limite de 140px */
+    width: 100%; /* Ocupa toda a largura disponível */
+    min-width: unset; /* Remove min-width fixo que pode quebrar layout */
+}
+
+/* Ajuste do container do formulário de relatório para garantir espaço */
+.split-section:last-child .backup-settings-form {
+    display: flex;
+    flex-direction: column; /* Empilha input e botão */
+    align-items: stretch;   /* Estica para largura total */
+    gap: 0.5rem;
+}
+
+.split-section:last-child .btn {
+    width: 100%; /* Botão largura total */
 }
 
 /* Ajuste para telas maiores: colocar lado a lado se houver espaço */
