@@ -98,7 +98,7 @@ function configurarEventListenersLogin() {
     const loginButton = document.getElementById('loginButton');
     const loginSenhaInput = document.getElementById('loginSenha');
     
-    // [ARCOSAFE-FIX] Restauração da lógica de cloneNode para garantir limpeza de eventos
+    // [ARCOSAFE-FIX] Restauração da lógica de cloneNode para garantir limpeza de eventos (Correção do Login)
     if (loginButton) {
         const novoLoginButton = loginButton.cloneNode(true);
         loginButton.parentNode.replaceChild(novoLoginButton, loginButton);
@@ -377,17 +377,20 @@ function configurarEventListenersApp() {
     const btnVerRelatorioAnual = document.getElementById('btnVerRelatorioAnual');
     if (btnVerRelatorioAnual) btnVerRelatorioAnual.addEventListener('click', () => abrirModalRelatorio(null, 'current_year'));
 
-    // [ARCOSAFE-FIX] Correção do Botão OK do Modal de Backup Automático
+    // [ARCOSAFE-FIX] Correção do Botão OK do Modal de Backup Automático (Solução 1: Reordenação)
     const btnBackupModalAction = document.getElementById('btnBackupModalAction');
     if (btnBackupModalAction) {
         btnBackupModalAction.addEventListener('click', () => {
-            fazerBackup(); 
-            // [ARCOSAFE-FIX] Definir 'hoje' antes de usar para evitar ReferenceError
+            // 1. Definir variáveis e gravar chave PRIMEIRO
             const hoje = new Date().toLocaleDateString('pt-BR');
             const horarioSalvo = localStorage.getItem('backupTime') || '16:00';
             const chaveBackup = `${hoje}_${horarioSalvo}`;
             localStorage.setItem('ultimoBackupChave', chaveBackup);
             
+            // 2. Iniciar o download
+            fazerBackup(); 
+            
+            // 3. Fechar o modal (agora a validação vai passar)
             fecharModalBackup(); 
         });
     }
