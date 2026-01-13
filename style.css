@@ -1,5 +1,5 @@
 /* style.css */
-/* --- ARCOSAFE ZERO-REGRESSION: APPLE SYSTEM UI EDITION v1.2 (Split Layout Added) --- */
+/* --- ARCOSAFE ZERO-REGRESSION: APPLE SYSTEM UI EDITION v1.3 (Month Input Fix) --- */
 
 /* --- RESET BÁSICO E VARIÁVEIS DE COR (Estilo iOS/macOS) --- */
 * {
@@ -1366,6 +1366,11 @@ p.search-feedback { padding: 1.5rem; text-align: center; color: var(--text-secon
     background-color: var(--color-border);
     width: 100%;
     margin: 0.5rem 0;
+}
+
+/* Ajuste específico para o input de mês */
+#reportMonthInput {
+    min-width: 160px; /* Garante que "Janeiro de 2026" caiba */
 }
 
 /* Ajuste para telas maiores: colocar lado a lado se houver espaço */
