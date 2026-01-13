@@ -847,7 +847,8 @@ function exibirAgendamentos(data) {
 }
 // ⚠️ CÓDIGO LONGO. CONTINUA NA PARTE 2...
 // ARQUIVO: script.js (PARTE 2/3)
-/* script.js (PARTE 2/3 - CORREÇÃO EDGE "NOPE") */
+// ARQUIVO: script.js (PARTE 2/3)
+/* script.js (PARTE 2/3 - CORREÇÃO EDGE "FAKE LIST") */
 
 function gerarVagasTurno(agendamentosTurno, turno, data) {
     let html = '<div class="vagas-grid">';
@@ -953,7 +954,7 @@ function gerarVagasTurno(agendamentosTurno, turno, data) {
         } else {
             const solicitacoesSalvas = dadosPreenchimento.solicitacoes || [];
             
-            // [ARCOSAFE-FIX-EDGE] Uso de 'autocomplete="nope"' para forçar o Edge a ignorar o histórico
+            // [ARCOSAFE-FIX-EDGE] Adicionado list="autocompleteOff" para enganar o navegador
             html += `
                 <form class="vaga-form" autocomplete="off" onsubmit="agendarPaciente(event, '${data}', '${turno}', ${i})">
                     <div class="form-content-wrapper">
@@ -964,35 +965,35 @@ function gerarVagasTurno(agendamentosTurno, turno, data) {
                         <div class="form-row">
                             <div class="form-group numero autocomplete-container">
                                 <label>Número:</label>
-                                <input type="text" name="numero" required class="form-input" maxlength="5" pattern="[0-9]{4,5}" title="O número deve conter de 4 a 5 dígitos." value="${dadosPreenchimento.numero || ''}" onblur="verificarDuplicidadeAoDigitar(this, '${data}', '${turno}', ${i})" autocomplete="nope">
+                                <input type="text" name="numero" required class="form-input" maxlength="5" pattern="[0-9]{4,5}" title="O número deve conter de 4 a 5 dígitos." value="${dadosPreenchimento.numero || ''}" onblur="verificarDuplicidadeAoDigitar(this, '${data}', '${turno}', ${i})" autocomplete="off" list="autocompleteOff">
                                 <div class="sugestoes-lista"></div>
                             </div>
                             <div class="form-group nome autocomplete-container">
                                 <label>Nome do Paciente:</label>
-                                <input type="text" name="nome" required class="form-input" maxlength="51" value="${dadosPreenchimento.nome || ''}" onblur="verificarDuplicidadeAoDigitar(this, '${data}', '${turno}', ${i})" autocomplete="nope">
+                                <input type="text" name="nome" required class="form-input" maxlength="51" value="${dadosPreenchimento.nome || ''}" onblur="verificarDuplicidadeAoDigitar(this, '${data}', '${turno}', ${i})" autocomplete="off" list="autocompleteOff">
                                 <div class="sugestoes-lista"></div>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group autocomplete-container">
                                 <label>CNS:</label>
-                                <input type="text" name="cns" required class="form-input" maxlength="17" pattern="[0-9]{1,17}" title="O CNS deve conter até 17 dígitos." value="${dadosPreenchimento.cns || ''}" onblur="verificarDuplicidadeAoDigitar(this, '${data}', '${turno}', ${i})" autocomplete="nope">
+                                <input type="text" name="cns" required class="form-input" maxlength="17" pattern="[0-9]{1,17}" title="O CNS deve conter até 17 dígitos." value="${dadosPreenchimento.cns || ''}" onblur="verificarDuplicidadeAoDigitar(this, '${data}', '${turno}', ${i})" autocomplete="off" list="autocompleteOff">
                                 <div class="sugestoes-lista"></div>
                             </div>
                             <div class="form-group">
                                 <label>Distrito:</label>
-                                <input type="text" name="distrito" class="form-input" maxlength="21" value="${dadosPreenchimento.distrito || ''}" autocomplete="nope">
+                                <input type="text" name="distrito" class="form-input" maxlength="21" value="${dadosPreenchimento.distrito || ''}" autocomplete="off" list="autocompleteOff">
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group autocomplete-container">
                                 <label>Téc. Ref.:</label>
-                                <input type="text" name="tecRef" class="form-input" maxlength="50" value="${dadosPreenchimento.tecRef || ''}" autocomplete="nope">
+                                <input type="text" name="tecRef" class="form-input" maxlength="50" value="${dadosPreenchimento.tecRef || ''}" autocomplete="off" list="autocompleteOff">
                                 <div class="sugestoes-lista"></div>
                             </div>
                             <div class="form-group">
                                 <label>CID:</label>
-                                <input type="text" name="cid" class="form-input" maxlength="12" style="text-transform: uppercase;" value="${dadosPreenchimento.cid || ''}" autocomplete="nope">
+                                <input type="text" name="cid" class="form-input" maxlength="12" style="text-transform: uppercase;" value="${dadosPreenchimento.cid || ''}" autocomplete="off">
                             </div>
                         </div>
 
@@ -1036,7 +1037,7 @@ function gerarVagasTurno(agendamentosTurno, turno, data) {
                     <div class="form-actions-wrapper">
                         <div class="form-group agendado-por">
                             <label>Agendado por:</label>
-                            <input type="text" name="agendadoPor" required class="form-input" maxlength="15" value="${dadosPreenchimento.agendadoPor || ''}" autocomplete="nope">
+                            <input type="text" name="agendadoPor" required class="form-input" maxlength="15" value="${dadosPreenchimento.agendadoPor || ''}" autocomplete="off">
                         </div>
                         <div class="form-buttons">
                             ${estaEditando ? `
@@ -1055,207 +1056,6 @@ function gerarVagasTurno(agendamentosTurno, turno, data) {
     }
     return html + '</div>';
 }
-
-function mostrarNotificacao(mensagem, tipo = 'info') {
-    const container = document.getElementById('floating-notifications');
-    if (!container) return; 
-
-    const notificacao = document.createElement('div');
-    notificacao.className = `floating-notification ${tipo}`;
-    notificacao.textContent = mensagem;
-    container.appendChild(notificacao);
-
-    setTimeout(() => {
-        notificacao.style.opacity = '0';
-        notificacao.style.transform = 'translateY(20px)';
-        setTimeout(() => notificacao.remove(), 300);
-    }, 5000);
-}
-
-function parseHtmlToPacientes(htmlContent) {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlContent, 'text/html');
-    const rows = doc.querySelectorAll('tr');
-    const novosPacientes = [];
-
-    rows.forEach(row => {
-        const cells = row.querySelectorAll('td');
-        if (cells.length >= 6) { 
-            const numero = cells[0].textContent.trim();
-            const nome = cells[1].textContent.trim();
-            const cns = cells[2].textContent.trim();
-            const distrito = cells[3].textContent.trim();
-            const tecRef = cells[4].textContent.trim();
-            const cid = cells[5].textContent.trim();
-
-            if (numero && nome && cns && /^\d+$/.test(numero)) { 
-                novosPacientes.push({ numero, nome, cns, distrito, tecRef, cid });
-            }
-        }
-    });
-    return novosPacientes;
-}
-
-function mergePacientes(existentes, novos) {
-    let adicionados = 0;
-    let atualizados = 0;
-    const mapaExistentes = new Map(existentes.map(p => [p.numero, p]));
-
-    novos.forEach(novo => {
-        if (mapaExistentes.has(novo.numero)) {
-            Object.assign(mapaExistentes.get(novo.numero), novo);
-            atualizados++;
-        } else {
-            mapaExistentes.set(novo.numero, novo);
-            adicionados++;
-        }
-    });
-
-    return {
-        pacientes: Array.from(mapaExistentes.values()),
-        adicionados,
-        atualizados
-    };
-}
-
-function handleHtmlFile(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const content = e.target.result;
-            const novosPacientes = parseHtmlToPacientes(content);
-
-            if (novosPacientes.length === 0) {
-                mostrarNotificacao('Nenhum paciente válido encontrado no arquivo.', 'warning');
-                return;
-            }
-
-            const resultadoMerge = mergePacientes(pacientesGlobais, novosPacientes);
-            pacientesGlobais = resultadoMerge.pacientes;
-            pacientes = [...pacientesGlobais]; 
-
-            if (salvarPacientesNoLocalStorage()) {
-                mostrarNotificacao(`${resultadoMerge.adicionados} novos pacientes adicionados e ${resultadoMerge.atualizados} atualizados.`, 'success');
-                verificarDadosCarregados(); 
-            } else {
-                mostrarNotificacao('Erro ao salvar os dados dos pacientes.', 'danger');
-            }
-            event.target.value = '';
-        } catch (error) {
-            console.error('Erro ao processar o arquivo HTML:', error);
-            mostrarNotificacao('Falha ao ler o arquivo. Verifique o formato.', 'danger');
-            event.target.value = '';
-        }
-    };
-    reader.readAsText(file, 'windows-1252'); 
-}
-
-function buscarAgendamentosGlobais() {
-    const input = document.getElementById('globalSearchInput');
-    const containerResultados = document.getElementById('searchResultsContainer');
-    if (!input || !containerResultados) return; 
-
-    const termoBusca = input.value.trim().toLowerCase();
-
-    if (termoBusca.length < 2) {
-        containerResultados.innerHTML = '<p class="search-feedback">Digite pelo menos 2 caracteres para buscar.</p>';
-        return;
-    }
-
-    const resultados = [];
-    Object.keys(agendamentos).forEach(data => {
-        ['manha', 'tarde'].forEach(turno => {
-            if (agendamentos[data] && agendamentos[data][turno]) {
-                agendamentos[data][turno].forEach(ag => {
-                    if (ag && ag.nome && ag.numero) {
-                        const nome = ag.nome.toLowerCase();
-                        const numero = ag.numero.toString();
-                        if (nome.includes(termoBusca) || numero.includes(termoBusca)) {
-                            resultados.push({ ...ag, data, turno });
-                        }
-                    }
-                });
-            }
-        });
-    });
-
-    resultados.sort((a, b) => new Date(b.data) - new Date(a.data));
-
-    if (resultados.length > 0) {
-        const hoje = new Date();
-        hoje.setHours(0, 0, 0, 0);
-
-        containerResultados.innerHTML = `
-            <div class="search-results-header">
-                <h4>${resultados.length} agendamento(s) encontrado(s)</h4>
-                <button class="btn-icon btn-clear-search" onclick="limparBuscaGlobal()" aria-label="Limpar busca" title="Limpar Busca">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L7.293 8z"/></svg>
-                </button>
-            </div>
-            ${resultados.map(res => {
-                const dataAgendamento = new Date(res.data + 'T12:00:00');
-                const isPast = dataAgendamento < hoje;
-                const status = res.status || 'Aguardando';
-                const statusClass = `status-${status.toLowerCase().replace(/\s/g, '-')}`;
-
-                return `
-                <div class="search-result-item ${isPast ? 'past' : 'future'}">
-                    <div class="result-info">
-                        <strong>${res.nome} (Nº ${res.numero})</strong>
-                        <span>
-                            ${dataAgendamento.toLocaleDateString('pt-BR')} - ${res.turno.charAt(0).toUpperCase() + res.turno.slice(1)}
-                            <span class="result-status ${statusClass}">${status}</span>
-                        </span>
-                    </div>
-                    <button class="btn btn-jump" onclick="pularParaAgendamento('${res.data}')">Ver na Agenda</button>
-                </div>
-            `}).join('')}
-        `;
-    } else {
-        containerResultados.innerHTML = `
-            <div class="search-results-header">
-                <h4>Nenhum agendamento encontrado</h4>
-                <button class="btn-icon btn-clear-search" onclick="limparBuscaGlobal()" aria-label="Limpar busca" title="Limpar Busca">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L7.293 8z"/></svg>
-                </button>
-            </div>
-            <p class="search-feedback">Nenhum agendamento encontrado para este paciente.</p>
-        `;
-    }
-}
-
-function limparBuscaGlobal() {
-    const input = document.getElementById('globalSearchInput');
-    if (input) input.value = '';
-    const container = document.getElementById('searchResultsContainer');
-    if (container) container.innerHTML = '';
-}
-
-function pularParaAgendamento(data) {
-    const dataObj = new Date(data + 'T12:00:00');
-    mesAtual = dataObj.getMonth();
-    anoAtual = dataObj.getFullYear();
-    atualizarCalendario();
-    setTimeout(() => {
-        const diaEl = document.querySelector(`.day[data-date="${data}"]`);
-        if (diaEl) {
-            selecionarDia(data, diaEl);
-            diaEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    }, 100);
-}
-
-function pularParaCard(data, turno, vaga) {
-    pularParaAgendamento(data);
-    mostrarTurno(turno);
-    setTimeout(() => {
-        const cardId = `card-${data}-${turno}-${vaga}`;
-        const cardElement = document.getElementById(cardId);
-        if (cardElement) {
-            cardElement.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
             // CÓDIGO CONTINUA NA PARTE 3...
 /* script.js (CONTINUAÇÃO E FINAL) */
 
