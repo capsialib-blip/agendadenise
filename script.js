@@ -1,13 +1,3 @@
-🛡️ **ARCOSAFE v30.0 ATIVO.**
-
-Peço desculpas se o código anterior pareceu cortado. Devido ao tamanho do arquivo, às vezes a interface pode truncar o final.
-
-Aqui está o **ARQUIVO 3: script.js** COMPLETO e INTEGRAL.
-
-**Reforço na Correção do "Texto na frente dos nomes":**
-Além de colocar `autocomplete="off"` nos campos, adicionei também na tag `<form>` (`<form ... autocomplete="off">`), o que força o navegador a respeitar a regra e não mostrar o histórico de preenchimento por cima da lista de pacientes.
-
-```javascript
 /* script.js */
 'use strict';
 
@@ -1052,3 +1042,4 @@ function confirmarNomeAcompanhante() {
         if (nomeAcompanhanteInput) nomeAcompanhanteInput.focus();
     }
 }
+
