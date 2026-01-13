@@ -841,7 +841,7 @@ function exibirAgendamentos(data) {
     const btnLockDay = document.getElementById('btnLockDay');
     if (btnLockDay) btnLockDay.addEventListener('click', () => gerenciarBloqueioDia(data));
 
-    // [ARCOSAFE-FIX] Event Listeners para bloqueios parciais
+    // [ARCOSAFE-UI] Listeners para os botões estilo "Dia Todo" nos turnos parciais
     const btnLockManha = document.getElementById('btnLockTurno_Manha');
     if (btnLockManha) btnLockManha.addEventListener('click', () => gerenciarBloqueioDia(data));
 
@@ -865,7 +865,6 @@ function exibirAgendamentos(data) {
         });
     }, 0);
 }
-
 function gerarVagasTurno(agendamentosTurno, turno, data) {
     let html = '<div class="vagas-grid">';
     agendamentosTurno = agendamentosTurno || [];
@@ -2592,23 +2591,22 @@ function criarBlockedState(data, dataFmt, motivo, tipo, isHoliday) {
     `;
 }
 
-// [ARCOSAFE-FIX] Modificação para adicionar botão de desbloqueio em turnos parciais
+// [ARCOSAFE-UX] Design unificado: Turnos parciais agora usam a mesma estética do bloqueio total
 function criarBlockedTurnoState(turnoNome, motivo, isHoliday, data) {
+    const btnId = turnoNome === 'Manhã' ? 'btnLockTurno_Manha' : 'btnLockTurno_Tarde';
+    
     return `
-        <div class="blocked-turno-container">
-            <div class="blocked-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                <p style="margin: 0; font-weight: bold;">Turno ${turnoNome} Bloqueado.</p>
-                <button id="btnLockTurno_${turnoNome === 'Manhã' ? 'Manha' : 'Tarde'}" class="btn-icon btn-lock" title="Gerenciar Bloqueio" aria-label="Gerenciar bloqueio do turno">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-lock-fill" viewBox="0 0 16 16">
-                        <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2m3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2"/>
-                    </svg>
-                </button>
-            </div>
-            <p class="motivo">Motivo: ${motivo}</p>
+        <div class="blocked-state-container" style="padding: 2rem; margin-top: 1rem;">
+            <div class="blocked-icon"><i class="bi bi-lock-fill"></i></div>
+            <h3 style="margin-top: 0.5rem; font-size: 1.2rem;">Turno ${turnoNome} Bloqueado</h3>
+            <p class="motivo" style="margin: 1rem 0;">Motivo: ${motivo}</p>
+            ${isHoliday ? '<span class="holiday-badge">Feriado</span>' : ''}
+            <button id="${btnId}" class="btn btn-secondary" style="margin-top: 1rem;">
+                Gerenciar Bloqueio
+            </button>
         </div>
     `;
 }
-
 function criarEmptyState() {
     return `
         <div class="empty-state">
@@ -2729,4 +2727,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     inicializarLogin();
 });
+
 
