@@ -98,22 +98,23 @@ function configurarEventListenersLogin() {
     const loginButton = document.getElementById('loginButton');
     const loginSenhaInput = document.getElementById('loginSenha');
     
-    // [ARCOSAFE-FIX] Simplificação da lógica de evento para garantir funcionamento
+    // [ARCOSAFE-FIX] Restauração da lógica de cloneNode para garantir limpeza de eventos
     if (loginButton) {
-        // Removemos a clonagem complexa e usamos onclick direto para garantir a execução
-        loginButton.onclick = (e) => {
+        const novoLoginButton = loginButton.cloneNode(true);
+        loginButton.parentNode.replaceChild(novoLoginButton, loginButton);
+        novoLoginButton.addEventListener('click', (e) => {
             e.preventDefault();
             tentarLogin();
-        };
+        });
     }
     
     if (loginSenhaInput) {
-        loginSenhaInput.onkeydown = (event) => {
+        loginSenhaInput.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
                 event.preventDefault();
                 tentarLogin();
             }
-        };
+        });
     }
 }
 
