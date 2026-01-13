@@ -797,6 +797,16 @@ function exibirAgendamentos(data) {
             <div class="card-content">
                 
                 <div class="dashboard-stats-grid">
+                    <!-- [ARCOSAFE-NEW] Card de Status da Base de Dados -->
+                    <div class="stats-card-mini db-status ${pacientesGlobais.length > 0 ? 'active' : 'empty'}">
+                        <h4>
+                            <span>Base de Dados</span>
+                            <i class="bi ${pacientesGlobais.length > 0 ? 'bi-database-check' : 'bi-database-x'}"></i>
+                        </h4>
+                        <div class="stats-value-big">${pacientesGlobais.length}</div>
+                        <div class="stats-meta">${pacientesGlobais.length > 0 ? 'Pacientes Registrados' : 'Nenhum dado importado'}</div>
+                    </div>
+
                     <div class="stats-card-mini">
                         <h4>
                             <span>Hoje</span>
@@ -2734,124 +2744,6 @@ function goToToday() {
         
         const hint = document.getElementById('floatingDateHint');
         if(hint) hint.classList.remove('visible');
-    }
-}
-
-// [ARCOSAFE-NEW] Função para Gerar Relatório Mensal Consolidado
-function gerarRelatorioMensal() {
-    const inputMes = document.getElementById('reportMonthInput');
-    if (!inputMes || !inputMes.value) {
-        mostrarNotificacao('Por favor, selecione um mês e ano.', 'warning');
-        return;
-    }
-
-    const [ano, mes] = inputMes.value.split('-');
-    const mesNome = meses[parseInt(mes) - 1];
-    const termoBusca = `${ano}-${mes}`; // Prefixo da chave YYYY-MM
-
-    let totalPacientes = 0;
-    let listaPacientes = [];
-
-    // Itera sobre todas as datas agendadas
-    Object.keys(agendamentos).forEach(dataKey => {
-        if (dataKey.startsWith(termoBusca)) {
-            const agendamentosDia = agendamentos[dataKey];
-            
-            // Processa Manhã
-            if (agendamentosDia.manha) {
-                agendamentosDia.manha.forEach(ag => {
-                    listaPacientes.push({
-                        data: dataKey,
-                        turno: 'Manhã',
-                        ...ag
-                    });
-                });
-            }
-            
-            // Processa Tarde
-            if (agendamentosDia.tarde) {
-                agendamentosDia.tarde.forEach(ag => {
-                    listaPacientes.push({
-                        data: dataKey,
-                        turno: 'Tarde',
-                        ...ag
-                    });
-                });
-            }
-        }
-    });
-
-    // Ordena por data (dia)
-    listaPacientes.sort((a, b) => new Date(a.data) - new Date(b.data));
-    totalPacientes = listaPacientes.length;
-
-    if (totalPacientes === 0) {
-        mostrarNotificacao(`Nenhum agendamento encontrado em ${mesNome}/${ano}.`, 'info');
-        return;
-    }
-
-    // Prepara o Modal de Relatório (Reutilizando estrutura existente)
-    const modalTitle = document.getElementById('reportModalTitle');
-    const modalBodyTable = document.getElementById('reportTableContainer');
-    const totalCount = document.getElementById('reportTotalCount');
-    const modal = document.getElementById('reportModal');
-
-    if (modalTitle) modalTitle.textContent = `Relatório Mensal: ${mesNome}/${ano}`;
-    if (totalCount) totalCount.textContent = `Total de Agendamentos: ${totalPacientes}`;
-
-    // Constrói a Tabela
-    let htmlTable = `
-        <div class="print-only-header" id="reportPrintHeaderInfo">
-            <p><strong>RELATÓRIO MENSAL DE AGENDAMENTOS</strong></p>
-            <p>Período: ${mesNome}/${ano}</p>
-            <p>Total: ${totalPacientes} pacientes</p>
-        </div>
-        <table class="report-table">
-            <thead>
-                <tr>
-                    <th class="col-data">Data</th>
-                    <th class="col-nome">Paciente</th>
-                    <th class="col-numero">Nº Pront.</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
-
-    listaPacientes.forEach(p => {
-        const dataFmt = new Date(p.data + 'T12:00:00').toLocaleDateString('pt-BR');
-        htmlTable += `
-            <tr>
-                <td class="col-data">${dataFmt} (${p.turno})</td>
-                <td class="col-nome">
-                    <strong>${p.nome}</strong><br>
-                    <small>${p.tecRef || 'Sem Téc. Ref.'}</small>
-                </td>
-                <td class="col-numero">${p.numero}</td>
-            </tr>
-        `;
-    });
-
-    htmlTable += `</tbody></table>`;
-
-    if (modalBodyTable) modalBodyTable.innerHTML = htmlTable;
-    
-    // Esconde filtros que não são usados neste relatório específico
-    const filterSection = document.querySelector('.report-filters');
-    if(filterSection) filterSection.style.display = 'none';
-
-    // Abre o modal
-    if (modal) {
-        modal.style.display = 'flex';
-        // Handler para restaurar filtros ao fechar (opcional, para manter consistência)
-        const btnFechar = document.getElementById('btnFecharReportModal');
-        const restoreFilters = () => {
-            if(filterSection) filterSection.style.display = 'flex';
-            btnFechar.removeEventListener('click', restoreFilters);
-        };
-        btnFechar.addEventListener('click', restoreFilters);
-        
-        const btnFecharFooter = document.getElementById('btnFecharReportModalFooter');
-        if(btnFecharFooter) btnFecharFooter.addEventListener('click', restoreFilters);
     }
 }
 
