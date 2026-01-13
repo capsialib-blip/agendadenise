@@ -1,5 +1,5 @@
 /* style.css */
-/* --- ARCOSAFE ZERO-REGRESSION: APPLE SYSTEM UI EDITION v1.1 (Fix: Labels Single Line) --- */
+/* --- ARCOSAFE ZERO-REGRESSION: APPLE SYSTEM UI EDITION v1.2 (Split Layout Added) --- */
 
 /* --- RESET BÁSICO E VARIÁVEIS DE COR (Estilo iOS/macOS) --- */
 * {
@@ -1318,6 +1318,69 @@ p.search-feedback { padding: 1.5rem; text-align: center; color: var(--text-secon
 .turno-indicator.tarde { background-color: var(--color-afternoon-light); color: var(--color-afternoon); border-color: transparent; }
 .turno-indicator i { font-size: 1.1rem; }
 
+/* --- SPLIT CARD LAYOUT (Utilitários) --- */
+.split-card-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.split-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.split-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.split-title i {
+    color: var(--color-primary);
+    font-size: 1rem;
+}
+
+.split-desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.split-meta {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
+}
+
+.split-separator {
+    height: 1px;
+    background-color: var(--color-border);
+    width: 100%;
+    margin: 0.5rem 0;
+}
+
+/* Ajuste para telas maiores: colocar lado a lado se houver espaço */
+@media (min-width: 1200px) {
+    .split-card-layout {
+        flex-direction: row;
+        align-items: stretch;
+    }
+    .split-separator {
+        width: 1px;
+        height: auto;
+        margin: 0 1rem;
+    }
+}
+
 /* --- RESPONSIVIDADE --- */
 @media (max-width: 1024px) {
     .main-layout { grid-template-columns: 1fr; }
@@ -1481,67 +1544,4 @@ p.search-feedback { padding: 1.5rem; text-align: center; color: var(--text-secon
         background-color: #f0f0f0 !important; border-radius: 4px;
     }
     .vaga-dia-header .btn-jump-day, .vaga-lista-item.ocupada .btn-jump-patient { display: none !important; }
-}
-
-/* --- SPLIT CARD LAYOUT (Utilitários) --- */
-.split-card-layout {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.split-section {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.split-title {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.split-title i {
-    color: var(--color-primary);
-    font-size: 1rem;
-}
-
-.split-desc {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    margin-bottom: 0.5rem;
-}
-
-.split-meta {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    margin-top: 0.5rem;
-}
-
-.split-separator {
-    height: 1px;
-    background-color: var(--color-border);
-    width: 100%;
-    margin: 0.5rem 0;
-}
-
-/* Ajuste para telas maiores: colocar lado a lado se houver espaço */
-@media (min-width: 1200px) {
-    .split-card-layout {
-        flex-direction: row;
-        align-items: stretch;
-    }
-    .split-separator {
-        width: 1px;
-        height: auto;
-        margin: 0 1rem;
-    }
 }
