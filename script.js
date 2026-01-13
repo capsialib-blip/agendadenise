@@ -399,6 +399,15 @@ function configurarEventListenersApp() {
     const btnGerarRelatorioMensal = document.getElementById('btnGerarRelatorioMensal');
     if (btnGerarRelatorioMensal) {
         btnGerarRelatorioMensal.addEventListener('click', gerarRelatorioMensal);
+        
+        // [ARCOSAFE-UX] Auto-preenchimento do mês atual
+        const reportMonthInput = document.getElementById('reportMonthInput');
+        if (reportMonthInput) {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            reportMonthInput.value = `${year}-${month}`;
+        }
     }
 }
 
@@ -2803,7 +2812,6 @@ function gerarRelatorioMensal() {
                     <th class="col-data">Data</th>
                     <th class="col-nome">Paciente</th>
                     <th class="col-numero">Nº Pront.</th>
-                    <th class="col-tr">Status</th>
                 </tr>
             </thead>
             <tbody>
@@ -2819,7 +2827,6 @@ function gerarRelatorioMensal() {
                     <small>${p.tecRef || 'Sem Téc. Ref.'}</small>
                 </td>
                 <td class="col-numero">${p.numero}</td>
-                <td class="col-tr">${p.status}</td>
             </tr>
         `;
     });
