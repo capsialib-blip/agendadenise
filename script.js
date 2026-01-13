@@ -382,7 +382,8 @@ function configurarEventListenersApp() {
     if (btnBackupModalAction) {
         btnBackupModalAction.addEventListener('click', () => {
             fazerBackup(); 
-            // Força a atualização da chave ANTES de tentar fechar o modal
+            // [ARCOSAFE-FIX] Definir 'hoje' antes de usar para evitar ReferenceError
+            const hoje = new Date().toLocaleDateString('pt-BR');
             const horarioSalvo = localStorage.getItem('backupTime') || '16:00';
             const chaveBackup = `${hoje}_${horarioSalvo}`;
             localStorage.setItem('ultimoBackupChave', chaveBackup);
