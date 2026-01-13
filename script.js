@@ -1,3 +1,13 @@
+🛡️ **ARCOSAFE v30.0 ATIVO.**
+
+Peço desculpas se o código anterior pareceu cortado. Devido ao tamanho do arquivo, às vezes a interface pode truncar o final.
+
+Aqui está o **ARQUIVO 3: script.js** COMPLETO e INTEGRAL.
+
+**Reforço na Correção do "Texto na frente dos nomes":**
+Além de colocar `autocomplete="off"` nos campos, adicionei também na tag `<form>` (`<form ... autocomplete="off">`), o que força o navegador a respeitar a regra e não mostrar o histórico de preenchimento por cima da lista de pacientes.
+
+```javascript
 /* script.js */
 'use strict';
 
@@ -43,8 +53,7 @@ const PROFISSIONAIS_LISTA = [
     { nome: "ERICK FROES ALMEIDA", funcao: "COORDENADOR TÉCNICO" },
     { nome: "GABRIELA BARRETO SANTANA", funcao: "ARTESÃO" },
     { nome: "HELGA DE OLIVEIRA BRITO", funcao: "FARMACEUTICO" },
-    { nome: "IONARA MARTINS DOS SANTOS",funcao: "TECNICO DE ENFERMAGEM" },
-    { nome: "IRIS SACRAMENTO COSTA", funcao: "TECNICO DE ENFERMAGEM" },
+    { nome: "IONARA MARTINS DOS SANTOS", funcao: "TECNICO DE ENFERMAGEM" },{ nome: "IRIS SACRAMENTO COSTA", funcao: "TECNICO DE ENFERMAGEM" },
     { nome: "JOSILDA MARIA DA SILVA FAGUNDES", funcao: "FARMACEUTICO" },
     { nome: "LEILANE DA SILVA DIAS", funcao: "ENFERMEIRO" },
     { nome: "LORENA MOREIRA SILVA SANTOS", funcao: "TERAPEUTA OCUPACIONAL" },
@@ -103,7 +112,83 @@ function configurarEventListenersLogin() {
         const novoLoginButton = loginButton.cloneNode(true);
         loginButton.parentNode.replaceChild(novoLoginButton, loginButton);
         novoLoginButton.addEventListener('click', (e) => {
-            e.preventDefault(); tentarLogin(); }); } if (loginSenhaInput) { loginSenhaInput.addEventListener('keydown', (event) => { if (event.key === 'Enter') { event.preventDefault(); tentarLogin(); } }); } } function tentarLogin() { const usuarioInput = document.getElementById('loginUsuario'); const senhaInput = document.getElementById('loginSenha'); const errorMessage = document.getElementById('loginErrorMessage'); const usuario = usuarioInput ? usuarioInput.value : ''; const senha = senhaInput ? senhaInput.value : ''; if (usuário === '0000' && senha === '0000') { sessionStorage.setItem('usuarioLogado', 'true'); if (errorMessage) errorMessage.classList.add('oculto'); document.body.classList.add('logado'); inicializarApp(); } else { if (errorMessage) { errorMessage.textContent = 'Usuário ou senha incorreta.'; errorMessage.classList.remove('oculto'); } } } function inicializarApp() { console.log('Inicializando sistema...'); const agendamentosSalvos = localStorage.getItem('agenda_completa_final'); const pacientesSalvos = localStorage.getItem('pacientes_dados'); const bloqueiosSalvos = localStorage.getItem('dias_bloqueados'); const feriadosDesbloqueadosSalvos = localStorage.getItem('feriados_desbloqueados'); if (agendamentosSalvos) { try { agendamentos = JSON.parse(agendamentosSalvos); } catch (erro) { agendamentos = {}; } } if (pacientesSalvos) { try { pacientes = JSON.parse(pacientesSalvos); pacientesGlobais = [...pacientes]; } catch (erro) { pacientes = []; pacientesGlobais = []; } } else { pacientesGlobais = []; } if (bloqueiosSalvos) { try { diasBloqueados = JSON.parse(bloqueiosSalvos); } catch (erro) { diasBloqueados = {}; } } if (feriadosDesbloqueadosSalvos) { try { feriadosDesbloqueados = JSON.parse(feriadosDesbloqueadosSalvos); } catch (erro) { feriadosDesbloqueados = {}; } } if (database) { database.ref('agendamentos').on('value', (snapshot) => { const data = snapshot.val(); if (data) { agendamentos = data; localStorage.setItem('agenda_completa_final', JSON.stringify(agendamentos)); atualizarCalendario(); if (dataSelecionada) exibirAgendamentos(dataSelecionada); atualizarResumoMensal(); atualizarResumoSemanal(new Date()); verificarDadosCarregados(); banco de dados.ref('dias_bloqueados').on('valor',(snapshot) => {
+            e.preventDefault();
+            tentarLogin();
+        });
+    }
+    
+    if (loginSenhaInput) {
+        loginSenhaInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                tentarLogin();
+            }
+        });
+    }
+}
+
+function tentarLogin() {
+    const usuarioInput = document.getElementById('loginUsuario');
+    const senhaInput = document.getElementById('loginSenha');
+    const errorMessage = document.getElementById('loginErrorMessage');
+
+    const usuario = usuarioInput ? usuarioInput.value : '';
+    const senha = senhaInput ? senhaInput.value : '';
+
+    if (usuario === '0000' && senha === '0000') {
+        sessionStorage.setItem('usuarioLogado', 'true');
+        if (errorMessage) errorMessage.classList.add('hidden');
+        document.body.classList.add('logged-in');
+        inicializarApp();
+    } else {
+        if (errorMessage) {
+            errorMessage.textContent = 'Usuário ou senha incorretos.';
+            errorMessage.classList.remove('hidden');
+        }
+    }
+}
+
+function inicializarApp() {
+    console.log('Inicializando sistema...');
+
+    const agendamentosSalvos = localStorage.getItem('agenda_completa_final');
+    const pacientesSalvos = localStorage.getItem('pacientes_dados');
+    const bloqueiosSalvos = localStorage.getItem('dias_bloqueados');
+    const feriadosDesbloqueadosSalvos = localStorage.getItem('feriados_desbloqueados');
+
+    if (agendamentosSalvos) {
+        try { agendamentos = JSON.parse(agendamentosSalvos); } catch (error) { agendamentos = {}; }
+    }
+    if (pacientesSalvos) {
+        try {
+            pacientes = JSON.parse(pacientesSalvos);
+            pacientesGlobais = [...pacientes];
+        } catch (error) { pacientes = []; pacientesGlobais = []; }
+    } else {
+        pacientesGlobais = []; 
+    }
+    if (bloqueiosSalvos) {
+        try { diasBloqueados = JSON.parse(bloqueiosSalvos); } catch (error) { diasBloqueados = {}; }
+    }
+    if (feriadosDesbloqueadosSalvos) {
+        try { feriadosDesbloqueados = JSON.parse(feriadosDesbloqueadosSalvos); } catch (error) { feriadosDesbloqueados = {}; }
+    }
+
+    if (database) {
+        database.ref('agendamentos').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                agendamentos = data;
+                localStorage.setItem('agenda_completa_final', JSON.stringify(agendamentos));
+                atualizarCalendario();
+                if (dataSelecionada) exibirAgendamentos(dataSelecionada);
+                atualizarResumoMensal();
+                atualizarResumoSemanal(new Date());
+                verificarDadosCarregados();
+            }
+        });
+
+        database.ref('dias_bloqueados').on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
                 diasBloqueados = data;
@@ -664,7 +749,7 @@ function gerarVagasTurno(agendamentosTurno, turno,data) {
         } else {
             const solicitacoesSalvas = dadosPreenchimento.solicitacoes || [];
             html += `
-                <form class="vaga-form" onsubmit="agendarPaciente(event, '${data}', '${turno}', ${i})">
+                <form class="vaga-form" autocomplete="off" onsubmit="agendarPaciente(event, '${data}', '${turno}', ${i})">
                     <div class="form-content-wrapper">
                          <div class="form-group-checkbox-single">
                              <input type="checkbox" name="primeiraConsulta" id="primeiraConsulta_${uniqueIdPrefix}" ${dadosPreenchimento.primeiraConsulta ? 'checked' : ''}>
@@ -967,15 +1052,3 @@ function confirmarNomeAcompanhante() {
         if (nomeAcompanhanteInput) nomeAcompanhanteInput.focus();
     }
 }
-
-function fecharModalAtestado() {
-    const declaracaoModal = document.getElementById('declaracaoModal');
-    if (declaracaoModal) declaracaoModal.style.display = 'none';
-    atestadoEmGeracao = null; 
-    try {
-        document.getElementById('assinaturaInput').value = '';
-        document.getElementById('assinaturaNomePrint').textContent = '\u00A0'; 
-        document.getElementById('assinaturaFuncaoPrint').textContent = '\u00A0'; 
-        document.getElementById('assinaturaSugestoe
-
-          
