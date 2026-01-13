@@ -673,19 +673,19 @@ function gerarVagasTurno(agendamentosTurno, turno,data) {
                         <div class="form-row">
                             <div class="form-group numero autocomplete-container">
                                 <label>Número:</label>
-                                <input type="text" name="numero" required class="form-input" maxlength="5" pattern="[0-9]{4,5}" title="O número deve conter de 4 a 5 dígitos." value="${dadosPreenchimento.numero || ''}" onblur="verificarDuplicidadeAoDigitar(this, '${data}', '${turno}', ${i})">
+                                <input type="text" name="numero" required class="form-input" maxlength="5" pattern="[0-9]{4,5}" title="O número deve conter de 4 a 5 dígitos." value="${dadosPreenchimento.numero || ''}" onblur="verificarDuplicidadeAoDigitar(this, '${data}', '${turno}', ${i})" autocomplete="off">
                                 <div class="sugestoes-lista"></div>
                             </div>
                             <div class="form-group nome autocomplete-container">
                                 <label>Nome do Paciente:</label>
-                                <input type="text" name="nome" required class="form-input" maxlength="51" value="${dadosPreenchimento.nome || ''}" onblur="verificarDuplicidadeAoDigitar(this, '${data}', '${turno}', ${i})">
+                                <input type="text" name="nome" required class="form-input" maxlength="51" value="${dadosPreenchimento.nome || ''}" onblur="verificarDuplicidadeAoDigitar(this, '${data}', '${turno}', ${i})" autocomplete="off">
                                 <div class="sugestoes-lista"></div>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group autocomplete-container">
                                 <label>CNS:</label>
-                                <input type="text" name="cns" required class="form-input" maxlength="17" pattern="[0-9]{1,17}" title="O CNS deve conter até 17 dígitos." value="${dadosPreenchimento.cns || ''}" onblur="verificarDuplicidadeAoDigitar(this, '${data}','${turno}', ${i})"> <div class="sugestoes-lista"></div> </div> <div class="form-group"> <label>Distrito:</label> <input type="text" name="distrito" class="form-input" maxlength="21" value="${dadosPreenchimento.distrito || ''}"> </div> </div> <div class="form-row"> <div class="form-group autocomplete-container"> <label>Téc. Ref.:</label> <input type="text" name="tecRef" class="form-input" maxlength="50" value="${dadosPreenchimento.tecRef || ''}"> <div class="sugestoes-lista"></div> </div> <div class="form-group"> <label>CID:</label> <input type="text" name="cid" class="form-input" maxlength="12" style="text-transform: uppercase;" value="${dadosPreenchimento.cid || ''}"> </div> </div> <div class="form-group full-width solicitações-group"> <label>Solicitações:</label> <div class="checkbox-grid"> <div class="checkbox-item"> <input type="checkbox" name="solicitacao" value="Passe Livre Municipal" id="pl_municipal_${uniqueIdPrefix}" ${solicitacoesSalvas.includes('Passe Livre Municipal') ? 'checked' : ''}> <label for="pl_municipal_${uniqueIdPrefix}">Passe Livre Municipal</label> </div> <div class="checkbox-item"> <input type="checkbox" name="solicitacao" value="Passe Livre Intermunicipal" id="pl_intermunicipal_${uniqueIdPrefix}" ${solicitacoesSalvas.includes('Passe Livre Intermunicipal') ? 'verificado':''}>
+                                <input type="text" name="cns" required class="form-input" maxlength="17" pattern="[0-9]{1,17}" title="O CNS deve conter até 17 dígitos." value="${dadosPreenchimento.cns || ''}" onblur="verificarDuplicidadeAoDigitar(this, '${data}', '${turno}', ${i})" autocomplete="off"> <div class="sugestoes-lista"></div> </div> <div class="form-group"> <label>Distrito:</label> <input type="text" name="distrito" class="form-input" maxlength="21" value="${dadosPreenchimento.distrito || ''}" autocomplete="off"> </div> </div> <div class="form-row"> <div class="form-group autocomplete-container"> <label>Téc. Ref.:</label> <input type="text" name="tecRef" class="form-input" maxlength="50" value="${dadosPreenchimento.tecRef || ''}" autocomplete="off"> <div class="sugestoes-lista"></div> </div> <div class="form-group"> <label>CID:</label> <input type="text" name="cid" class="form-input" maxlength="12" style="text-transform: uppercase;" value="${dadosPreenchimento.cid || ''}" autocomplete="off"> </div> </div> <div class="form-group full-width solicitacoes-group"> <label>Solicitações:</label> <div class="checkbox-grid"> <div class="checkbox-item"> <input type="checkbox" name="solicitacao" value="Passe Livre Municipal" id="pl_municipal_${uniqueIdPrefix}" ${solicitacoesSalvas.includes('Passe Livre Municipal') ? 'checked' : ''}> <label for="pl_municipal_${uniqueIdPrefix}">Passe Livre Municipal</label> </div> <div class="checkbox-item"> <input type="checkbox" name="solicitacao" value="Passe Livre Intermunicipal" id="pl_intermunicipal_${uniqueIdPrefix}" ${solicitacoesSalvas.includes('Passe Livre Intermunicipal') ? 'verificado' :''}>
                                     <label for="pl_intermunicipal_${uniqueIdPrefix}">Passe Livre Intermunicipal</label>
                                 </div>
                                 <div class="checkbox-item">
@@ -717,7 +717,7 @@ function gerarVagasTurno(agendamentosTurno, turno,data) {
                     <div class="form-actions-wrapper">
                         <div class="form-group agendado-por">
                             <label>Agendado por:</label>
-                            <input type="text" name="agendadoPor" required class="form-input" maxlength="15" value="${dadosPreenchimento.agendadoPor || ''}">
+                            <input type="text" name="agendadoPor" required class="form-input" maxlength="15" value="${dadosPreenchimento.agendadoPor || ''}" autocomplete="off">
                         </div>
                         <div class="form-buttons">
                             ${estaEditando ? `
@@ -976,11 +976,6 @@ function fecharModalAtestado() {
         document.getElementById('assinaturaInput').value = '';
         document.getElementById('assinaturaNomePrint').textContent = '\u00A0'; 
         document.getElementById('assinaturaFuncaoPrint').textContent = '\u00A0'; 
-        document.getElementById('assinaturaSugestoes').style.display = 'none';
-    } catch (e) {}
-}
+        document.getElementById('assinaturaSugestoe
 
-// --- Funções de Impressão ---
-
-function limparEstadoImpressao() {
-    document.body.classList.remove
+          
