@@ -1,9 +1,12 @@
 /* script.js - [ARCOSAFE RECOVERY BUILD V40.2] */
+/* COMPATIBILIDADE: Ajustado para HTML Apple System UI v1.5 */
 'use strict';
 
 // ============================================
-// 1. CONFIGURAÇÃO DO FIREBASE (CRÍTICA)
+// [BLOCO A] CONFIGURAÇÃO E INICIALIZAÇÃO
 // ============================================
+
+// [ARCOSAFE-FIX] Configuração do Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyDu_n6yDxrSEpv0eCcJDjUIyH4h0UiYx14",
     authDomain: "caps-libia.firebaseapp.com",
@@ -13,6 +16,7 @@ const firebaseConfig = {
     appId: "1:164764567114:web:2701ed4a861492c0e388b3"
 };
 
+// [ARCOSAFE-FIX] Inicialização do serviço
 let database;
 try {
     if (typeof firebase !== 'undefined') {
@@ -20,54 +24,26 @@ try {
             firebase.initializeApp(firebaseConfig);
         }
         database = firebase.database();
-        console.log("🛡️ ARCOSAFE: Firebase conectado com sucesso.");
+        console.log("Firebase inicializado com sucesso.");
     } else {
-        console.warn("⚠️ ARCOSAFE: SDK Firebase não encontrado. Operando em modo Local.");
+        console.warn("SDK Firebase não detectado. Modo Offline.");
     }
 } catch (e) {
-    console.error("❌ Erro fatal Firebase:", e);
+    console.error("Erro crítico Firebase:", e);
 }
 
 // ============================================
-// 2. CONSTANTES E DADOS DO SISTEMA
+// 1. CONSTANTES E DADOS ESTÁTICOS
 // ============================================
 const VAGAS_POR_TURNO = 8;
-const meses = [
+const MESES = [
     'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
 ];
-const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-
-// Lista Integral de Profissionais (Preservação Estrita)
-const PROFISSIONAIS_LISTA = [
-    { nome: "ALESSANDRA OLIVEIRA MONTALVAO DA CRUZ", funcao: "ASSISTENTE ADMINISTRATIVO" },
-    { nome: "ANDRESSA RIBEIRO LEAL", funcao: "ENFERMEIRO" },
-    { nome: "CAROLINE OLIVEIRA LEDO", funcao: "ASSISTENTE SOCIAL" },
-    { nome: "DENISE CORREA DOS SANTOS", funcao: "MEDICO" },
-    { nome: "DJENTILAME FAMINE SANTOS SANTA RITA", funcao: "PSICOLOGO" },
-    { nome: "ELAINE CRISTINA DA SILVA DOS SANTOS", funcao: "GERENTE DE SERVICOS DE SAUDE" },
-    { nome: "ERICK FROES ALMEIDA", funcao: "COORDENADOR TÉCNICO" },
-    { nome: "GABRIELA BARRETO SANTANA", funcao: "ARTESÃO" },
-    { nome: "HELGA DE OLIVEIRA BRITO", funcao: "FARMACEUTICO" },
-    { nome: "IONARA MARTINS DOS SANTOS", funcao: "TECNICO DE ENFERMAGEM" },
-    { nome: "IRIS SACRAMENTO COSTA", funcao: "TECNICO DE ENFERMAGEM" },
-    { nome: "JOSILDA MARIA DA SILVA FAGUNDES", funcao: "FARMACEUTICO" },
-    { nome: "LEILANE DA SILVA DIAS", funcao: "ENFERMEIRO" },
-    { nome: "LORENA MOREIRA SILVA SANTOS", funcao: "TERAPEUTA OCUPACIONAL" },
-    { nome: "MAIRA PASSOS SANTANA", funcao: "PSICOLOGO" },
-    { nome: "MARCIA REGINA REBELLO DE CASTRO MACHADO", funcao: "ASSISTENTE SOCIAL" },
-    { nome: "NICOLLE SANTOS SOUSA", funcao: "ASSISTENTE ADMINISTRATIVO" },
-    { nome: "ROSANA ALVES DA SILVA DOS SANTOS", funcao: "ASSISTENTE SOCIAL" },
-    { nome: "ROSEMERI OLIVEIRA DE JESUS PEREIRA", funcao: "TECNICO DE ENFERMAGEM" },
-    { nome: "SAMARA BASTOS BARRETO", funcao: "PSICOLOGO" },
-    { nome: "SANDRA MARCIA DA SILVA OLIVEIRA", funcao: "ENFERMEIRO" },
-    { nome: "DJENTILÂME FAMINÉ SANTA RITA", funcao: "PSICOLOGO" },
-    { nome: "VINICIUS CORREIA CAVALCANTI DANTAS", funcao: "PSICOLOGO CLINICO" },
-    { nome: "VINICIUS PEDREIRA ALMEIDA SANTOS", funcao: "MEDICO PSIQUIATRA" }
-];
+const DIAS_SEMANA = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
 
 // ============================================
-// 3. VARIÁVEIS DE ESTADO GLOBAL
+// 2. VARIÁVEIS DE ESTADO GLOBAL
 // ============================================
 let mesAtual = new Date().getMonth();
 let anoAtual = new Date().getFullYear();
@@ -75,40 +51,31 @@ let dataSelecionada = null;
 
 let agendamentos = {};
 let diasBloqueados = {};
-let feriadosDesbloqueados = {};
 let pacientes = [];
 let pacientesGlobais = [];
 
 let turnoAtivo = 'manha';
 let slotEmEdicao = null;
-let justificativaEmEdicao = null;
-let confirmAction = null;
-let tentativaSenha = 1;
+let confirmAction = null; 
 
-// Referências de UI que serão usadas nos próximos blocos
-console.log("🛡️ BLOCO A Carregado: Estado Global Pronto.");
 // ============================================
-// 4. SISTEMA DE NOTIFICAÇÃO (TOAST)
+// 3. SISTEMA DE NOTIFICAÇÃO (TOAST)
 // ============================================
-
 function mostrarNotificacao(mensagem, tipo = 'info') {
-    const container = document.getElementById('floating-notifications');
-    if (!container) return;
-
+    const container = document.getElementById('floating-notifications') || criarContainerNotificacao();
     const notif = document.createElement('div');
     notif.className = `floating-notification ${tipo}`;
     
-    // Mapeamento de ícones conforme style.css
+    // Ícones baseados no tipo
     let icon = '';
     if (tipo === 'success') icon = '<i class="bi bi-check-circle-fill"></i> ';
     if (tipo === 'warning') icon = '<i class="bi bi-exclamation-triangle-fill"></i> ';
     if (tipo === 'danger') icon = '<i class="bi bi-x-circle-fill"></i> ';
-    if (tipo === 'info') icon = '<i class="bi bi-info-circle-fill"></i> ';
-
+    
     notif.innerHTML = `${icon}${mensagem}`;
     container.appendChild(notif);
-
-    // Timing de animação iOS-style
+    
+    // Animação e Remoção
     setTimeout(() => {
         notif.style.opacity = '0';
         notif.style.transform = 'translateX(100%)';
@@ -116,463 +83,639 @@ function mostrarNotificacao(mensagem, tipo = 'info') {
     }, 4000);
 }
 
-// ============================================
-// 5. LÓGICA DE LOGIN E SEGURANÇA
-// ============================================
+function criarContainerNotificacao() {
+    const div = document.createElement('div');
+    div.id = 'floating-notifications';
+    document.body.appendChild(div);
+    return div;
+}
 
+// ============================================
+// 4. LÓGICA DE LOGIN
+// ============================================
 function inicializarLogin() {
-    console.log('🛡️ ARCOSAFE: Verificando integridade da sessão...');
-    try {
-        if (sessionStorage.getItem('usuarioLogado') === 'true') {
-            document.body.classList.add('logged-in');
-            inicializarApp();
-        } else {
-            configurarEventListenersLogin();
-        }
-    } catch (e) {
-        console.error('❌ Erro crítico no login:', e);
+    if (sessionStorage.getItem('usuarioLogado') === 'true') {
+        document.body.classList.add('logged-in');
+        inicializarApp();
+    } else {
+        configurarEventListenersLogin();
     }
 }
 
 function configurarEventListenersLogin() {
-    const loginButton = document.getElementById('loginButton');
-    const loginSenhaInput = document.getElementById('loginSenha');
+    const btn = document.getElementById('loginButton');
+    const inputSenha = document.getElementById('loginSenha');
     
-    if (loginButton) {
-        // Safe-cloning para evitar duplicação de eventos em re-inicializações
-        const novoBotao = loginButton.cloneNode(true);
-        loginButton.parentNode.replaceChild(novoBotao, loginButton);
-        novoBotao.addEventListener('click', (e) => {
-            e.preventDefault();
-            tentarLogin();
-        });
-    }
-    
-    if (loginSenhaInput) {
-        loginSenhaInput.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                tentarLogin();
-            }
-        });
-    }
+    if (btn) btn.addEventListener('click', tentarLogin);
+    if (inputSenha) inputSenha.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') tentarLogin();
+    });
 }
 
 function tentarLogin() {
-    const usuarioInput = document.getElementById('loginUsuario');
-    const senhaInput = document.getElementById('loginSenha');
-    const errorMessage = document.getElementById('loginErrorMessage');
-
-    const usuario = usuarioInput ? usuarioInput.value : '';
-    const senha = senhaInput ? senhaInput.value : '';
+    const usuario = document.getElementById('loginUsuario').value;
+    const senha = document.getElementById('loginSenha').value;
+    const errorMsg = document.getElementById('loginErrorMessage');
 
     if (usuario === '0000' && senha === '0000') {
         sessionStorage.setItem('usuarioLogado', 'true');
-        if (errorMessage) errorMessage.classList.add('hidden');
         document.body.classList.add('logged-in');
-        mostrarNotificacao("Bem-vindo ao CAPS ia Liberdade", "success");
+        if (errorMsg) errorMsg.classList.add('hidden');
         inicializarApp();
     } else {
-        if (errorMessage) {
-            errorMessage.textContent = 'Credenciais incorretas.';
-            errorMessage.classList.remove('hidden');
+        if (errorMsg) {
+            errorMsg.textContent = 'Usuário ou senha incorretos.';
+            errorMsg.classList.remove('hidden');
         }
     }
 }
 
 // ============================================
-// 6. INICIALIZAÇÃO DA APLICAÇÃO (CORE SYNC)
+// 5. INICIALIZAÇÃO DA APP
 // ============================================
-
 function inicializarApp() {
-    console.log('🛡️ ARCOSAFE: Sincronizando Base de Dados...');
-
-    // 1. Carregamento Imediato do Cache Local (Evita "Calendário Sumido")
-    const cacheAgenda = localStorage.getItem('agenda_completa_final');
-    const cachePacientes = localStorage.getItem('pacientes_dados');
-    const cacheBloqueios = localStorage.getItem('dias_bloqueados');
-
-    if (cacheAgenda) agendamentos = JSON.parse(cacheAgenda);
-    if (cachePacientes) {
-        pacientesGlobais = JSON.parse(cachePacientes);
-        pacientes = [...pacientesGlobais];
-    }
-    if (cacheBloqueios) diasBloqueados = JSON.parse(cacheBloqueios);
-
-    // 2. Renderização Visual Inicial (Failsafe)
-    atualizarCalendario();
-    verificarDadosCarregados();
-
-    // 3. Conexão Realtime Firebase (Se disponível)
-    if (database) {
-        // Sincronia de Agendamentos
-        database.ref('agendamentos').on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                agendamentos = data;
-                localStorage.setItem('agenda_completa_final', JSON.stringify(agendamentos));
-                // Refresh da UI reativo
-                atualizarCalendario();
-                if (dataSelecionada) exibirAgendamentos(dataSelecionada);
-                verificarDadosCarregados();
-            }
-        });
-
-        // Sincronia de Bloqueios
-        database.ref('dias_bloqueados').on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                diasBloqueados = data;
-                localStorage.setItem('dias_bloqueados', JSON.stringify(diasBloqueados));
-                atualizarCalendario();
-            }
-        });
-
-        // Sincronia de Pacientes
-        database.ref('pacientes').on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                pacientesGlobais = Array.isArray(data) ? data : Object.values(data);
-                pacientes = [...pacientesGlobais];
-                localStorage.setItem('pacientes_dados', JSON.stringify(pacientesGlobais));
-                verificarDadosCarregados();
-            }
-        });
-    }
-
-    // 4. Ativação de Listeners da Interface
-    configurarEventListenersApp();
-    configurarBuscaGlobalAutocomplete();
-    configurarAutocompleteAssinatura();
-}
-
-function verificarDadosCarregados() {
-    const indicator = document.getElementById('dataLoadedIndicator');
-    const text = document.getElementById('indicatorText');
-    if (!indicator || !text) return;
-
-    const temDados = Object.keys(agendamentos).length > 0;
-
-    if (temDados) {
-        indicator.className = 'data-loaded-indicator loaded animate-highlight';
-        text.textContent = "Base Conectada";
-    } else {
-        indicator.className = 'data-loaded-indicator not-loaded';
-        text.textContent = "Base Vazia / Offline";
-    }
-}
-// ============================================
-// 7. NAVEGAÇÃO DO CALENDÁRIO
-// ============================================
-
-function configurarEventListenersApp() {
-    const btnHoje = document.getElementById('btnHoje');
-    if (btnHoje) btnHoje.addEventListener('click', goToToday);
-
-    const btnMesAnterior = document.getElementById('btnMesAnterior');
-    if (btnMesAnterior) btnMesAnterior.addEventListener('click', voltarMes);
-
-    const btnProximoMes = document.getElementById('btnProximoMes');
-    if (btnProximoMes) btnProximoMes.addEventListener('click', avancarMes);
+    console.log('Iniciando ARCOSAFE V40.2...');
     
-    // Listener para o botão de limpeza (com modal de senha)
-    const btnConfirmClear = document.getElementById('btnConfirmClearData');
-    if (btnConfirmClear) {
-        btnConfirmClear.addEventListener('click', executarLimpezaTotal);
+    // Recuperar dados locais (Cache)
+    try {
+        agendamentos = JSON.parse(localStorage.getItem('agenda_completa_final')) || {};
+        diasBloqueados = JSON.parse(localStorage.getItem('dias_bloqueados')) || {};
+        // Tenta carregar pacientes do arquivo default se existir, senão localStorage
+        if (typeof PACIENTES_DEFAULT !== 'undefined') {
+             pacientesGlobais = PACIENTES_DEFAULT;
+        } else {
+             pacientesGlobais = JSON.parse(localStorage.getItem('pacientes_dados')) || [];
+        }
+    } catch (e) { console.error("Erro ao carregar cache", e); }
+
+    // Listeners Firebase
+    if (database) {
+        database.ref('agendamentos').on('value', snap => {
+            if (snap.val()) {
+                agendamentos = snap.val();
+                localStorage.setItem('agenda_completa_final', JSON.stringify(agendamentos));
+                atualizarInterfaceGlobal();
+            }
+        });
+        database.ref('dias_bloqueados').on('value', snap => {
+            if (snap.val()) {
+                diasBloqueados = snap.val();
+                localStorage.setItem('dias_bloqueados', JSON.stringify(diasBloqueados));
+                atualizarInterfaceGlobal();
+            }
+        });
     }
+
+    configurarNavegacao();
+    atualizarCalendario();
+    
+    // Inicializar listeners extras
+    const btnBackup = document.getElementById('btnBackup');
+    if (btnBackup) btnBackup.addEventListener('click', fazerBackupLocal);
+    
+    const btnLimpar = document.getElementById('btnLimparDados');
+    if (btnLimpar) btnLimpar.addEventListener('click', () => {
+        document.getElementById('clearDataModal').style.display = 'flex';
+    });
+
+    // Configurar busca global
+    configurarBuscaGlobal();
 }
 
-function goToToday() {
-    const hoje = new Date();
-    mesAtual = hoje.getMonth();
-    anoAtual = hoje.getFullYear();
+function atualizarInterfaceGlobal() {
     atualizarCalendario();
-    const dataFmt = hoje.toISOString().split('T')[0];
-    selecionarDia(dataFmt);
-}
-
-function voltarMes() {
-    mesAtual--;
-    if (mesAtual < 0) {
-        mesAtual = 11;
-        anoAtual--;
-    }
-    atualizarCalendario();
-}
-
-function avancarMes() {
-    mesAtual++;
-    if (mesAtual > 11) {
-        mesAtual = 0;
-        anoAtual++;
-    }
-    atualizarCalendario();
+    if (dataSelecionada) exibirAgendamentos(dataSelecionada);
 }
 
 // ============================================
-// 8. RENDERIZAÇÃO DO CALENDÁRIO (FIX VISUAL)
+// 6. NAVEGAÇÃO E CALENDÁRIO (CORREÇÃO CRÍTICA)
 // ============================================
+
+function configurarNavegacao() {
+    document.getElementById('btnMesAnterior').addEventListener('click', () => {
+        mesAtual--;
+        if (mesAtual < 0) { mesAtual = 11; anoAtual--; }
+        atualizarCalendario();
+    });
+    
+    document.getElementById('btnProximoMes').addEventListener('click', () => {
+        mesAtual++;
+        if (mesAtual > 11) { mesAtual = 0; anoAtual++; }
+        atualizarCalendario();
+    });
+
+    document.getElementById('btnHoje').addEventListener('click', () => {
+        const hoje = new Date();
+        mesAtual = hoje.getMonth();
+        anoAtual = hoje.getFullYear();
+        atualizarCalendario();
+        pularParaAgendamento(hoje.toISOString().split('T')[0]);
+    });
+}
 
 function atualizarCalendario() {
-    const container = document.getElementById('calendarContainer');
-    const displayMesAno = document.getElementById('mesAno');
-    if (!container || !displayMesAno) return;
+    const calendarContainer = document.getElementById('calendarContainer');
+    // [FIX] Conectar com o ID correto do HTML que você mandou
+    const titleDisplay = document.getElementById('mesAno'); 
+    
+    if (!calendarContainer || !titleDisplay) return;
 
-    // Atualiza o Título (ex: Janeiro 2026)
-    displayMesAno.textContent = `${meses[mesAtual]} ${anoAtual}`;
+    // [FIX] Garantir que o container tenha a classe do Grid CSS
+    calendarContainer.className = 'calendar-grid'; 
 
-    // Limpa o container e cria a Grade
-    container.innerHTML = '';
-    const grid = document.createElement('div');
-    grid.className = 'calendar-grid';
+    titleDisplay.textContent = `${MESES[mesAtual]} ${anoAtual}`;
+    calendarContainer.innerHTML = '';
 
-    // 1. Adiciona Cabeçalhos dos Dias da Semana
-    diasSemana.forEach(dia => {
+    // Cabeçalho dos dias da semana
+    DIAS_SEMANA.forEach(dia => {
         const header = document.createElement('div');
         header.className = 'weekday';
-        header.textContent = dia;
-        grid.appendChild(header);
+        header.textContent = dia.substring(0, 3);
+        calendarContainer.appendChild(header);
     });
 
-    // 2. Cálculos de Datas
-    const primeiroDiaMes = new Date(anoAtual, mesAtual, 1).getDay();
-    const diasNoMes = new Date(anoAtual, mesAtual + 1, 0).getDate();
+    const firstDay = new Date(anoAtual, mesAtual, 1).getDay();
+    const daysInMonth = new Date(anoAtual, mesAtual + 1, 0).getDate();
 
-    // 3. Espaços vazios (Início do mês)
-    for (let i = 0; i < primeiroDiaMes; i++) {
+    // Dias vazios
+    for (let i = 0; i < firstDay; i++) {
         const empty = document.createElement('div');
         empty.className = 'day empty';
-        grid.appendChild(empty);
+        calendarContainer.appendChild(empty);
     }
 
-    // 4. Renderização dos Dias
+    // Dias reais
     const hoje = new Date();
-    const hojeISO = hoje.toISOString().split('T')[0];
+    const hojeStr = hoje.toISOString().split('T')[0];
 
-    for (let dia = 1; dia <= diasNoMes; dia++) {
-        const diaEl = document.createElement('div');
-        diaEl.className = 'day';
+    for (let i = 1; i <= daysInMonth; i++) {
+        const div = document.createElement('div');
+        div.className = 'day';
         
-        const dataISO = `${anoAtual}-${String(mesAtual + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
-        diaEl.textContent = dia;
-        diaEl.dataset.date = dataISO;
-
-        // Estilização baseada em estados
-        if (dataISO === hojeISO) diaEl.classList.add('today');
-        if (dataISO === dataSelecionada) diaEl.classList.add('selected');
+        const mesFmt = (mesAtual + 1).toString().padStart(2, '0');
+        const diaFmt = i.toString().padStart(2, '0');
+        const dataFull = `${anoAtual}-${mesFmt}-${diaFmt}`;
         
-        // Fim de semana (Sábado=6, Domingo=0)
-        const dataObj = new Date(anoAtual, mesAtual, dia);
-        if (dataObj.getDay() === 0 || dataObj.getDay() === 6) diaEl.classList.add('weekend');
+        div.textContent = i;
+        div.setAttribute('data-date', dataFull);
 
-        // Indicadores de Conteúdo
-        if (agendamentos[dataISO]) {
-            const temManha = agendamentos[dataISO].manha?.length > 0;
-            const temTarde = agendamentos[dataISO].tarde?.length > 0;
-            if (temManha || temTarde) diaEl.classList.add('day-has-appointments');
+        // Verifica Fim de Semana
+        const diaSemana = new Date(anoAtual, mesAtual, i).getDay();
+        if (diaSemana === 0 || diaSemana === 6) {
+            div.classList.add('weekend');
         }
 
-        if (diasBloqueados[dataISO]) diaEl.classList.add('blocked-day');
+        // Verifica Hoje
+        if (dataFull === hojeStr) div.classList.add('today');
 
-        // Evento de Clique
-        diaEl.addEventListener('click', () => selecionarDia(dataISO));
-        grid.appendChild(diaEl);
+        // Verifica Seleção
+        if (dataSelecionada === dataFull) div.classList.add('selected');
+
+        // Verifica Bloqueios
+        if (diasBloqueados[dataFull]) {
+            const b = diasBloqueados[dataFull];
+            if (b.diaInteiro) div.classList.add('blocked-day');
+            else if (b.manha) div.classList.add('blocked-morning');
+            else if (b.tarde) div.classList.add('blocked-afternoon');
+        }
+
+        // Indicador de Agendamento (Bolinha)
+        if (agendamentos[dataFull]) {
+            const qtd = (agendamentos[dataFull].manha?.length || 0) + (agendamentos[dataFull].tarde?.length || 0);
+            if (qtd > 0) div.classList.add('day-has-appointments');
+        }
+
+        div.addEventListener('click', () => selecionarDia(dataFull, div));
+        calendarContainer.appendChild(div);
     }
-
-    container.appendChild(grid);
 }
 
-function selecionarDia(data) {
-    dataSelecionada = data;
+function selecionarDia(data, el) {
+    document.querySelectorAll('.day.selected').forEach(d => d.classList.remove('selected'));
+    if (el) el.classList.add('selected');
+    else {
+        const domEl = document.querySelector(`.day[data-date="${data}"]`);
+        if (domEl) domEl.classList.add('selected');
+    }
     
-    // Atualiza visual no calendário
-    document.querySelectorAll('.day').forEach(el => {
-        el.classList.toggle('selected', el.dataset.date === data);
-    });
-
+    dataSelecionada = data;
     exibirAgendamentos(data);
 }
 
 // ============================================
-// 9. DASHBOARD DE AGENDAMENTOS (DIREITA)
+// 7. DASHBOARD E AGENDAMENTOS
 // ============================================
-
 function exibirAgendamentos(data) {
     const container = document.getElementById('appointmentsContainer');
     if (!container) return;
 
-    // Formatação da data para o cabeçalho
     const [ano, mes, dia] = data.split('-').map(Number);
     const dataObj = new Date(ano, mes - 1, dia);
-    const dataExtenso = dataObj.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
-
-    const agendamentosDia = agendamentos[data] || { manha: [], tarde: [] };
+    const dataFmt = dataObj.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+    
+    const dadosDia = agendamentos[data] || { manha: [], tarde: [] };
     const bloqueio = diasBloqueados[data];
 
-    // Se o dia estiver bloqueado totalmente
+    // Verifica bloqueio total
     if (bloqueio && bloqueio.diaInteiro) {
-        container.innerHTML = `
-            <div class="glass-card blocked-state">
-                <i class="bi bi-lock-fill blocked-icon"></i>
-                <h3>Dia Bloqueado</h3>
-                <p>Motivo: ${bloqueio.motivo}</p>
-                <button class="btn btn-secondary" onclick="removerBloqueio('${data}')">Desbloquear</button>
-            </div>
-        `;
+        container.innerHTML = criarTemplateBloqueio(dataFmt, bloqueio.motivo, data);
+        document.getElementById('btnDesbloquearDia').addEventListener('click', () => removerBloqueio(data));
         return;
     }
 
-    // Renderização do Painel Ativo
-    container.innerHTML = `
+    // Calcula ocupação
+    const ocupadosManha = dadosDia.manha ? dadosDia.manha.length : 0;
+    const ocupadosTarde = dadosDia.tarde ? dadosDia.tarde.length : 0;
+    const percent = Math.round(((ocupadosManha + ocupadosTarde) / 16) * 100);
+
+    // Template Principal
+    let html = `
         <div class="appointment-header">
-            <span class="appointment-title">${dataExtenso.toUpperCase()}</span>
+            <h2 class="appointment-title">${dataFmt}</h2>
             <div class="header-actions">
-                <button class="btn btn-secondary btn-sm" onclick="imprimirDia('${data}')">
-                    <i class="bi bi-printer"></i> Imprimir
-                </button>
-                <button class="btn-icon btn-lock" onclick="abrirModalBloqueio('${data}')">
-                    <i class="bi bi-lock"></i>
-                </button>
+                <button class="btn btn-secondary btn-sm" onclick="window.print()">Imprimir</button>
+                <button class="btn-icon btn-lock" onclick="abrirModalBloqueio('${data}')" title="Bloquear Dia"><i class="bi bi-lock-fill"></i></button>
             </div>
         </div>
+        <div class="glass-card" style="border-top-left-radius: 0; border-top-right-radius: 0; border-top: none;">
+            <div class="card-content">
+                <div class="dashboard-stats-grid">
+                     <div class="stats-card-mini">
+                        <h4><span>Manhã</span> <i class="bi bi-sun"></i></h4>
+                        <div class="stats-value-big val-primary">${ocupadosManha}/8</div>
+                     </div>
+                     <div class="stats-card-mini">
+                        <h4><span>Tarde</span> <i class="bi bi-moon-stars"></i></h4>
+                        <div class="stats-value-big val-primary" style="color: var(--color-afternoon)">${ocupadosTarde}/8</div>
+                     </div>
+                     <div class="stats-card-mini">
+                        <h4><span>Total</span> <i class="bi bi-pie-chart"></i></h4>
+                        <div class="stats-value-big">${percent}%</div>
+                     </div>
+                </div>
 
-        <div class="tabs">
-            <button class="tab-btn manha ${turnoAtivo === 'manha' ? 'active' : ''}" onclick="alternarTurno('manha')">Manhã</button>
-            <button class="tab-btn tarde ${turnoAtivo === 'tarde' ? 'active' : ''}" onclick="alternarTurno('tarde')">Tarde</button>
-        </div>
+                <div class="tabs">
+                    <button class="tab-btn manha ${turnoAtivo === 'manha' ? 'active' : ''}" onclick="mudarTurno('manha')">Manhã</button>
+                    <button class="tab-btn tarde ${turnoAtivo === 'tarde' ? 'active' : ''}" onclick="mudarTurno('tarde')">Tarde</button>
+                </div>
 
-        <div id="turno-manha" class="turno-content ${turnoAtivo === 'manha' ? 'active' : ''}">
-            ${gerarVagasTurno(agendamentosDia.manha, 'manha', data)}
-        </div>
-        <div id="turno-tarde" class="turno-content ${turnoAtivo === 'tarde' ? 'active' : ''}">
-            ${gerarVagasTurno(agendamentosDia.tarde, 'tarde', data)}
+                <div id="conteudo-turno">
+                    ${gerarGridVagas(dadosDia, turnoAtivo, data)}
+                </div>
+            </div>
         </div>
     `;
+    
+    container.innerHTML = html;
+    
+    // Reinicializa autocompletes
+    document.querySelectorAll('.vaga-form').forEach(configurarAutocomplete);
 }
 
-function alternarTurno(turno) {
+function mudarTurno(turno) {
     turnoAtivo = turno;
+    // Recarrega apenas o grid para não perder o contexto
     if (dataSelecionada) exibirAgendamentos(dataSelecionada);
 }
 
-function gerarVagasTurno(lista, turno, data) {
+function gerarGridVagas(dadosDia, turno, data) {
+    const lista = dadosDia[turno] || [];
     let html = '<div class="vagas-grid">';
+    
     for (let i = 1; i <= VAGAS_POR_TURNO; i++) {
-        const agendamento = lista ? lista.find(a => a.vaga === i) : null;
-        const estaEditando = slotEmEdicao && slotEmEdicao.vaga === i && slotEmEdicao.turno === turno;
+        const agendamento = lista.find(a => a.vaga === i);
+        const isEditing = slotEmEdicao && slotEmEdicao.vaga === i && slotEmEdicao.turno === turno && slotEmEdicao.data === data;
+        
+        // Classes dinâmicas
+        let classes = `vaga-card ${turno} `;
+        if (agendamento) classes += 'ocupada ';
+        if (isEditing) classes += 'editing ';
+        if (agendamento && agendamento.status) classes += `status-${agendamento.status.toLowerCase()} `;
+        if (agendamento && agendamento.primeiraConsulta) classes += 'primeira-consulta ';
 
+        html += `<div id="card-${turno}-${i}" class="${classes}">`;
+        
+        // Header do Card
         html += `
-            <div class="vaga-card ${agendamento ? 'ocupada' : ''} ${estaEditando ? 'editing' : ''}" id="card-${data}-${turno}-${i}">
-                <div class="vaga-header ${turno}">
-                    Vaga ${i} ${agendamento ? '- Ocupada' : '- Disponível'}
-                </div>
-                <div class="vaga-content">
-                    ${agendamento && !estaEditando ? 
-                        `<div class="agendamento-info">
-                            <span class="paciente-nome">${agendamento.nome}</span>
-                            <span class="paciente-numero-value">Prontuário: ${agendamento.numero}</span>
-                            <div class="agendamento-acoes">
-                                <button class="btn btn-edit btn-sm" onclick="iniciarEdicao('${data}', '${turno}', ${i})">Editar</button>
-                                <button class="btn btn-danger btn-sm" onclick="cancelarAgendamento('${data}', '${turno}', ${i})">Excluir</button>
-                            </div>
-                        </div>` : 
-                        `<form class="vaga-form" onsubmit="salvarAgendamento(event, '${data}', '${turno}', ${i})">
-                            <div class="form-row">
-                                <div class="form-group numero">
-                                    <label>Prontuário</label>
-                                    <input type="text" name="numero" class="form-input" required value="${agendamento?.numero || ''}">
-                                </div>
-                                <div class="form-group">
-                                    <label>Nome do Paciente</label>
-                                    <input type="text" name="nome" class="form-input" required value="${agendamento?.nome || ''}">
-                                </div>
-                            </div>
-                            <div class="form-buttons">
-                                <button type="submit" class="btn btn-success btn-sm ${turno}">Salvar</button>
-                                ${estaEditando ? `<button type="button" class="btn btn-secondary btn-sm" onclick="cancelarEdicao()">Cancelar</button>` : ''}
-                            </div>
-                        </form>`
-                    }
-                </div>
+            <div class="vaga-header ${turno}">
+                <div>Vaga ${i} ${agendamento && !isEditing ? '<i class="bi bi-check-circle-fill"></i>' : ''}</div>
+                ${agendamento && !isEditing ? `<span class="status-tag status-${agendamento.status.toLowerCase()}">${agendamento.status}</span>` : ''}
             </div>
+            <div class="vaga-content">
         `;
+
+        // Conteúdo
+        if (agendamento && !isEditing) {
+            html += `
+                <div class="agendamento-info">
+                    <div class="paciente-header">
+                        <div class="paciente-nome">${agendamento.nome}</div>
+                        <span class="paciente-numero-value">${agendamento.numero}</span>
+                    </div>
+                    ${agendamento.primeiraConsulta ? '<span class="primeira-consulta-tag">Primeira Consulta</span>' : ''}
+                    
+                    <div class="status-buttons-container">
+                        <button class="btn-status ${agendamento.status === 'Compareceu' ? 'active' : ''}" 
+                            onclick="atualizarStatus('${data}', '${turno}', ${i}, 'Compareceu')">Compareceu</button>
+                        <button class="btn-status ${agendamento.status === 'Faltou' ? 'active' : ''}" 
+                            onclick="atualizarStatus('${data}', '${turno}', ${i}, 'Faltou')">Faltou</button>
+                    </div>
+
+                    <div class="agendamento-acoes">
+                        <button class="btn-edit" onclick="editarAgendamento('${data}', '${turno}', ${i})">
+                            <i class="bi bi-pencil-square"></i> Editar
+                        </button>
+                        <button class="btn-cancel-appointment" onclick="confirmarExclusao('${data}', '${turno}', ${i})">
+                            Excluir
+                        </button>
+                    </div>
+                </div>
+            `;
+        } else {
+            // Formulário
+            const vals = isEditing ? agendamento : {};
+            html += `
+                <form class="vaga-form" onsubmit="salvarAgendamento(event, '${data}', '${turno}', ${i})">
+                    <div class="form-content-wrapper">
+                        <div class="form-row">
+                            <div class="form-group numero autocomplete-container">
+                                <label>Prontuário</label>
+                                <input type="text" name="numero" class="form-input" required value="${vals.numero || ''}" autocomplete="off">
+                                <div class="sugestoes-lista"></div>
+                            </div>
+                            <div class="form-group full-width autocomplete-container">
+                                <label>Nome do Paciente</label>
+                                <input type="text" name="nome" class="form-input" required value="${vals.nome || ''}" autocomplete="off">
+                                <div class="sugestoes-lista"></div>
+                            </div>
+                        </div>
+                        <div class="form-group-checkbox-single">
+                             <input type="checkbox" name="primeiraConsulta" id="pc-${turno}-${i}" ${vals.primeiraConsulta ? 'checked' : ''}>
+                             <label for="pc-${turno}-${i}">É primeira consulta?</label>
+                        </div>
+                    </div>
+                    <div class="form-buttons">
+                        ${isEditing ? `<button type="button" class="btn btn-secondary ${turno}" onclick="cancelarEdicao('${data}')">Cancelar</button>` : ''}
+                        <button type="submit" class="btn btn-success ${turno}">${isEditing ? 'Salvar' : 'Agendar'}</button>
+                    </div>
+                </form>
+            `;
+        }
+        html += `</div></div>`; // fecha content e card
     }
     html += '</div>';
     return html;
 }
 
-// ============================================
-// 10. LÓGICA DE PERSISTÊNCIA E EDIÇÃO
-// ============================================
-
-function iniciarEdicao(data, turno, vaga) {
-    slotEmEdicao = { data, turno, vaga };
-    exibirAgendamentos(data);
+function criarTemplateBloqueio(dataFmt, motivo, data) {
+    return `
+        <div class="glass-card blocked-state">
+            <i class="bi bi-lock-fill blocked-icon"></i>
+            <h3>Dia Bloqueado: ${dataFmt}</h3>
+            <p>Motivo: ${motivo}</p>
+            <button id="btnDesbloquearDia" class="btn btn-danger">Desbloquear Dia</button>
+        </div>
+    `;
 }
 
-function cancelarEdicao() {
-    slotEmEdicao = null;
-    if (dataSelecionada) exibirAgendamentos(dataSelecionada);
-}
+// ============================================
+// 8. MANIPULAÇÃO DE DADOS (CRUD)
+// ============================================
 
-function salvarAgendamento(event, data, turno, vaga) {
-    event.preventDefault();
-    const formData = new FormData(event.target);
+function salvarAgendamento(e, data, turno, vaga) {
+    e.preventDefault();
+    const formData = new FormData(e.target);
     const novo = {
         vaga: vaga,
         nome: formData.get('nome').toUpperCase(),
         numero: formData.get('numero'),
-        status: 'Agendado'
+        primeiraConsulta: formData.get('primeiraConsulta') === 'on',
+        status: 'Aguardando',
+        timestamp: Date.now()
     };
 
     if (!agendamentos[data]) agendamentos[data] = { manha: [], tarde: [] };
-    
-    // Remove se já existir (Update)
+    if (!agendamentos[data][turno]) agendamentos[data][turno] = [];
+
+    // Remove anterior se for edição
     agendamentos[data][turno] = agendamentos[data][turno].filter(a => a.vaga !== vaga);
+    
+    // Adiciona novo
     agendamentos[data][turno].push(novo);
 
-    // Salva no Firebase e Local
-    if (database) database.ref(`agendamentos/${data}`).set(agendamentos[data]);
-    localStorage.setItem('agenda_completa_final', JSON.stringify(agendamentos));
-
+    salvarNoFirebase();
     slotEmEdicao = null;
-    mostrarNotificacao("Agendamento atualizado", "success");
+    mostrarNotificacao("Agendamento salvo!", "success");
     exibirAgendamentos(data);
     atualizarCalendario();
 }
 
-function cancelarAgendamento(data, turno, vaga) {
-    if (confirm("Deseja realmente excluir este agendamento?")) {
+function atualizarStatus(data, turno, vaga, novoStatus) {
+    const turnoArr = agendamentos[data][turno];
+    const idx = turnoArr.findIndex(a => a.vaga === vaga);
+    if (idx !== -1) {
+        turnoArr[idx].status = novoStatus;
+        salvarNoFirebase();
+        exibirAgendamentos(data); // Re-renderiza para atualizar UI
+    }
+}
+
+function editarAgendamento(data, turno, vaga) {
+    slotEmEdicao = { data, turno, vaga };
+    exibirAgendamentos(data);
+}
+
+function cancelarEdicao(data) {
+    slotEmEdicao = null;
+    exibirAgendamentos(data);
+}
+
+function confirmarExclusao(data, turno, vaga) {
+    if(confirm("Deseja realmente excluir este agendamento?")) {
         agendamentos[data][turno] = agendamentos[data][turno].filter(a => a.vaga !== vaga);
-        if (database) database.ref(`agendamentos/${data}`).set(agendamentos[data]);
-        localStorage.setItem('agenda_completa_final', JSON.stringify(agendamentos));
-        mostrarNotificacao("Agendamento removido", "warning");
+        salvarNoFirebase();
+        mostrarNotificacao("Excluído com sucesso.", "warning");
         exibirAgendamentos(data);
         atualizarCalendario();
     }
 }
 
-// ============================================
-// 11. BOOTSTRAP FINAL
-// ============================================
-
-document.addEventListener('DOMContentLoaded', () => {
-    // Inicializa o sistema de login (que por sua vez chama inicializarApp)
-    inicializarLogin();
-});
-
-// Funções de Autocomplete (Placeholders funcionais)
-function configurarBuscaGlobalAutocomplete() {}
-function configurarAutocompleteAssinatura() {}
-function executarLimpezaTotal() {
-    const pass = document.getElementById('clearDataPassword')?.value;
-    if (pass === '0000') {
-        if(confirm("CERTEZA ABSOLUTA? Isso apagará tudo no Firebase.")) {
-            if(database) database.ref('/').remove();
-            localStorage.clear();
-            location.reload();
-        }
-    } else {
-        alert("Senha de segurança incorreta.");
+function salvarNoFirebase() {
+    localStorage.setItem('agenda_completa_final', JSON.stringify(agendamentos));
+    if (database) {
+        database.ref('agendamentos').set(agendamentos);
     }
 }
+
+// ============================================
+// 9. FUNÇÕES DE BLOQUEIO
+// ============================================
+function abrirModalBloqueio(data) {
+    const motivo = prompt("Motivo do bloqueio (ex: Feriado):");
+    if (motivo) {
+        diasBloqueados[data] = { diaInteiro: true, motivo: motivo };
+        if (database) database.ref('dias_bloqueados').set(diasBloqueados);
+        localStorage.setItem('dias_bloqueados', JSON.stringify(diasBloqueados));
+        
+        mostrarNotificacao("Dia bloqueado.", "success");
+        atualizarCalendario();
+        exibirAgendamentos(data);
+    }
+}
+
+function removerBloqueio(data) {
+    if (confirm("Desbloquear este dia?")) {
+        delete diasBloqueados[data];
+        if (database) database.ref('dias_bloqueados').set(diasBloqueados);
+        localStorage.setItem('dias_bloqueados', JSON.stringify(diasBloqueados));
+        
+        mostrarNotificacao("Dia desbloqueado.", "success");
+        atualizarCalendario();
+        exibirAgendamentos(data);
+    }
+}
+
+// ============================================
+// 10. UTILITÁRIOS E HELPERS
+// ============================================
+
+function pularParaAgendamento(data) {
+    // Garante que o calendário está no mês certo
+    const [ano, mes, dia] = data.split('-').map(Number);
+    mesAtual = mes - 1;
+    anoAtual = ano;
+    atualizarCalendario();
+    
+    // Seleciona visualmente
+    setTimeout(() => {
+        const diaEl = document.querySelector(`.day[data-date="${data}"]`);
+        if (diaEl) {
+            diaEl.click();
+            diaEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, 100);
+}
+
+function fazerBackupLocal() {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(agendamentos));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", "backup_agenda_" + new Date().toISOString() + ".json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+    mostrarNotificacao("Backup baixado com sucesso!", "success");
+}
+
+function configurarBuscaGlobal() {
+    const input = document.getElementById('globalSearchInput');
+    const container = document.getElementById('searchResultsContainer');
+    const sugestoes = document.getElementById('globalSugestoesLista');
+
+    if (!input) return;
+
+    input.addEventListener('input', (e) => {
+        const termo = e.target.value.toLowerCase();
+        if (termo.length < 2) {
+            container.innerHTML = '';
+            sugestoes.style.display = 'none';
+            return;
+        }
+
+        // Busca em todos os agendamentos
+        const resultados = [];
+        Object.keys(agendamentos).forEach(data => {
+            ['manha', 'tarde'].forEach(turno => {
+                if (agendamentos[data][turno]) {
+                    agendamentos[data][turno].forEach(ag => {
+                        if (ag.nome.toLowerCase().includes(termo) || ag.numero.includes(termo)) {
+                            resultados.push({ ...ag, data, turno });
+                        }
+                    });
+                }
+            });
+        });
+
+        // Renderiza resultados
+        if (resultados.length > 0) {
+            let html = '<ul class="vaga-lista">';
+            resultados.forEach(res => {
+                const dataFmt = res.data.split('-').reverse().join('/');
+                html += `
+                    <li class="search-result-item">
+                        <div class="result-info">
+                            <strong>${res.nome}</strong>
+                            <span>${dataFmt} - ${res.turno}</span>
+                            <span class="status-tag status-${res.status.toLowerCase()}">${res.status}</span>
+                        </div>
+                        <button class="btn-jump" onclick="pularParaAgendamento('${res.data}')">Ir</button>
+                    </li>
+                `;
+            });
+            html += '</ul>';
+            container.innerHTML = html;
+            container.classList.remove('hidden');
+        } else {
+            container.innerHTML = '<p class="search-feedback">Nenhum resultado encontrado.</p>';
+        }
+    });
+}
+
+function configurarAutocomplete(form) {
+    const inputNome = form.querySelector('input[name="nome"]');
+    const divSugestoes = inputNome.parentNode.querySelector('.sugestoes-lista');
+
+    inputNome.addEventListener('input', () => {
+        const val = inputNome.value.toUpperCase();
+        if (val.length < 2) {
+            divSugestoes.style.display = 'none';
+            return;
+        }
+
+        const matches = pacientesGlobais.filter(p => p.Nome.toUpperCase().includes(val)).slice(0, 5);
+        
+        if (matches.length > 0) {
+            divSugestoes.innerHTML = matches.map(p => `
+                <div class="sugestao-item" onclick="preencherForm('${p.Nome}', '${p.Prontuario}', this)">
+                    <strong>${p.Nome}</strong>
+                    <small>Prontuário: ${p.Prontuario}</small>
+                </div>
+            `).join('');
+            divSugestoes.style.display = 'block';
+        } else {
+            divSugestoes.style.display = 'none';
+        }
+    });
+}
+
+// Função global para o onclick do HTML gerado dinamicamente
+window.preencherForm = function(nome, prontuario, el) {
+    const form = el.closest('form');
+    form.querySelector('input[name="nome"]').value = nome;
+    form.querySelector('input[name="numero"]').value = prontuario;
+    el.parentNode.style.display = 'none';
+};
+
+// ============================================
+// BOOTSTRAP
+// ============================================
+document.addEventListener('DOMContentLoaded', () => {
+    // Inicia verificando login
+    inicializarLogin();
+    
+    // Listener para limpar modal de dados
+    document.getElementById('btnConfirmClearData')?.addEventListener('click', () => {
+        const senha = document.getElementById('clearDataPassword').value;
+        if (senha === '0000') {
+            localStorage.clear();
+            location.reload();
+        } else {
+            document.getElementById('clearDataError').classList.remove('hidden');
+            document.getElementById('clearDataError').textContent = "Senha incorreta";
+        }
+    });
+    
+    document.getElementById('btnCancelClearData')?.addEventListener('click', () => {
+        document.getElementById('clearDataModal').style.display = 'none';
+    });
+});
